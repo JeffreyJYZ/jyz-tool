@@ -21,14 +21,52 @@ const PROGRAM: &str = "jyz";
 /// How long one capability call may take before the child is killed.
 const CALL_TIMEOUT: Duration = Duration::from_secs(30);
 
-#[cfg(unix)]
-fn program() -> String {
-	linux_process::resolve()
+/// The directory that may hold a sibling `jyz` binary, taken from `current_exe()`.
+fn sibling_dir() -> Option<std::path::PathBuf> {
+	std::env::current_exe()
+		.ok()?
+		.parent()
+		.map(|dir| dir.to_path_buf())
 }
 
-#[cfg(not(unix))]
+/// The name the installer gives the sidecar on this platform.
+fn sidecar_name() -> &'static str {
+	if cfg!(windows) {
+		"jyz.exe"
+	} else {
+		"jyz"
+	}
+}
+
+/// A `jyz` sitting beside the running executable, if one is there.
+fn sibling_candidate(dir: &std::path::Path) -> Option<String> {
+	let candidate = dir.join(sidecar_name());
+	if candidate.is_file() {
+		Some(candidate.display().to_string())
+	} else {
+		None
+	}
+}
+
+/// Resolve the CLI to run: a sibling sidecar wins over `PATH` and the Linux fallbacks.
+fn resolve_program(sibling: Option<&std::path::Path>) -> String {
+	if let Some(dir) = sibling {
+		if let Some(found) = sibling_candidate(dir) {
+			return found;
+		}
+	}
+	#[cfg(unix)]
+	{
+		linux_process::resolve()
+	}
+	#[cfg(not(unix))]
+	{
+		PROGRAM.to_string()
+	}
+}
+
 fn program() -> String {
-	PROGRAM.to_string()
+	resolve_program(sibling_dir().as_deref())
 }
 
 /// One capability call: `method` names a capability, `params` is its JSON object as text.
@@ -82,6 +120,36 @@ fn jyz_version() -> Result<String, String> {
 		Err(format!("{PROGRAM} --version exited with {}", output.status))
 	} else {
 		Err(stderr)
+	}
+}
+
+/// Allowlisted subcommands for `jyz oc`.
+fn oc_allowed(subcommand: &str) -> bool {
+	matches!(subcommand, "sessions" | "prompt")
+}
+
+/// Drive a running opencode server through the CLI: `jyz oc <args...>`.
+#[tauri::command]
+fn jyz_oc(args: Vec<String>) -> Result<String, String> {
+	let subcommand = args.first().map(|value| value.as_str()).unwrap_or("");
+	if !oc_allowed(subcommand) {
+		return Err(format!("jyz oc: disallowed subcommand {subcommand:?}"));
+	}
+	let output = Command::new(program())
+		.arg("oc")
+		.args(&args)
+		.stdin(Stdio::null())
+		.output()
+		.map_err(|error| format!("could not run {PROGRAM} oc: {error}"))?;
+	if output.status.success() {
+		Ok(String::from_utf8_lossy(&output.stdout).trim().to_string())
+	} else {
+		let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
+		if stderr.is_empty() {
+			Err(format!("{PROGRAM} oc exited with {}", output.status))
+		} else {
+			Err(stderr)
+		}
 	}
 }
 
@@ -222,7 +290,8 @@ pub fn run() {
 		.invoke_handler(tauri::generate_handler![
 			jyz_call,
 			jyz_version,
-			jyz_capabilities
+			jyz_capabilities,
+			jyz_oc
 		])
 		.run(tauri::generate_context!())
 		.expect("error while running the jyz desktop shell");
@@ -256,5 +325,24 @@ mod tests {
 	#[test]
 	fn control_characters_are_escaped() {
 		assert!(json_string("\u{1}").contains("\\u0001"));
+	}
+
+	#[test]
+	fn oc_allowlist_accepts_sessions_and_prompt() {
+		assert!(oc_allowed("sessions"));
+		assert!(oc_allowed("prompt"));
+		assert!(!oc_allowed("foo"));
+		assert!(!oc_allowed(""));
+	}
+
+	#[test]
+	fn sibling_wins_over_path() {
+		let base = std::env::temp_dir().join("jyz-sibling-test");
+		let _ = std::fs::remove_dir_all(&base);
+		std::fs::create_dir_all(&base).unwrap();
+		std::fs::write(base.join(sidecar_name()), b"").unwrap();
+		let resolved = resolve_program(Some(&base));
+		assert_eq!(resolved, base.join(sidecar_name()).display().to_string());
+		let _ = std::fs::remove_dir_all(&base);
 	}
 }

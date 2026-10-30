@@ -4,3 +4,4 @@ node_modules/
 dist/
 target/
 packages/desktop/src-tauri/gen/
+packages/desktop/src-tauri/binaries/

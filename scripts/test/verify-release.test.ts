@@ -10,10 +10,23 @@ function assets(names: string[]) {
 test("happy path", () => {
 	const names = [
 		`core-${VERSION}.tgz`,
+		`mcp-${VERSION}.tgz`,
 		...PLATFORMS.map((p) => `cli-${VERSION}-${p}`),
+		...PLATFORMS.map((p) => `mcp-${VERSION}-${p}`),
 		...PLATFORMS.map((p) => `desktop-${VERSION}-${p}.dmg`),
 	];
 	expect(checkAssets(assets(names), VERSION)).toEqual([]);
+});
+
+test("missing mcp package", () => {
+	const names = [
+		`core-${VERSION}.tgz`,
+		...PLATFORMS.map((p) => `cli-${VERSION}-${p}`),
+		...PLATFORMS.map((p) => `desktop-${VERSION}-${p}.dmg`),
+	];
+	const problems = checkAssets(assets(names), VERSION);
+	expect(problems).toContain(`missing mcp-${VERSION}.tgz`);
+	expect(problems).toContain("missing mcp binary");
 });
 
 test("missing cli asset", () => {

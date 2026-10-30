@@ -14,6 +14,7 @@ import {
 	spawnServer,
 } from "../../../core/src/funcs/opencode.ts";
 import { guard } from "../lib/errors.ts";
+import { isJson } from "../lib/output.ts";
 
 /** A fetcher that carries the resolved bearer token, for a server started with one. */
 function fetcherFor(token: string | undefined): typeof fetch {
@@ -42,6 +43,7 @@ function printSessions(sessions: readonly OpencodeSession[]): void {
 
 interface UrlOptions {
 	url?: string;
+	json?: boolean;
 }
 
 interface PromptOptions extends UrlOptions {
@@ -54,9 +56,11 @@ export function registerOc(cli: CAC): void {
 		.command("oc [action] [...text]", "drive a running opencode server")
 		.option("--session <id>", "session to send a prompt to")
 		.option("--url <url>", "server base URL, defaults to $JYZ_OPENCODE_URL")
-		.option("--spawn", "spawn an opencode server first");
+		.option("--spawn", "spawn an opencode server first")
+		.option("--json", "emit machine-readable JSON");
 
 	command.action(async (action: string | undefined, text: string[], options: PromptOptions) => {
+		const json = options?.json === true || isJson();
 		await guard(async () => {
 			let spawned: Awaited<ReturnType<typeof spawnServer>> | undefined;
 			try {
@@ -69,7 +73,15 @@ export function registerOc(cli: CAC): void {
 						: resolveServer({ url: options?.url });
 				switch (action ?? "") {
 					case "sessions": {
-						printSessions(await listSessions(server.baseUrl, fetcherFor(server.token)));
+						const sessions = await listSessions(
+							server.baseUrl,
+							fetcherFor(server.token),
+						);
+						if (json) {
+							console.log(JSON.stringify(sessions));
+							return;
+						}
+						printSessions(sessions);
 						return;
 					}
 					case "prompt": {
@@ -80,6 +92,10 @@ export function registerOc(cli: CAC): void {
 						const body = (text ?? []).join(" ").trim();
 						if (body === "") throw new Error("a prompt is required");
 						await sendPrompt(server.baseUrl, sessionId, body, fetcherFor(server.token));
+						if (json) {
+							console.log(JSON.stringify({ session: sessionId, sent: true }));
+							return;
+						}
 						console.log(`sent to ${sessionId}`);
 						return;
 					}

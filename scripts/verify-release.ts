@@ -7,13 +7,17 @@ export const PLATFORMS = ["darwin-arm64", "darwin-x64", "linux-x64", "windows-x6
 export function checkAssets(assets: { name: string }[], version: string): string[] {
 	const problems: string[] = [];
 	const names = assets.map((a) => a.name);
+	if (!names.includes(`core-${version}.tgz`)) problems.push(`missing core-${version}.tgz`);
+	if (!names.includes(`mcp-${version}.tgz`)) problems.push(`missing mcp-${version}.tgz`);
 	if (!names.some((n) => n.startsWith("cli-"))) problems.push("missing cli asset");
+	if (!names.some((n) => n.startsWith("mcp-") && !n.endsWith(".tgz"))) {
+		problems.push("missing mcp binary");
+	}
 	if (!names.some((n) => n.startsWith("desktop-"))) problems.push("missing desktop asset");
 	for (const platform of PLATFORMS) {
 		if (!names.some((n) => n.includes(platform)))
 			problems.push(`missing platform: ${platform}`);
 	}
-	void version;
 	return problems;
 }
 
@@ -40,7 +44,8 @@ async function main() {
 	let wait = false;
 	const positional: string[] = [];
 	for (let i = 0; i < args.length; i++) {
-		const arg = args[i]!;
+		const arg = args[i];
+		if (arg === undefined) continue;
 		if (arg === "--timeout") {
 			timeout = Number(args[++i]);
 		} else if (arg === "--wait") {

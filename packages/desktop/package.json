@@ -7,7 +7,7 @@
 	"scripts": {
 		"dev": "tauri dev",
 		"icon": "tauri icon app-icon.svg -o src-tauri/icons",
-		"build": "tauri build"
+		"build": "bun scripts/stage-sidecar.ts && tauri build"
 	},
 	"devDependencies": {
 		"@tauri-apps/cli": "^2.12.4"

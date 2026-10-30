@@ -5,8 +5,11 @@ import { $ } from "bun";
 export function nextAlpha(current: string): string {
 	const m = current.match(/^(\d+\.\d+\.\d+)-alpha\.(\d+)$/);
 	if (!m) throw new Error(`not an alpha version: ${current}`);
-	const base = m[1]!;
-	const n = Number(m[2]) + 1;
+	const base = m[1];
+	const count = m[2];
+	if (base === undefined || count === undefined)
+		throw new Error(`not an alpha version: ${current}`);
+	const n = Number(count) + 1;
 	return `${base}-alpha.${n}`;
 }
 
@@ -47,7 +50,10 @@ async function main() {
 	if (dirty) {
 		const paths = dirty
 			.split("\n")
-			.map((l) => l.trim().split(/\s+/).pop()!)
+			.map((line) => {
+				const parts = line.trim().split(/\s+/);
+				return parts[parts.length - 1] ?? "";
+			})
 			.filter(Boolean);
 		console.error(`dirty tree, aborting: ${paths.join(", ")}`);
 		process.exit(1);

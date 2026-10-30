@@ -1,10 +1,25 @@
 {
 	"name": "@jyz/mcp",
 	"version": "0.1.0-alpha.5",
+	"description": "stdio MCP server exposing jyz project tools to AI hosts",
+	"license": "MIT",
 	"private": true,
 	"type": "module",
+	"bin": {
+		"jyz-mcp": "./src/bin.ts"
+	},
+	"engines": {
+		"bun": ">=1.0.0"
+	},
+	"files": [
+		"src/**",
+		"README.md"
+	],
 	"exports": {
 		".": "./src/index.ts"
+	},
+	"publishConfig": {
+		"access": "public"
 	},
 	"dependencies": {
 		"@jyz/core": "workspace:*"

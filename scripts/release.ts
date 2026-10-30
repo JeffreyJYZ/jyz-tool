@@ -18,6 +18,7 @@ const publish = flags.has("--publish");
 const publishOnly = flags.has("--publish-only");
 const noCli = flags.has("--no-cli");
 const noDesktop = flags.has("--no-desktop");
+const noMcp = flags.has("--no-mcp");
 const buildAll = flags.has("--all");
 
 function currentTarget(): string {
@@ -30,8 +31,10 @@ import { buildNotes } from "./release-notes.ts";
 
 const ARTEFACTS = [
 	`- \`core-${VERSION}.tgz\` — the core package source`,
+	`- \`mcp-${VERSION}.tgz\` — the MCP server package source, installable with \`bun add -g\``,
+	`- \`mcp-${VERSION}-<os>-<arch>[.exe]\` — the MCP server as one self-contained binary`,
 	`- \`cli-${VERSION}-<os>-<arch>[.exe]\` — the compiled \`jyz\` binary, self-contained per platform`,
-	`- \`desktop-${VERSION}-<os>-<arch>.<dmg|deb|AppImage|msi|exe>\` — Tauri installers for the shell`,
+	`- \`desktop-${VERSION}-<os>-<arch>.<dmg|deb|AppImage|msi|exe>\` — Tauri installers for the shell, each carrying its own \`jyz\` sidecar`,
 ];
 
 async function buildReleaseNotes(): Promise<string> {
@@ -53,6 +56,15 @@ const notes = await buildReleaseNotes();
 if (!publishOnly) {
 	await rm(OUT, { recursive: true, force: true });
 	await mkdir(OUT, { recursive: true });
+
+	if (!noMcp) {
+		const targets = buildAll ? BUN_TARGETS : [currentTarget()];
+		await $`tar -czf ${OUT}/mcp-${VERSION}.tgz -C packages/mcp .`;
+		for (const target of targets) {
+			const ext = target.startsWith("windows") ? ".exe" : "";
+			await $`bun build --compile --target=bun-${target} packages/mcp/src/bin.ts --outfile ${OUT}/mcp-${VERSION}-${target}${ext}`;
+		}
+	}
 
 	if (!noCli) {
 		const targets = buildAll ? BUN_TARGETS : [currentTarget()];

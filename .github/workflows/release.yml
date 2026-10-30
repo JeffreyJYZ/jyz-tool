@@ -62,6 +62,12 @@ jobs:
             - uses: oven-sh/setup-bun@v2
               with:
                   bun-version: latest
+            - run: bun install --frozen-lockfile
+            - name: Capability manifest gate
+              run: |
+                  bun test packages/desktop/test/parity.test.ts
+                  bun packages/cli/src/bin.ts capabilities --json > /tmp/capabilities.json
+                  bun -e 'const list = await Bun.file("/tmp/capabilities.json").json(); if (!Array.isArray(list) || list.length === 0) { console.error("empty capability manifest"); process.exit(1) } console.log(`manifest: ${list.length} capabilities`)'
             - uses: actions/download-artifact@v4
               with:
                   path: dist/release
