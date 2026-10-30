@@ -45,6 +45,7 @@
 - Gates: `bun run typecheck` (`bun check`), `bun run lint` (`biome check .`), `bun run format:check` (`bun fmt --check`), `bun run test`.
 - Desktop: `bun run --cwd packages/desktop build`; it stages the CLI sidecar (`scripts/stage-sidecar.ts`, output `src-tauri/binaries/jyz-<triple>`, gitignored) then runs `tauri build`. Needs Rust plus Xcode CLT on macOS.
 - Release: `bun run scripts/alpha-release.ts --push` runs the four gates, bumps every manifest, commits, tags and pushes; `--dry-run` shows the version without touching anything. `bun scripts/verify-release.ts` checks the published assets.
+- Updates: the app checks `latest.json` on start and installs on a button press; bundles are signed with `~/.config/jyz/updater.key`, and `bun scripts/updater-manifest.ts` merges the per-platform partials and restamps the version before upload.
 - Machine surfaces: `jyz capabilities [--json]` prints the capability manifest; `jyz serve` speaks JSON-RPC over stdio; `bun scripts/mcp-smoke.ts` walks initialize, tools, resources, watch and cancel against the real MCP server.
 - Perf: `bun scripts/bench.ts --runs 5` prints p50/p95 for `--version`, `config path` and `run`.
 - Desktop walkthrough: `bun scripts/ui-walkthrough.ts` serves `packages/desktop/ui` and drives all three screens in a real browser with the Tauri IPC stubbed; needs `agent-browser` on PATH and exits 2 without it.
