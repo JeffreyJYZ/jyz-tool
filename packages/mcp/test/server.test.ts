@@ -75,12 +75,12 @@ test("initialize handshake reports protocol, tools capability and server info", 
 
 test("initialize falls back to the server protocol for an unknown version", async () => {
 	const [res] = await run([call(1, "initialize", { protocolVersion: "1999-01-01" })]);
-	expect((res?.result ?? {}).protocolVersion).toBe("2025-06-18");
+	expect(res?.result?.protocolVersion).toBe("2025-06-18");
 });
 
 test("tools/list returns every tool with name, description, schema and annotation", async () => {
 	const [res] = await run([call(1, "tools/list")]);
-	const tools = ((res?.result ?? {}).tools ?? []) as Record<string, unknown>[];
+	const tools = (res?.result?.tools ?? []) as Record<string, unknown>[];
 	expect(tools).toHaveLength(listTools().length);
 	expect(tools).toHaveLength(13);
 	for (const tool of tools) {
@@ -115,22 +115,17 @@ test("tools/call runs the handler and returns its result as a text block", async
 });
 
 test("tools/call marks a thrown handler error with isError", async () => {
-	const [res] = await run([
-		call(2, "tools/call", { name: "jyz_config", arguments: { action: "show", filter: 42 } }),
-	]);
-	expect(res?.error).toBeUndefined();
-	const result = res?.result ?? {};
-	expect(result.isError).toBeUndefined();
-	// A handler that cannot resolve a project throws; force that with a bad cwd.
-	const [{ result: thrown }] = await run(
+	// A cwd with no package.json anywhere above makes resolveProject throw.
+	const [res] = await run(
 		[call(3, "tools/call", { name: "jyz_config", arguments: { action: "show" } })],
 		"/nonexistent-jyz-fixture",
 	);
-	const thrownResult = thrown ?? {};
-	expect(thrownResult.isError).toBe(true);
-	const content = (thrownResult.content ?? []) as Record<string, unknown>[];
+	expect(res?.error).toBeUndefined();
+	const result = res?.result ?? {};
+	expect(result.isError).toBe(true);
+	const content = (result.content ?? []) as Record<string, unknown>[];
 	expect(content[0]?.type).toBe("text");
-	expect(String(content[0]?.text).length).toBeGreaterThan(0);
+	expect(String(content[0]?.text)).toContain("no project found");
 });
 
 test("tools/call rejects an unknown tool name", async () => {

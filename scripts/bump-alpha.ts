@@ -5,6 +5,7 @@ const files = [
 	"packages/core/package.json",
 	"packages/cli/package.json",
 	"packages/desktop/package.json",
+	"packages/mcp/package.json",
 	"packages/desktop/src-tauri/tauri.conf.json",
 	"packages/desktop/src-tauri/Cargo.toml",
 ];
