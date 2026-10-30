@@ -73,9 +73,12 @@ describe("registerOc", () => {
 
 	test("oc sessions prints the mapped fixtures", async () => {
 		globalThis.fetch = fakeFetch(() =>
-			Response.json([
-				{ id: "ses_a", title: "fix the parser", time: { updated: 1_700_000_000_000 } },
-			]),
+			Response.json({
+				data: [
+					{ id: "ses_a", title: "fix the parser", time: { updated: 1_700_000_000_000 } },
+				],
+				cursor: {},
+			}),
 		);
 		const logs = captureLogs();
 		const cli = cac("jyz");
@@ -114,7 +117,7 @@ describe("registerOc", () => {
 			logs.restore();
 		}
 
-		expect(path).toBe("/session/ses_a/message");
+		expect(path).toBe("/api/session/ses_a/prompt");
 		expect(logs.lines).toEqual(["sent to ses_a"]);
 	});
 

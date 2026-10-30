@@ -40,9 +40,12 @@ function fakeFetch(handler: (request: Request) => Response): typeof fetch {
 describe("registerOc json", () => {
 	test("oc sessions --json prints compact array", async () => {
 		globalThis.fetch = fakeFetch(() =>
-			Response.json([
-				{ id: "ses_a", title: "fix the parser", time: { updated: 1_700_000_000_000 } },
-			]),
+			Response.json({
+				data: [
+					{ id: "ses_a", title: "fix the parser", time: { updated: 1_700_000_000_000 } },
+				],
+				cursor: {},
+			}),
 		);
 		const logs = captureLogs();
 		const cli = cac("jyz");

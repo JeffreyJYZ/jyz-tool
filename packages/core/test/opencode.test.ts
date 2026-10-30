@@ -79,12 +79,12 @@ describe("listSessions", () => {
 		const seen: string[] = [];
 		const baseUrl = serve((request) => {
 			seen.push(new URL(request.url).pathname);
-			return Response.json(SESSIONS);
+			return Response.json({ data: SESSIONS, cursor: {} });
 		});
 
 		const sessions = await listSessions(baseUrl);
 
-		expect(seen).toEqual(["/session"]);
+		expect(seen).toEqual(["/api/session"]);
 		expect(sessions).toEqual([
 			{
 				id: "ses_a",
@@ -100,7 +100,7 @@ describe("listSessions", () => {
 	});
 
 	test("falls back to the id when a session has no title", async () => {
-		const baseUrl = serve(() => Response.json([{ id: "ses_c" }]));
+		const baseUrl = serve(() => Response.json({ data: [{ id: "ses_c" }], cursor: {} }));
 
 		expect(await listSessions(baseUrl)).toEqual([
 			{ id: "ses_c", title: "ses_c", updatedAt: "" },
@@ -111,7 +111,7 @@ describe("listSessions", () => {
 		let authorization: string | null = null;
 		const baseUrl = serve((request) => {
 			authorization = request.headers.get("authorization");
-			return Response.json([]);
+			return Response.json({ data: [], cursor: {} });
 		});
 
 		await listSessions(baseUrl, fetch, { token: "tok" });
@@ -131,7 +131,7 @@ describe("listSessions", () => {
 
 		expect(caught).toBeInstanceOf(OpencodeError);
 		expect((caught as OpencodeError).status).toBe(500);
-		expect((caught as OpencodeError).url).toBe(`${baseUrl}/session`);
+		expect((caught as OpencodeError).url).toBe(`${baseUrl}/api/session`);
 		expect((caught as OpencodeError).message).toContain("500");
 	});
 
@@ -176,21 +176,24 @@ describe("sendPrompt", () => {
 
 		expect(result).toEqual({ ok: true });
 		expect(method).toBe("POST");
-		expect(path).toBe("/session/ses_a/message");
+		expect(path).toBe("/api/session/ses_a/prompt");
 		expect(contentType ?? "").toBe("application/json");
-		expect(JSON.parse(body)).toEqual({ parts: [{ type: "text", text: "hello world" }] });
+		expect(JSON.parse(body)).toEqual({ text: "hello world" });
 	});
 
 	test("encodes a session id that carries a slash", async () => {
 		let path = "";
 		const baseUrl = serve((request) => {
 			path = new URL(request.url).pathname;
-			return new Response(null, { status: 204 });
+			return new Response(JSON.stringify({}), {
+				status: 200,
+				headers: { "content-type": "application/json" },
+			});
 		});
 
 		await sendPrompt(baseUrl, "a/b", "hi");
 
-		expect(path).toBe("/session/a%2Fb/message");
+		expect(path).toBe("/api/session/a%2Fb/prompt");
 	});
 
 	test("a rejected prompt throws OpencodeError with the status", async () => {

@@ -12,6 +12,7 @@ import {
 	resolveServer,
 	sendPrompt,
 	spawnServer,
+	subscribeEvents,
 } from "../../../core/src/funcs/opencode.ts";
 import { guard } from "../lib/errors.ts";
 import { isJson } from "../lib/output.ts";
@@ -49,6 +50,8 @@ interface UrlOptions {
 interface PromptOptions extends UrlOptions {
 	session?: string;
 	spawn?: boolean;
+	timeout?: string;
+	once?: boolean;
 }
 
 export function registerOc(cli: CAC): void {
@@ -57,7 +60,9 @@ export function registerOc(cli: CAC): void {
 		.option("--session <id>", "session to send a prompt to")
 		.option("--url <url>", "server base URL, defaults to $JYZ_OPENCODE_URL")
 		.option("--spawn", "spawn an opencode server first")
-		.option("--json", "emit machine-readable JSON");
+		.option("--json", "emit machine-readable JSON")
+		.option("--timeout <ms>", "bound the watch duration")
+		.option("--once", "print the first event then exit");
 
 	command.action(async (action: string | undefined, text: string[], options: PromptOptions) => {
 		const json = options?.json === true || isJson();
@@ -99,8 +104,39 @@ export function registerOc(cli: CAC): void {
 						console.log(`sent to ${sessionId}`);
 						return;
 					}
+					case "watch": {
+						const sessionId = options?.session?.trim();
+						const timeoutMs =
+							options?.timeout !== undefined ? Number(options.timeout) : Number.NaN;
+						const controller = new AbortController();
+						let timer: ReturnType<typeof setTimeout> | undefined;
+						if (Number.isFinite(timeoutMs) && timeoutMs > 0) {
+							timer = setTimeout(() => controller.abort(), timeoutMs);
+						}
+						try {
+							const stream = subscribeEvents({
+								baseUrl: server.baseUrl,
+								token: server.token,
+								fetch: globalThis.fetch,
+								sessionID: sessionId === "" ? undefined : sessionId,
+								signal: controller.signal,
+							});
+							for await (const event of stream) {
+								if (json) console.log(JSON.stringify(event));
+								else console.log(`${event.type}  ${event.summary}`);
+								if (options?.once === true) break;
+							}
+						} catch (error) {
+							if (controller.signal.aborted) return;
+							const detail = error instanceof Error ? error.message : String(error);
+							throw new Error(`cannot reach ${server.baseUrl}: ${detail}`);
+						} finally {
+							if (timer !== undefined) clearTimeout(timer);
+						}
+						return;
+					}
 					default: {
-						throw new Error("usage: jyz oc <sessions|prompt> [options]");
+						throw new Error("usage: jyz oc <sessions|prompt|watch> [options]");
 					}
 				}
 			} finally {

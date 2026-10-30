@@ -1,25 +1,20 @@
 /**
  * The opencode client seam: where a running opencode server is, what it holds, and how a prompt
  * reaches it.
- *
- * jyz never spawns opencode and never embeds an SDK. A server is addressed by URL, its session list
- * is read over HTTP, and a prompt is one POST. Keeping the seam this thin means the CLI, the desktop
- * shell and MCP all drive the same three functions instead of three clients.
  */
-/** The address a stock `opencode serve` listens on, used when nothing else names one. */
+import { OpenCode } from "@opencode/client";
+
 export const DEFAULT_OPENCODE_URL = "http://127.0.0.1:4096";
 
 export interface ResolvedServer {
 	baseUrl: string;
 	token?: string;
-	/** Which layer supplied the URL: a flag, `JYZ_OPENCODE_URL`, or the built-in default. */
 	source: "flag" | "env" | "default";
 }
 
 export interface OpencodeSession {
 	id: string;
 	title: string;
-	/** ISO timestamp, or an empty string when the server reports none. */
 	updatedAt: string;
 }
 
@@ -29,13 +24,10 @@ export interface ResolveServerOptions {
 }
 
 export interface OpencodeRequestOptions {
-	/** Sent as a bearer token when the server requires one. */
 	token?: string;
 }
 
-/** Any failure talking to opencode: transport, status or payload shape. */
 export class OpencodeError extends Error {
-	/** The HTTP status when the server answered, absent when it could not be reached. */
 	status?: number;
 	url: string;
 
@@ -47,12 +39,17 @@ export class OpencodeError extends Error {
 	}
 }
 
-/** Failure while starting an opencode server that jyz spawned. */
 export class OpencodeSpawnError extends OpencodeError {
 	constructor(message: string, url: string) {
 		super(message, url);
 		this.name = "OpencodeSpawnError";
 	}
+}
+
+export interface OpencodeEvent {
+	type: string;
+	sessionID: string | null;
+	summary: string;
 }
 
 function trimToNil(value: string | undefined): string | undefined {
@@ -64,10 +61,20 @@ function stripTrailingSlash(url: string): string {
 	return url.replace(/\/+$/, "");
 }
 
-/**
- * Resolves the server address once, flag over env over default, and carries the token alongside it
- * so a caller never re-reads the environment behind this function's back.
- */
+function withUrl(message: string, url: string): string {
+	return message.includes(url) ? message : `${url}: ${message}`;
+}
+
+function statusFromError(error: unknown): number | undefined {
+	const message = error instanceof Error ? error.message : String(error);
+	const match = /UnexpectedStatus:\s*(\d{3})/.exec(message) ?? /(\d{3})/.exec(message);
+	if (match) {
+		const n = Number(match[1]);
+		if (Number.isFinite(n)) return n;
+	}
+	return undefined;
+}
+
 export function resolveServer(opts: ResolveServerOptions = {}): ResolvedServer {
 	const env = opts.env ?? process.env;
 	const flag = trimToNil(opts.url);
@@ -94,35 +101,10 @@ export function resolveServer(opts: ResolveServerOptions = {}): ResolvedServer {
 	return resolved;
 }
 
-function headers(token: string | undefined, json: boolean): Record<string, string> {
+function headers(token: string | undefined): Record<string, string> {
 	const out: Record<string, string> = {};
-	if (json) out["content-type"] = "application/json";
 	if (token !== undefined) out.authorization = `Bearer ${token}`;
 	return out;
-}
-
-/** One request, with transport and status failures normalised into `OpencodeError`. */
-async function request(
-	url: string,
-	what: string,
-	fetcher: typeof fetch,
-	init: RequestInit,
-): Promise<Response> {
-	let response: Response;
-	try {
-		response = await fetcher(url, init);
-	} catch (error) {
-		const detail = error instanceof Error ? error.message : String(error);
-		throw new OpencodeError(`cannot reach ${url}: ${detail}`, url);
-	}
-	if (!response.ok) {
-		const detail =
-			response.statusText === ""
-				? `${response.status}`
-				: `${response.status} ${response.statusText}`;
-		throw new OpencodeError(`${what} failed: ${detail}`, url, response.status);
-	}
-	return response;
 }
 
 function readUpdated(record: Record<string, unknown>): string {
@@ -153,32 +135,51 @@ function toSession(item: unknown, url: string): OpencodeSession {
 	return { id, title, updatedAt: readUpdated(record) };
 }
 
-/**
- * Lists the server's sessions, newest shape tolerated: opencode reports `time.updated` as epoch
- * milliseconds, while a plain `updatedAt` is passed through untouched.
- */
 export async function listSessions(
 	baseUrl: string,
 	fetcher: typeof fetch = fetch,
 	options: OpencodeRequestOptions = {},
 ): Promise<OpencodeSession[]> {
-	const url = `${stripTrailingSlash(baseUrl)}/session`;
-	const response = await request(url, "listing sessions", fetcher, {
-		headers: headers(options.token, false),
+	const url = `${stripTrailingSlash(baseUrl)}/api/session`;
+	let lastStatus: number | undefined;
+	const wrappedFetch: typeof fetch = (async (input, init) => {
+		const response = await fetcher(
+			input as Parameters<typeof fetch>[0],
+			init as Parameters<typeof fetch>[1],
+		);
+		if (!response.ok) lastStatus = response.status;
+		return response;
+	}) as typeof fetch;
+	const client = OpenCode.make({
+		baseUrl: stripTrailingSlash(baseUrl),
+		fetch: wrappedFetch,
+		headers: headers(options.token),
 	});
-	let payload: unknown;
+	let response: unknown;
 	try {
-		payload = await response.json();
-	} catch {
-		throw new OpencodeError(`${url} did not return JSON`, url, response.status);
+		response = await client.session.list({
+			parentID: null,
+			order: "desc",
+			limit: 50,
+		} as unknown as {
+			parentID: null;
+			order: "desc";
+			limit: number;
+		});
+	} catch (error) {
+		throw new OpencodeError(
+			withUrl(error instanceof Error ? error.message : String(error), url),
+			url,
+			lastStatus,
+		);
 	}
-	if (!Array.isArray(payload)) {
-		throw new OpencodeError(`${url} returned ${typeof payload}, expected a session array`, url);
+	const data = (response as { data?: unknown })?.data;
+	if (!Array.isArray(data)) {
+		throw new OpencodeError(`${url} returned ${typeof data}, expected a session array`, url);
 	}
-	return payload.map((item: unknown) => toSession(item, url));
+	return data.map((item: unknown) => toSession(item, url));
 }
 
-/** Posts one user prompt to a session. A 2xx with any body counts as accepted. */
 export async function sendPrompt(
 	baseUrl: string,
 	sessionId: string,
@@ -186,16 +187,92 @@ export async function sendPrompt(
 	fetcher: typeof fetch = fetch,
 	options: OpencodeRequestOptions = {},
 ): Promise<{ ok: true }> {
-	const url = `${stripTrailingSlash(baseUrl)}/session/${encodeURIComponent(sessionId)}/message`;
-	await request(url, "sending prompt", fetcher, {
-		method: "POST",
-		headers: headers(options.token, true),
-		body: JSON.stringify({ parts: [{ type: "text", text }] }),
+	const url = `${stripTrailingSlash(baseUrl)}/api/session/${encodeURIComponent(sessionId)}/prompt`;
+	let lastStatus: number | undefined;
+	const wrappedFetch: typeof fetch = (async (input, init) => {
+		const response = await fetcher(
+			input as Parameters<typeof fetch>[0],
+			init as Parameters<typeof fetch>[1],
+		);
+		if (!response.ok) lastStatus = response.status;
+		return response;
+	}) as typeof fetch;
+	const client = OpenCode.make({
+		baseUrl: stripTrailingSlash(baseUrl),
+		fetch: wrappedFetch,
+		headers: headers(options.token),
 	});
+	try {
+		// The generated SessionPromptInput is a codegen artifact (nested readonly fields), so cast at this seam.
+		await client.session.prompt({ sessionID: sessionId, text } as unknown as {
+			sessionID: string;
+			text: string;
+		});
+	} catch (error) {
+		throw new OpencodeError(
+			withUrl(error instanceof Error ? error.message : String(error), url),
+			url,
+			lastStatus,
+		);
+	}
 	return { ok: true };
 }
 
-// --- spawn mode ---
+export async function* subscribeEvents(options: {
+	baseUrl: string;
+	token?: string;
+	fetch?: typeof fetch;
+	sessionID?: string;
+	signal?: AbortSignal;
+}): AsyncIterable<OpencodeEvent> {
+	const baseUrl = stripTrailingSlash(options.baseUrl);
+	const client = OpenCode.make({
+		baseUrl,
+		fetch: options.fetch ?? fetch,
+		headers: headers(options.token),
+	});
+	const stream = client.event.subscribe({ signal: options.signal } as unknown as {
+		signal?: AbortSignal;
+	});
+	try {
+		for await (const event of stream as AsyncIterable<any>) {
+			const type = typeof event?.type === "string" ? event.type : String(event?.type ?? "");
+			const data = (event?.data ?? {}) as Record<string, unknown>;
+			const sessionID =
+				typeof data.sessionID === "string"
+					? data.sessionID
+					: typeof event?.sessionID === "string"
+						? event.sessionID
+						: null;
+			if (options.sessionID !== undefined && sessionID !== options.sessionID) continue;
+			let summary = type;
+			if (type === "session.tool.called") {
+				const tool =
+					typeof data.tool === "string"
+						? data.tool
+						: typeof data.name === "string"
+							? data.name
+							: typeof data.toolName === "string"
+								? data.toolName
+								: "tool";
+				summary = `tool called: ${tool}`;
+			} else if (type === "session.text.delta") {
+				const delta = typeof data.delta === "string" ? data.delta : "";
+				summary = `text delta: ${delta.length} chars`;
+			} else if (type === "session.idle" || type.endsWith(".idle")) {
+				summary = "idle";
+			}
+			yield { type, sessionID, summary };
+		}
+	} catch (error) {
+		throw new OpencodeError(
+			withUrl(error instanceof Error ? error.message : String(error), baseUrl),
+			baseUrl,
+		);
+	}
+}
+
+// spawn mode kept below unchanged
 
 const spawnedPids = new Set<number>();
 const spawnedProcs = new Map<number, ReturnType<typeof Bun.spawn>>();
@@ -239,9 +316,7 @@ async function waitForReady(baseUrl: string, proc: ReturnType<typeof Bun.spawn>)
 			);
 		}
 		try {
-			const response = await fetch(`${baseUrl}/`, {
-				signal: AbortSignal.timeout(200),
-			});
+			const response = await fetch(`${baseUrl}/`, { signal: AbortSignal.timeout(200) });
 			void response;
 			return;
 		} catch {
@@ -307,7 +382,6 @@ export function spawnedServers(): number[] {
 	return [...spawnedPids];
 }
 
-// kill an unknown PID is a no-op: handled by membership check in stop() and a standalone helper
 export function killSpawned(pid: number): void {
 	const proc = spawnedProcs.get(pid);
 	if (proc === undefined) return;

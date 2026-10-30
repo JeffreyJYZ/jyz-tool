@@ -20,6 +20,17 @@ export {
 	detectTypechecker,
 } from "./funcs/detect.ts";
 export { resolveExecutable, runCommand } from "./funcs/exec.ts";
+export type { OpencodeEvent, OpencodeSession, ResolvedServer } from "./funcs/opencode.ts";
+export {
+	killSpawned,
+	listSessions,
+	OpencodeError,
+	resolveServer,
+	sendPrompt,
+	spawnedServers,
+	spawnServer,
+	subscribeEvents,
+} from "./funcs/opencode.ts";
 export { resolveProject } from "./funcs/project.ts";
 export {
 	buildCheckCommand,
