@@ -30,3 +30,24 @@ export function updateCheckFailed(error: unknown): string {
 	if (error instanceof Error) return error.message;
 	return String(error);
 }
+
+/** Shape a check result into a status line. */
+export function checkStatus(
+	result: { current: string; version: string; notes: string | null } | null,
+): { state: "current" | "available"; text: string } {
+	if (result === null || result.version === result.current) {
+		const version = result === null ? "" : result.current;
+		const text =
+			version === ""
+				? "you are on the newest build"
+				: `you are on the newest build (${version})`;
+		return { state: "current", text };
+	}
+	return { state: "available", text: `update available: ${result.version}` };
+}
+
+/** One-line message for a failed check, never a stack. */
+export function checkFailure(error: unknown): string {
+	if (error instanceof Error) return error.message;
+	return String(error);
+}

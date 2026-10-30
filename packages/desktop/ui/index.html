@@ -201,6 +201,7 @@
 				<button type="button" data-screen="call" class="active">Call</button>
 				<button type="button" data-screen="config">Config</button>
 				<button type="button" data-screen="opencode">opencode</button>
+				<button type="button" data-screen="settings">Settings</button>
 			</nav>
 
 			<section class="screen active" id="screen-call">
@@ -261,6 +262,15 @@
 					<tbody></tbody>
 				</table>
 			</section>
+
+			<section class="screen" id="screen-settings">
+				<div id="settings-version">checking…</div>
+				<div>
+					<button id="settings-check" type="button">Check for updates</button>
+				</div>
+				<div id="settings-status" data-state="idle">idle</div>
+				<div id="settings-offer" hidden></div>
+			</section>
 		</main>
 		<footer id="version">jyz · checking</footer>
 		<script>
@@ -272,7 +282,9 @@
 					.replace(/^\/+/, "")
 					.toLowerCase();
 				const candidate = cleaned.split(/[/?]/)[0] || "";
-				return ["call", "config", "opencode"].includes(candidate) ? candidate : "call";
+				return ["call", "config", "opencode", "settings"].includes(candidate)
+					? candidate
+					: "call";
 			}
 
 			function showScreen(name) {
@@ -283,6 +295,7 @@
 					sec.classList.toggle("active", sec.id === "screen-" + name);
 				}
 				if (name === "config") loadConfig();
+				if (name === "settings") loadSettingsVersion();
 				if (name === "opencode") {
 					loadSessions();
 					startWatch();
@@ -611,6 +624,90 @@
 				});
 				updateBanner.append(btn);
 			}
+
+			const settingsVersion = document.getElementById("settings-version");
+			const settingsStatus = document.getElementById("settings-status");
+			const settingsOffer = document.getElementById("settings-offer");
+			const settingsCheck = document.getElementById("settings-check");
+
+			async function loadSettingsVersion() {
+				if (!invoke) {
+					settingsVersion.textContent =
+						"bridge unavailable: open this page inside the jyz window";
+					return;
+				}
+				try {
+					settingsVersion.textContent = await invoke("jyz_version");
+				} catch (error) {
+					settingsVersion.textContent = `jyz · ${messageOf(error)}`;
+				}
+			}
+
+			function renderSettingsOffer(offer) {
+				if (!offer || typeof offer.version !== "string") return;
+				settingsOffer.hidden = false;
+				settingsOffer.textContent = "";
+				const span = document.createElement("span");
+				span.textContent = `update available: ${offer.version}`;
+				settingsOffer.append(span);
+				if (typeof offer.notes === "string" && offer.notes !== "") {
+					const detail = document.createElement("span");
+					detail.textContent = offer.notes;
+					settingsOffer.append(detail);
+				}
+				const btn = document.createElement("button");
+				btn.type = "button";
+				btn.textContent = "Install";
+				btn.addEventListener("click", async () => {
+					if (!invoke) return;
+					btn.disabled = true;
+					btn.textContent = "installing… the app will restart";
+					try {
+						await invoke("jyz_update_install");
+					} catch (error) {
+						btn.disabled = false;
+						btn.textContent = "Install";
+						settingsOffer.append(
+							Object.assign(document.createElement("span"), {
+								textContent: messageOf(error),
+							}),
+						);
+					}
+				});
+				settingsOffer.append(btn);
+			}
+
+			async function checkSettings() {
+				if (!invoke) {
+					settingsStatus.dataset.state = "error";
+					settingsStatus.textContent =
+						"bridge unavailable: open this page inside the jyz window";
+					return;
+				}
+				settingsCheck.disabled = true;
+				settingsStatus.dataset.state = "idle";
+				settingsStatus.textContent = "checking…";
+				settingsOffer.hidden = true;
+				settingsOffer.textContent = "";
+				try {
+					const offer = await invoke("jyz_update_check");
+					if (offer) {
+						settingsStatus.dataset.state = "ok";
+						settingsStatus.textContent = `update available: ${offer.version}`;
+						renderSettingsOffer(offer);
+						updateBanner.hidden = true;
+					} else {
+						settingsStatus.dataset.state = "ok";
+						settingsStatus.textContent = "you are on the newest build";
+					}
+				} catch (error) {
+					settingsStatus.dataset.state = "error";
+					settingsStatus.textContent = messageOf(error);
+				} finally {
+					settingsCheck.disabled = false;
+				}
+			}
+			settingsCheck.addEventListener("click", checkSettings);
 
 			const footer = document.getElementById("version");
 			// The first render runs last: showScreen reaches the screens' own consts, and a

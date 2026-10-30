@@ -249,6 +249,26 @@ async function main(): Promise<void> {
 			heldState.value === "ses_beta" && heldState.focus === "prompt",
 			`value=${heldState.value} focus=${heldState.focus}`,
 		);
+
+		await browser(session, ["eval", 'document.querySelector(\'[data-screen="settings"]\').click()']);
+		await browser(session, ["eval", 'document.getElementById("settings-check").click()']);
+		const settings = evalJson(
+			await browser(session, [
+				"eval",
+				'new Promise((done) => setTimeout(() => done(JSON.stringify({ version: document.getElementById("settings-version").textContent, status: document.getElementById("settings-status").textContent, offerHidden: document.getElementById("settings-offer").hidden })), 600))',
+			]),
+		);
+		const settingsState =
+			typeof settings === "string" && settings.startsWith("{")
+				? (JSON.parse(settings) as { version: string; status: string; offerHidden: boolean })
+				: { version: "", status: "", offerHidden: true };
+		record(
+			"settings checks for updates on demand",
+			settingsState.version.includes("walkthrough") &&
+				settingsState.status.includes("9.9.9") &&
+				!settingsState.offerHidden,
+			`${settingsState.version} · ${settingsState.status}`,
+		);
 	} finally {
 		await $`agent-browser close`
 			.env({ ...process.env, AGENT_BROWSER_SESSION: session })

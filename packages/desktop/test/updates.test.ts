@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { screenFromHash } from "../src/screens.ts";
-import { describeUpdate, updateCheckFailed } from "../src/updates.ts";
+import { checkFailure, checkStatus, describeUpdate, updateCheckFailed } from "../src/updates.ts";
 
 describe("describeUpdate", () => {
 	test("shapes an offer", () => {
@@ -26,6 +26,30 @@ describe("updateCheckFailed", () => {
 	});
 	test("string is returned", () => {
 		expect(updateCheckFailed("nope")).toBe("nope");
+	});
+});
+
+describe("checkStatus", () => {
+	test("offer is available", () => {
+		expect(checkStatus({ current: "0.1.0", version: "0.2.0", notes: "fixes" })).toEqual({
+			state: "available",
+			text: "update available: 0.2.0",
+		});
+	});
+	test("null is current", () => {
+		expect(checkStatus(null)).toEqual({
+			state: "current",
+			text: "you are on the newest build",
+		});
+	});
+});
+
+describe("checkFailure", () => {
+	test("Error uses message", () => {
+		expect(checkFailure(new Error("boom"))).toBe("boom");
+	});
+	test("string is returned", () => {
+		expect(checkFailure("nope")).toBe("nope");
 	});
 });
 

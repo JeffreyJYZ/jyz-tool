@@ -75,6 +75,7 @@ describe("screenFromHash", () => {
 		expect(screenFromHash("#call")).toBe("call");
 		expect(screenFromHash("#config")).toBe("config");
 		expect(screenFromHash("#opencode")).toBe("opencode");
+		expect(screenFromHash("#settings")).toBe("settings");
 		expect(screenFromHash("")).toBe("call");
 	});
 	test("junk maps to call", () => {
