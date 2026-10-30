@@ -2,7 +2,7 @@
 
 Personal hub for projects: a scaffolder, one config file, and a CLI that behaves as whatever package manager a project already uses. One core powers the CLI, a desktop shell and an MCP server, so the surfaces cannot drift apart.
 
-Version line: `0.1.0-alpha.x`. Latest release: [v0.1.0-alpha.3](https://github.com/JeffreyJYZ/jyz-tool/releases).
+Version line: `0.1.0-alpha.x`. Latest release: [v0.1.0-alpha.5](https://github.com/JeffreyJYZ/jyz-tool/releases).
 
 ## Install
 

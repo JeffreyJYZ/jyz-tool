@@ -1,6 +1,6 @@
 # jyz v1 — milestone report
 
-Date: 2026-10-30. Version line: `0.1.0-alpha.x`, currently `0.1.0-alpha.3`.
+Date: 2026-10-30. Version line: `0.1.0-alpha.x`, currently `0.1.0-alpha.5`.
 
 ## What v1 delivers
 
@@ -26,6 +26,8 @@ Date: 2026-10-30. Version line: `0.1.0-alpha.x`, currently `0.1.0-alpha.3`.
 | `v0.1.0-alpha.1` | published, 12 assets                                                         |
 | `v0.1.0-alpha.2` | published, 12 assets, `verify-release` verdict `ok v0.1.0-alpha.2 12 assets` |
 | `v0.1.0-alpha.3` | published after two failed attempts (below)                                  |
+| `v0.1.0-alpha.4` | published, 12 assets, `ok v0.1.0-alpha.4 12 assets`                          |
+| `v0.1.0-alpha.5` | published, 12 assets, `ok v0.1.0-alpha.5 12 assets`                          |
 
 ## Failures worth remembering
 
