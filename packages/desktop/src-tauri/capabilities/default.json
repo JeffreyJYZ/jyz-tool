@@ -1,7 +1,7 @@
 {
 	"$schema": "../gen/schemas/desktop-schema.json",
 	"identifier": "default",
-	"description": "Default capability set for the jyz shell. Empty on purpose: no command is exposed yet.",
+	"description": "Default capability set for the jyz shell. The bridge commands (jyz_call, jyz_version) need no entry: Tauri 2 allows an app's own commands by default, and this app ships no ACL manifest of its own.",
 	"windows": ["main"],
 	"permissions": ["core:default"]
 }

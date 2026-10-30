@@ -7,34 +7,247 @@
 		<style>
 			:root {
 				color-scheme: dark;
+				--canvas: #0b0b0d;
+				--panel: #111114;
+				--line: #26262c;
+				--ink: #e5e5e5;
+				--muted: #8b8b93;
+				--accent: #6ea8fe;
+			}
+			* {
+				box-sizing: border-box;
 			}
 			body {
 				margin: 0;
 				min-height: 100vh;
-				display: grid;
-				place-content: center;
-				gap: 0.75rem;
-				background: #0b0b0d;
-				color: #e5e5e5;
+				display: flex;
+				flex-direction: column;
+				background: var(--canvas);
+				color: var(--ink);
 				font-family: ui-sans-serif, system-ui, sans-serif;
+				font-size: 0.875rem;
 			}
-			h1 {
-				margin: 0;
-				font-size: 2rem;
-				font-weight: 600;
-				letter-spacing: -0.02em;
+			main {
+				flex: 1;
+				width: 100%;
+				max-width: 62rem;
+				margin: 0 auto;
+				padding: 1.5rem 1.25rem;
+				display: flex;
+				flex-direction: column;
+				gap: 1rem;
 			}
-			p {
-				margin: 0;
+			form {
+				display: grid;
+				grid-template-columns: 12rem 1fr;
+				gap: 0.75rem 1rem;
+				align-items: start;
+			}
+			label {
+				display: flex;
+				flex-direction: column;
+				gap: 0.375rem;
+				font-size: 0.6875rem;
+				letter-spacing: 0.12em;
+				text-transform: uppercase;
+				color: var(--muted);
+			}
+			select,
+			textarea {
+				width: 100%;
+				padding: 0.5rem 0.625rem;
+				border: 1px solid var(--line);
+				border-radius: 6px;
+				background: var(--panel);
+				color: var(--ink);
 				font:
 					0.8125rem/1.5 ui-monospace,
 					monospace;
-				color: #8b8b93;
+			}
+			textarea {
+				min-height: 5.5rem;
+				resize: vertical;
+			}
+			select:focus-visible,
+			textarea:focus-visible,
+			button:focus-visible {
+				outline: 2px solid var(--accent);
+				outline-offset: 2px;
+			}
+			button {
+				grid-column: 2;
+				justify-self: start;
+				padding: 0.5rem 1.25rem;
+				border: 1px solid var(--line);
+				border-radius: 6px;
+				background: var(--panel);
+				color: var(--ink);
+				font: inherit;
+				cursor: pointer;
+			}
+			button:hover:enabled {
+				border-color: var(--accent);
+				color: var(--accent);
+			}
+			button:disabled {
+				opacity: 0.55;
+				cursor: progress;
+			}
+			pre {
+				flex: 1;
+				margin: 0;
+				min-height: 12rem;
+				padding: 0.75rem;
+				overflow: auto;
+				border: 1px solid var(--line);
+				border-radius: 6px;
+				background: var(--panel);
+				color: var(--muted);
+				font:
+					0.8125rem/1.55 ui-monospace,
+					monospace;
+				white-space: pre-wrap;
+				word-break: break-word;
+			}
+			pre[data-state="ok"] {
+				color: var(--ink);
+			}
+			pre[data-state="error"] {
+				color: #f08a8a;
+			}
+			footer {
+				border-top: 1px solid var(--line);
+				padding: 0.625rem 1.25rem;
+				color: var(--muted);
+				font:
+					0.75rem/1.4 ui-monospace,
+					monospace;
+			}
+			@media (max-width: 34rem) {
+				form {
+					grid-template-columns: 1fr;
+				}
+				button {
+					grid-column: 1;
+				}
 			}
 		</style>
 	</head>
 	<body>
-		<h1>jyz</h1>
-		<p>shell only · no capability wired yet</p>
+		<main>
+			<form id="call">
+				<label for="method">method
+					<select id="method" name="method"></select>
+				</label>
+				<label for="params">params
+					<textarea id="params" name="params" spellcheck="false" autocomplete="off">{}</textarea>
+				</label>
+				<button id="run" type="submit">Run</button>
+			</form>
+			<pre id="result" data-state="idle">no call yet</pre>
+		</main>
+		<footer id="version">jyz · checking</footer>
+		<script>
+			// No framework and no bundler: this page talks straight to the two commands in
+			// src-tauri/src/lib.rs. The same shaping lives, tested, in src/bridge.ts.
+			const METHODS = [
+				"config",
+				"create",
+				"install",
+				"add",
+				"remove",
+				"run",
+				"exec",
+				"update",
+				"outdated",
+				"lint",
+				"typecheck",
+				"check",
+				"fmt",
+			];
+			const invoke = globalThis.__TAURI_INTERNALS__?.invoke;
+			const form = document.getElementById("call");
+			const picker = document.getElementById("method");
+			const box = document.getElementById("params");
+			const pane = document.getElementById("result");
+			const button = document.getElementById("run");
+			const footer = document.getElementById("version");
+
+			for (const name of METHODS) {
+				const option = document.createElement("option");
+				option.value = name;
+				option.textContent = name;
+				picker.append(option);
+			}
+			picker.value = "config";
+
+			function show(state, text) {
+				pane.dataset.state = state;
+				pane.textContent = text;
+			}
+
+			function messageOf(error) {
+				return error instanceof Error ? error.message : String(error);
+			}
+
+			function settle(line) {
+				let frame;
+				try {
+					frame = JSON.parse(line);
+				} catch (error) {
+					show("error", `answer is not JSON: ${messageOf(error)}`);
+					return;
+				}
+				if (frame.error) {
+					const code = typeof frame.error.code === "number" ? ` (${frame.error.code})` : "";
+					show("error", `${frame.error.message ?? "the CLI reported an error"}${code}`);
+					return;
+				}
+				try {
+					show("ok", JSON.stringify(frame.result, null, 2));
+				} catch {
+					show("ok", String(frame.result));
+				}
+			}
+
+			form.addEventListener("submit", async (event) => {
+				event.preventDefault();
+				if (!invoke) {
+					show("error", "bridge unavailable: open this page inside the jyz window");
+					return;
+				}
+				const text = box.value.trim();
+				if (text !== "") {
+					try {
+						JSON.parse(text);
+					} catch (error) {
+						show("error", `params is not JSON: ${messageOf(error)}`);
+						return;
+					}
+				}
+				button.disabled = true;
+				show("idle", "running…");
+				try {
+					const line = await invoke("jyz_call", { method: picker.value, params: text });
+					settle(line);
+				} catch (error) {
+					show("error", messageOf(error));
+				} finally {
+					button.disabled = false;
+				}
+			});
+
+			if (!invoke) {
+				footer.textContent = "jyz · bridge unavailable outside the window";
+			} else {
+				invoke("jyz_version")
+					.then((version) => {
+						footer.textContent = version;
+					})
+					.catch((error) => {
+						footer.textContent = `jyz · ${messageOf(error)}`;
+					});
+			}
+		</script>
 	</body>
 </html>
