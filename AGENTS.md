@@ -12,6 +12,11 @@
 - Planning finished 2026-10-30, plan version 1.2. Nothing implemented.
 - M0 is the first thing that can be called done: CI green on macOS, Linux and Windows for `bun install`, `bun check`, `biome check .`, `jyz --version`.
 
+## Identity
+
+- Owner and copyright holder: Yizhou Jiang. GitHub handle `JeffreyJYZ`, email `yizhoujiang11@gmail.com`.
+- Use that name in `LICENSE`, `NOTICE`, `package.json` author and any legal text; never invent a variant.
+
 ## Decisions not to relitigate
 
 - TypeScript on Bun. One `packages/core` behind thin adapters, so CLI, desktop and MCP cannot drift.
