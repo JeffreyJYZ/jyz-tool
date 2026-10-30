@@ -15,6 +15,7 @@ export const CORE_VERBS = [
 	"fmt",
 	"install",
 	"lint",
+	"oc",
 	"outdated",
 	"remove",
 	"rm",

@@ -62,7 +62,25 @@ function requireBin(ctx: ProjectContext, tool: string, configKey: string, bin: s
 	return resolved;
 }
 
-export function buildLintCommand(ctx: ProjectContext, args?: string[]): CommandSpec {
+type PathsInput = string[] | { paths?: string[]; args?: string[] } | undefined;
+
+function splitPaths(input: PathsInput, extra?: string[]): { paths: string[]; extra: string[] } {
+	let paths = ["."];
+	let rest = extra ? [...extra] : [];
+	if (Array.isArray(input)) {
+		if (input.length > 0) paths = [...input];
+	} else if (input && typeof input === "object") {
+		if (Array.isArray(input.paths) && input.paths.length > 0) paths = [...input.paths];
+		if (Array.isArray(input.args)) rest = [...rest, ...input.args];
+	}
+	return { paths, extra: rest };
+}
+
+export function buildLintCommand(
+	ctx: ProjectContext,
+	paths?: PathsInput,
+	extra?: string[],
+): CommandSpec {
 	const linter = ctx.config.project.linter.value;
 	const configKey = "project.linter";
 	if (linter === "none") {
@@ -72,31 +90,31 @@ export function buildLintCommand(ctx: ProjectContext, args?: string[]): CommandS
 			`no linter configured (config key: ${configKey})`,
 		);
 	}
-	const a = args ?? [];
+	const { paths: p, extra: e } = splitPaths(paths, extra);
 	switch (linter) {
 		case "biome": {
 			const bin = requireBin(ctx, "biome", configKey, "biome");
-			return { file: bin, argv: ["check", ".", ...a], cwd: ctx.packageDir };
+			return { file: bin, argv: ["check", ...p, ...e], cwd: ctx.packageDir };
 		}
 		case "eslint": {
 			const bin = requireBin(ctx, "eslint", configKey, "eslint");
-			return { file: bin, argv: [".", ...a], cwd: ctx.packageDir };
+			return { file: bin, argv: [...p, ...e], cwd: ctx.packageDir };
 		}
 		case "bun-lint": {
 			const bin = requireBin(ctx, "bun", configKey, "bun");
-			return { file: bin, argv: ["lint", ...a], cwd: ctx.packageDir };
+			return { file: bin, argv: ["lint", ...e], cwd: ctx.packageDir };
 		}
 		case "cargo-clippy": {
 			const bin = requireBin(ctx, "cargo", configKey, "cargo");
 			return {
 				file: bin,
-				argv: ["clippy", "--", "-D", "warnings", ...a],
+				argv: ["clippy", "--", "-D", "warnings", ...e],
 				cwd: ctx.packageDir,
 			};
 		}
 		case "clang-tidy": {
 			const bin = requireBin(ctx, "clang-tidy", configKey, "clang-tidy");
-			return { file: bin, argv: [".", ...a], cwd: ctx.packageDir };
+			return { file: bin, argv: [...p, ...e], cwd: ctx.packageDir };
 		}
 		default:
 			throw new ToolchainError(
@@ -107,7 +125,11 @@ export function buildLintCommand(ctx: ProjectContext, args?: string[]): CommandS
 	}
 }
 
-export function buildTypecheckCommand(ctx: ProjectContext, args?: string[]): CommandSpec {
+export function buildTypecheckCommand(
+	ctx: ProjectContext,
+	paths?: PathsInput,
+	extra?: string[],
+): CommandSpec {
 	const tc = ctx.config.project.typechecker.value;
 	const configKey = "project.typechecker";
 	if (tc === "none") {
@@ -117,31 +139,31 @@ export function buildTypecheckCommand(ctx: ProjectContext, args?: string[]): Com
 			`no typechecker configured (config key: ${configKey})`,
 		);
 	}
-	const a = args ?? [];
+	const { paths: p, extra: e } = splitPaths(paths, extra);
 	switch (tc) {
 		case "bun-check": {
 			const bin = requireBin(ctx, "bun", configKey, "bun");
-			return { file: bin, argv: ["check", ...a], cwd: ctx.packageDir };
+			return { file: bin, argv: ["check", ...e], cwd: ctx.packageDir };
 		}
 		case "tsc": {
 			const bin = requireBin(ctx, "tsc", configKey, "tsc");
-			return { file: bin, argv: ["--noEmit", ...a], cwd: ctx.packageDir };
+			return { file: bin, argv: ["--noEmit", ...e], cwd: ctx.packageDir };
 		}
 		case "tsgo": {
 			const bin = requireBin(ctx, "tsgo", configKey, "tsgo");
-			return { file: bin, argv: ["--noEmit", ...a], cwd: ctx.packageDir };
+			return { file: bin, argv: ["--noEmit", ...e], cwd: ctx.packageDir };
 		}
 		case "tsrs": {
 			const bin = requireBin(ctx, "tsrs", configKey, "tsrs");
-			return { file: bin, argv: ["--noEmit", ...a], cwd: ctx.packageDir };
+			return { file: bin, argv: ["--noEmit", ...e], cwd: ctx.packageDir };
 		}
 		case "cargo": {
 			const bin = requireBin(ctx, "cargo", configKey, "cargo");
-			return { file: bin, argv: ["check", ...a], cwd: ctx.packageDir };
+			return { file: bin, argv: ["check", ...e], cwd: ctx.packageDir };
 		}
 		case "clang": {
 			const bin = requireBin(ctx, "clang", configKey, "clang");
-			return { file: bin, argv: ["-fsyntax-only", ...a], cwd: ctx.packageDir };
+			return { file: bin, argv: ["-fsyntax-only", ...p, ...e], cwd: ctx.packageDir };
 		}
 		default:
 			throw new ToolchainError(
@@ -157,15 +179,19 @@ export function buildTypecheckCommand(ctx: ProjectContext, args?: string[]): Com
  * `none`; throws `ToolchainError` naming both keys when neither half applies. The order is part
  * of the contract: `jyz check` labels each spec by its position (typecheck, then lint).
  */
-export function buildCheckCommand(ctx: ProjectContext, args?: string[]): CommandSpec[] {
+export function buildCheckCommand(
+	ctx: ProjectContext,
+	paths?: PathsInput,
+	extra?: string[],
+): CommandSpec[] {
 	const tc = ctx.config.project.typechecker.value;
 	const linter = ctx.config.project.linter.value;
 	const specs: CommandSpec[] = [];
 	if (tc !== "none") {
-		specs.push(buildTypecheckCommand(ctx, args));
+		specs.push(buildTypecheckCommand(ctx, paths, extra));
 	}
 	if (linter !== "none") {
-		specs.push(buildLintCommand(ctx));
+		specs.push(buildLintCommand(ctx, paths, extra));
 	}
 	if (specs.length === 0) {
 		throw new ToolchainError(
@@ -179,7 +205,9 @@ export function buildCheckCommand(ctx: ProjectContext, args?: string[]): Command
 
 export function buildFmtCommand(
 	ctx: ProjectContext,
-	{ check }: { check?: boolean } = {},
+	options: { check?: boolean; paths?: string[]; args?: string[] } = {},
+	paths?: PathsInput,
+	extra?: string[],
 ): CommandSpec {
 	const fmt = ctx.config.project.formatter.value;
 	const configKey = "project.formatter";
@@ -190,6 +218,10 @@ export function buildFmtCommand(
 			`no formatter configured (config key: ${configKey})`,
 		);
 	}
+	const merged = splitPaths(paths ?? options.paths ?? options.args, extra);
+	const p = merged.paths;
+	const e = merged.extra;
+	const check = options.check === true;
 	switch (fmt) {
 		case "biome": {
 			const bin = requireBin(ctx, "biome", configKey, "biome");
@@ -207,7 +239,7 @@ export function buildFmtCommand(
 			const bin = requireBin(ctx, "prettier", configKey, "prettier");
 			return {
 				file: bin,
-				argv: check ? ["--check", "."] : ["--write", "."],
+				argv: check ? ["--check", ...p, ...e] : ["--write", ...p, ...e],
 				cwd: ctx.packageDir,
 			};
 		}
@@ -215,7 +247,7 @@ export function buildFmtCommand(
 			const bin = requireBin(ctx, "clang-format", configKey, "clang-format");
 			return {
 				file: bin,
-				argv: check ? ["--dry-run", "--Werror", "."] : ["-i", "."],
+				argv: check ? ["--dry-run", "--Werror", ...p, ...e] : ["-i", ...p, ...e],
 				cwd: ctx.packageDir,
 			};
 		}
