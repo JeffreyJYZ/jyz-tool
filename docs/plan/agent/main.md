@@ -104,6 +104,8 @@ The `docs/` tree exists already and is planned, not incidental:
 
 Each milestone ends at a gate. A gate is a command that fails loudly; prose acceptance does not count.
 
+Status 2026-10-30: M0–M4 shipped, release line `0.1.0-alpha.4`. Gate results live in [../progress/reports/v1-milestone.md](../../progress/reports/v1-milestone.md); what landed after v1 is in [../progress/notes/2026-10-30-post-v1.md](../../progress/notes/2026-10-30-post-v1.md).
+
 ### M0 — Bootstrap
 
 - Bun workspace with `packages/core` and `packages/cli`, root `bunfig.toml` with `[fmt]` (tabs, `tabWidth 4`, `printWidth 100`), `biome.json`, `.gitignore` including `.DS_Store`.
