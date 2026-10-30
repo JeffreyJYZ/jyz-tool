@@ -6,6 +6,7 @@
 	"description": "Tauri desktop shell for jyz.",
 	"scripts": {
 		"dev": "tauri dev",
+		"icon": "tauri icon ../app-icon.svg -o src-tauri/icons",
 		"build": "tauri build"
 	},
 	"devDependencies": {

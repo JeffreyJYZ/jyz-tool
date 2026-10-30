@@ -42,10 +42,9 @@ jobs:
                     libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev
             - uses: dtolnay/rust-toolchain@stable
             - run: bun install --frozen-lockfile
-            - run: bunx tauri icon packages/desktop/app-icon.svg -o packages/desktop/src-tauri/icons
             - name: Build the desktop shell
               working-directory: packages/desktop
-              run: bunx tauri build
+              run: bun run build
             - run: bun run scripts/release.ts --no-cli
             - uses: actions/upload-artifact@v4
               with:

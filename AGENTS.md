@@ -50,5 +50,5 @@
 - Biome installed as 2.6.4, where `rules.recommended` is deprecated in favour of `rules.preset`; run `bunx biome migrate --write` after a bump.
 - One version source: `packages/core/src/const/version.ts` imports `packages/core/package.json`, and the CLI reads it. Bump all four `package.json` files together or the release tag lies.
 - The CLI bin is `packages/cli/src/bin.ts` with a bun shebang, so `bun link` gives a working `jyz` with no build step; compiled binaries come from `bun build --compile`.
-- Tauri icons are generated from `packages/desktop/app-icon.svg` by `bunx tauri icon packages/desktop/app-icon.svg -o packages/desktop/src-tauri/icons`; never hand-edit the derived files.
+- Tauri icons are generated from `packages/desktop/app-icon.svg` by `bun run --cwd packages/desktop icon`; never hand-edit the derived files, and never call `bunx tauri`, which resolves the wrong npm package.
 - Tauri builds only on the matching OS, so desktop installers come from the CI matrix, never from one machine.
