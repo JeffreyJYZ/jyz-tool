@@ -52,3 +52,4 @@
 - The CLI bin is `packages/cli/src/bin.ts` with a bun shebang, so `bun link` gives a working `jyz` with no build step; compiled binaries come from `bun build --compile`.
 - Tauri icons are generated from `packages/desktop/app-icon.svg` by `bun run --cwd packages/desktop icon`; never hand-edit the derived files, and never call `bunx tauri`, which resolves the wrong npm package.
 - Tauri builds only on the matching OS, so desktop installers come from the CI matrix, never from one machine.
+- `.deb` rejects a hyphen in the version and `.msi` requires a numeric pre-release, so bundles are built with `--config '{"version":"0.1.0"}'` while the artefact names and the git tag keep `0.1.0-alpha.1`.
