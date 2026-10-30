@@ -28,6 +28,7 @@ export async function runCommand(
 	const proc = Bun.spawn({
 		cmd: [spec.file, ...spec.argv],
 		cwd: spec.cwd,
+		env: process.env,
 		stdin: "inherit",
 		stdout: pipe ? "pipe" : "inherit",
 		stderr: pipe ? "pipe" : "inherit",

@@ -8,6 +8,8 @@ import {
 	TEMPLATE_PROFILES,
 } from "./defaults.ts";
 import { CreateError } from "./errors.ts";
+import { applyGitSteps, assertGithubReady } from "./git.ts";
+import { installDependencies } from "./install.ts";
 import {
 	collectTemplateFiles,
 	destinationPath,
@@ -51,6 +53,10 @@ export async function createProject(options: CreateOptions, cwd: string): Promis
 	const target = resolve(cwd, opts.dir);
 	await assertUsableTarget(target);
 
+	// Every `github` prerequisite is checked before the first byte lands, so a missing or logged-out
+	// `gh` never leaves a half-created project behind.
+	if (opts.git === "github") await assertGithubReady(cwd);
+
 	const values: Record<string, string> = {
 		__NAME__: opts.name,
 		__VERSION__: DEFAULT_PROJECT_VERSION,
@@ -86,6 +92,13 @@ export async function createProject(options: CreateOptions, cwd: string): Promis
 			`--publishable has no effect on the ${opts.template} template: no JS manifest.`,
 		);
 	}
+
+	// Install before the git steps so `git add -A` stages the lockfile it writes.
+	if (opts.install) {
+		const warning = await installDependencies(target, opts.packageManager);
+		if (warning !== undefined) warnings.push(warning);
+	}
+	await applyGitSteps(target, opts.name, opts.git);
 
 	return { dir: target, files: [...files].sort(), warnings };
 }

@@ -95,6 +95,28 @@ export interface LoadConfigOptions {
 	};
 }
 
+export function findConfigPaths(startDir: string): string[] {
+	const found: string[] = [];
+	let dir = resolve(startDir);
+	for (;;) {
+		const candidate = join(dir, CONFIG_FILENAME);
+		if (existsAsFile(candidate)) found.push(candidate);
+		const parent = dirname(dir);
+		if (parent === dir) return found;
+		dir = parent;
+	}
+}
+
+function mergeConfigFile(base: ConfigFile, over: ConfigFile): ConfigFile {
+	return {
+		project: { ...base.project, ...over.project },
+		aliases: { ...base.aliases, ...over.aliases },
+		scripts: { ...base.scripts, ...over.scripts },
+		create: { ...base.create, ...over.create },
+		monorepo: { ...base.monorepo, ...over.monorepo },
+	};
+}
+
 export function findConfigPath(startDir: string): string | null {
 	let dir = resolve(startDir);
 	for (;;) {
@@ -205,14 +227,16 @@ export function loadConfig(startDir: string, opts: LoadConfigOptions = {}): Reso
 	const warnings: string[] = [];
 	const layers: string[] = [];
 
-	const path = findConfigPath(startDir);
+	const path = findConfigPaths(startDir);
 	let fileConfig: ConfigFile | undefined;
-	if (path !== null) {
-		const read = readConfigFile(path);
-		fileConfig = read.config;
+	for (const layerPath of [...path].reverse()) {
+		const read = readConfigFile(layerPath);
 		warnings.push(...read.warnings);
-		layers.push(path);
+		layers.push(layerPath);
+		fileConfig =
+			fileConfig === undefined ? read.config : mergeConfigFile(fileConfig, read.config);
 	}
+	const nearest = path[0] ?? null;
 	const fileProject = fileConfig?.project;
 
 	const resolved: ResolvedConfig = {
@@ -298,7 +322,7 @@ export function loadConfig(startDir: string, opts: LoadConfigOptions = {}): Reso
 		scripts: { ...DEFAULT_CONFIG.scripts, ...fileConfig?.scripts },
 		create: { ...DEFAULT_CONFIG.create, ...fileConfig?.create },
 		monorepo: { ...DEFAULT_CONFIG.monorepo, ...fileConfig?.monorepo },
-		path,
+		path: nearest,
 		layers,
 		warnings,
 	};

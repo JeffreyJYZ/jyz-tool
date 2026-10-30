@@ -26,17 +26,29 @@ function currentTarget(): string {
 	return key;
 }
 
-const notes = [
-	`jyz ${VERSION}`,
-	"",
-	"First published artefacts. Nothing is implemented beyond the CLI shell and an empty desktop window, so treat this as a packaging proof.",
-	"",
+import { buildNotes } from "./release-notes.ts";
+
+const ARTEFACTS = [
 	`- \`core-${VERSION}.tgz\` — the core package source`,
 	`- \`cli-${VERSION}-<os>-<arch>[.exe]\` — the compiled \`jyz\` binary, self-contained per platform`,
 	`- \`desktop-${VERSION}-<os>-<arch>.<dmg|deb|AppImage|msi|exe>\` — Tauri installers for the shell`,
-	"",
-	"Run `jyz --version` to check the CLI build. The desktop shell opens one empty window; no capability is wired yet.",
-].join("\n");
+];
+
+async function buildReleaseNotes(): Promise<string> {
+	const previous = await $`git describe --tags --abbrev=0 HEAD^`.quiet().nothrow();
+	const range = previous.exitCode === 0 ? `${previous.stdout.toString().trim()}..HEAD` : "HEAD";
+	const log = await $`git log --no-merges --pretty=%s ${range}`.quiet().nothrow();
+	const subjects = log.stdout
+		.toString()
+		.split("\n")
+		.map((line) => line.trim())
+		.filter(Boolean)
+		.map((subject) => ({ subject }));
+	const highlights = buildNotes(subjects).markdown;
+	return [`jyz ${VERSION}`, "", highlights, "", "### Artefacts", "", ...ARTEFACTS].join("\n");
+}
+
+const notes = await buildReleaseNotes();
 
 if (!publishOnly) {
 	await rm(OUT, { recursive: true, force: true });

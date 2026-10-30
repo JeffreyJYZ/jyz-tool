@@ -152,6 +152,11 @@ export function buildTypecheckCommand(ctx: ProjectContext, args?: string[]): Com
 	}
 }
 
+/**
+ * Runs typecheck first and then lint, one spec per applicable half. Skips any half whose tool is
+ * `none`; throws `ToolchainError` naming both keys when neither half applies. The order is part
+ * of the contract: `jyz check` labels each spec by its position (typecheck, then lint).
+ */
 export function buildCheckCommand(ctx: ProjectContext, args?: string[]): CommandSpec[] {
 	const tc = ctx.config.project.typechecker.value;
 	const linter = ctx.config.project.linter.value;
@@ -166,7 +171,7 @@ export function buildCheckCommand(ctx: ProjectContext, args?: string[]): Command
 		throw new ToolchainError(
 			"none",
 			"project.typechecker/project.linter",
-			"nothing to check (config key: project.typechecker, project.linter)",
+			"nothing to check: no typechecker and no linter configured (config keys: project.typechecker, project.linter)",
 		);
 	}
 	return specs;

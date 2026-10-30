@@ -11,7 +11,7 @@
     },
     "packages/cli": {
       "name": "jyz",
-      "version": "0.1.0-alpha.1",
+      "version": "0.1.0-alpha.2",
       "bin": {
         "jyz": "./src/bin.ts",
       },
@@ -22,16 +22,23 @@
     },
     "packages/core": {
       "name": "@jyz/core",
-      "version": "0.1.0-alpha.1",
+      "version": "0.1.0-alpha.2",
       "dependencies": {
         "smol-toml": "^1.9.1",
       },
     },
     "packages/desktop": {
       "name": "@jyz/desktop",
-      "version": "0.1.0-alpha.1",
+      "version": "0.1.0-alpha.2",
       "devDependencies": {
         "@tauri-apps/cli": "^2.12.4",
+      },
+    },
+    "packages/mcp": {
+      "name": "@jyz/mcp",
+      "version": "0.1.0-alpha.2",
+      "dependencies": {
+        "@jyz/core": "workspace:*",
       },
     },
   },
@@ -61,6 +68,8 @@
     "@jyz/core": ["@jyz/core@workspace:packages/core"],
 
     "@jyz/desktop": ["@jyz/desktop@workspace:packages/desktop"],
+
+    "@jyz/mcp": ["@jyz/mcp@workspace:packages/mcp"],
 
     "@tauri-apps/cli": ["@tauri-apps/cli@2.12.4", "", { "optionalDependencies": { "@tauri-apps/cli-darwin-arm64": "2.12.4", "@tauri-apps/cli-darwin-x64": "2.12.4", "@tauri-apps/cli-linux-arm-gnueabihf": "2.12.4", "@tauri-apps/cli-linux-arm64-gnu": "2.12.4", "@tauri-apps/cli-linux-arm64-musl": "2.12.4", "@tauri-apps/cli-linux-riscv64-gnu": "2.12.4", "@tauri-apps/cli-linux-x64-gnu": "2.12.4", "@tauri-apps/cli-linux-x64-musl": "2.12.4", "@tauri-apps/cli-win32-arm64-msvc": "2.12.4", "@tauri-apps/cli-win32-ia32-msvc": "2.12.4", "@tauri-apps/cli-win32-x64-msvc": "2.12.4" }, "bin": { "tauri": "tauri.js" } }, "sha512-JI9bHfudSRJikGOrjbXEm6RjzzvmKuLc+JixB1NE8hNzQkNlCCIC3pTES3uypkR9lxHrsbxzcnSwhI2IxBQphw=="],
 

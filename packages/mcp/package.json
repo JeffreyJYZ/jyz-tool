@@ -1,0 +1,12 @@
+{
+	"name": "@jyz/mcp",
+	"version": "0.1.0-alpha.2",
+	"private": true,
+	"type": "module",
+	"exports": {
+		".": "./src/index.ts"
+	},
+	"dependencies": {
+		"@jyz/core": "workspace:*"
+	}
+}
