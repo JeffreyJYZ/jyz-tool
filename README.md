@@ -26,7 +26,7 @@ jyz outdated
 jyz lint / typecheck / check / fmt
 jyz config show | get <key> | set <key> <value> | path | check --strict
 jyz serve                        # JSON-RPC stdio, the desktop's machine surface
-jyz oc sessions|prompt|watch [--json]   # drive the opencode server jyz talks to
+jyz oc sessions|prompt|watch [--json]   # drive the live opencode server: list, send a prompt into a session, stream events
 ```
 
 Every dispatch verb takes `-F/--filter <name>` in a monorepo and `--verbose` to print the exact argv.

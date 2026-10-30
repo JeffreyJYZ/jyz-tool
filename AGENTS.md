@@ -41,6 +41,7 @@
 
 - `jyz` is linked globally with `bun link` (`~/.bun/install/global/node_modules/jyz` → `packages/cli`), so call `jyz …` from anywhere and edits take effect with no reinstall; never spell out `bun packages/cli/src/bin.ts`.
 - `bun run mcp` (or `bun packages/mcp/src/bin.ts`) runs the MCP server from the checkout; `--cwd <dir>` picks the project.
+- `jyz oc sessions|prompt|watch` finds the live opencode server from `~/.local/state/opencode/service.json` (HTTP Basic), so the desktop panel can list sessions, send a prompt into one, and stream its events — the panel is a chat ingress, not a reader.
 - `bun run jyz` prints help; `jyz --version` prints `jyz/<version> <os>-<arch> bun-v<ver>`.
 - Gates: `bun run typecheck` (`bun check`), `bun run lint` (`biome check .`), `bun run format:check` (`bun fmt --check`), `bun run test`.
 - Desktop: `bun run --cwd packages/desktop build`; it stages the CLI sidecar (`scripts/stage-sidecar.ts`, output `src-tauri/binaries/jyz-<triple>`, gitignored) then runs `tauri build`. Needs Rust plus Xcode CLT on macOS.
