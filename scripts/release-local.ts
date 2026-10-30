@@ -1,5 +1,5 @@
 #!/usr/bin/env bun
-import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import pkg from "../package.json";
@@ -34,6 +34,14 @@ export function requiredAssets(dmgName: string): { name: string }[] {
 		{ name: dmgName },
 		{ name: "latest.json" },
 	];
+}
+
+/** The dmg name the release uploads for this version, or null when the build did not produce one. */
+export function uptodateDmgName(names: string[], version: string): string | null {
+	return (
+		names.find((name) => name.startsWith(`desktop-${version}-`) && name.endsWith(".dmg")) ??
+		null
+	);
 }
 
 /**
@@ -188,6 +196,11 @@ async function main(): Promise<void> {
 	}
 	Bun.spawnSync(["mkdir", "-p", DMG_DIR], { stdio: ["ignore", "ignore", "ignore"] });
 	{
+		// Stale dmgs from earlier versions live here too, and a leftover would be picked up as this
+		// release's installer by any name-based lookup.
+		for (const name of readdirSync(DMG_DIR)) {
+			if (name.endsWith(".dmg")) rmSync(join(DMG_DIR, name), { force: true });
+		}
 		const arch = process.arch === "arm64" ? "aarch64" : "x86_64";
 		const dmgTarget = join(DMG_DIR, `jyz_${version}_${arch}.dmg`);
 		const hr = Bun.spawnSync(
@@ -235,10 +248,15 @@ async function main(): Promise<void> {
 		stdio: ["inherit", "inherit", "inherit"],
 	});
 
+	// The release carries the dist name (`desktop-<version>-<platform>.dmg`), not the bundle name, so
+	// verification has to look where the upload came from or it reports a missing asset forever.
+	const distDir = join(ROOT, "dist", "release");
+	const dmgName =
+		uptodateDmgName(existsSync(distDir) ? readdirSync(distDir) : [], version) ?? null;
 	const dmgFiles = existsSync(DMG_DIR)
 		? readdirSync(DMG_DIR).filter((n) => n.endsWith(".dmg"))
 		: [];
-	const dmgName = dmgFiles.length > 0 ? (dmgFiles[0] ?? null) : null;
+	if (dmgFiles.length === 0) fail(`no dmg in ${DMG_DIR}`);
 	const signature = existsSync(ARCHIVE_SIG) ? readFileSync(ARCHIVE_SIG, "utf8").trim() : "";
 	const archiveMtime = existsSync(ARCHIVE) ? statSync(ARCHIVE).mtimeMs : 0;
 	const appMtime = existsSync(join(BUNDLE, "jyz.app", "Contents", "MacOS", "jyz"))

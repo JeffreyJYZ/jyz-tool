@@ -5,6 +5,7 @@ import {
 	refusals,
 	requiredAssets,
 	signatureVersion,
+	uptodateDmgName,
 } from "../release-local";
 
 describe("expectedTag", () => {
@@ -45,6 +46,25 @@ describe("requiredAssets", () => {
 			"jyz_0.1.0-alpha.10_aarch64.dmg",
 			"latest.json",
 		]);
+	});
+});
+
+describe("uptodateDmgName", () => {
+	test("picks the dist name the release actually uploads", () => {
+		const names = [
+			"desktop-0.1.0-alpha.10-darwin-arm64.dmg",
+			"desktop-0.1.0-alpha.11-darwin-arm64.dmg",
+			"latest.json",
+		];
+		expect(uptodateDmgName(names, "0.1.0-alpha.11")).toBe(
+			"desktop-0.1.0-alpha.11-darwin-arm64.dmg",
+		);
+	});
+
+	test("a stale dmg from the previous version is not this release's", () => {
+		expect(uptodateDmgName(["desktop-0.1.0-alpha.10-darwin-arm64.dmg"], "0.1.0-alpha.11")).toBe(
+			null,
+		);
 	});
 });
 
