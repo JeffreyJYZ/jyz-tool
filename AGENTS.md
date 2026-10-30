@@ -43,7 +43,9 @@
 - `bun run jyz` prints help; `jyz --version` prints `jyz/<version> <os>-<arch> bun-v<ver>`.
 - Gates: `bun run typecheck` (`bun check`), `bun run lint` (`biome check .`), `bun run format:check` (`bun fmt --check`), `bun run test`.
 - Desktop: `cd packages/desktop && bunx tauri build`; needs Rust plus Xcode CLT on macOS.
-- Release: `bun run scripts/release.ts --all --publish` builds `core-`, `cli-` and `desktop-` artefacts into `dist/release` and publishes them to the `v<version>` GitHub release; it is idempotent, `--clobber` on an existing tag.
+- Release: `bun run scripts/alpha-release.ts --push` runs the four gates, bumps every manifest, commits, tags and pushes; `--dry-run` shows the version without touching anything. `bun scripts/verify-release.ts` checks the published assets.
+- Machine surfaces: `jyz capabilities [--json]` prints the capability manifest; `jyz serve` speaks JSON-RPC over stdio; `bun scripts/mcp-smoke.ts` walks initialize, tools, resources, watch and cancel against the real MCP server.
+- Perf: `bun scripts/bench.ts --runs 5` prints p50/p95 for `--version`, `config path` and `run`.
 - CI: `.github/workflows/ci.yml` gates every push; `.github/workflows/release.yml` runs on `v*` tags across macOS, Linux and Windows.
 
 ## Traps
