@@ -3,7 +3,7 @@ import { chmodSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync 
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-const BIN = "/Users/jyz/dev/jyz/packages/cli/src/bin.ts";
+const BIN = join(import.meta.dir, "..", "..", "src", "bin.ts");
 
 function fixture(): string {
 	return mkdtempSync(join(tmpdir(), "jyz-e2e-"));

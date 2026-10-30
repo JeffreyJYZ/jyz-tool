@@ -1,12 +1,9 @@
-import { existsSync } from "node:fs";
-import { join } from "node:path";
 import type { CreateOptions } from "@jyz/core";
 import { createProject } from "@jyz/core";
 import type { CAC } from "cac";
 import { loadConfigAt } from "../lib/context.ts";
 import { guard } from "../lib/errors.ts";
 import { confirm } from "../lib/prompt.ts";
-import { runSpec } from "../lib/run.ts";
 
 interface CreateFlags {
 	template?: string;
@@ -48,9 +45,20 @@ async function runCreate(name: string, flags: CreateFlags): Promise<void> {
 	const cwd = process.cwd();
 	const config = loadConfigAt(cwd);
 
+	let template = flags.template;
+	if (template === undefined) {
+		if (flags.yes === true) {
+			template = config.create.default_template;
+		} else {
+			console.error("jyz: missing required flag --template");
+			process.exitCode = 1;
+			return;
+		}
+	}
+
 	const options: CreateOptions = {
 		name,
-		template: (flags.template ?? config.create.default_template) as CreateOptions["template"],
+		template: template as CreateOptions["template"],
 		dir: flags.dir,
 		packageManager: pickPackageManager(flags.pm) ?? config.create.default_package_manager,
 		typechecker: optional(flags.typechecker) as CreateOptions["typechecker"],
@@ -78,19 +86,10 @@ async function runCreate(name: string, flags: CreateFlags): Promise<void> {
 	console.log(`created ${result.dir}`);
 	for (const file of result.files) console.log(`  ${file}`);
 	for (const warning of result.warnings) console.error(`jyz: warning: ${warning}`);
-
-	if (flags.install !== true) return;
-
-	const manifest = join(result.dir, "package.json");
-	if (!existsSync(manifest)) {
-		console.error("jyz: not installing: the template wrote no package.json");
-		return;
+	for (const warning of result.warnings) {
+		const match = warning.match(/https?:\/\/\S+/);
+		if (match !== null) console.log(match[0]);
 	}
-	const pm = pickPackageManager(flags.pm) ?? config.create.default_package_manager;
-	process.exitCode = await runSpec(
-		{ file: pm, argv: ["install"], cwd: result.dir },
-		{ verbose: flags.verbose },
-	);
 }
 
 function optional(value: string | undefined): string | undefined {
