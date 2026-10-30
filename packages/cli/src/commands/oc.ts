@@ -11,6 +11,7 @@ import {
 	type OpencodeSession,
 	resolveServer,
 	sendPrompt,
+	spawnServer,
 } from "../../../core/src/funcs/opencode.ts";
 import { guard } from "../lib/errors.ts";
 
@@ -45,36 +46,49 @@ interface UrlOptions {
 
 interface PromptOptions extends UrlOptions {
 	session?: string;
+	spawn?: boolean;
 }
 
 export function registerOc(cli: CAC): void {
 	const command = cli
 		.command("oc [action] [...text]", "drive a running opencode server")
 		.option("--session <id>", "session to send a prompt to")
-		.option("--url <url>", "server base URL, defaults to $JYZ_OPENCODE_URL");
+		.option("--url <url>", "server base URL, defaults to $JYZ_OPENCODE_URL")
+		.option("--spawn", "spawn an opencode server first");
 
 	command.action(async (action: string | undefined, text: string[], options: PromptOptions) => {
 		await guard(async () => {
-			const server = resolveServer({ url: options?.url });
-			switch (action ?? "") {
-				case "sessions": {
-					printSessions(await listSessions(server.baseUrl, fetcherFor(server.token)));
-					return;
+			let spawned: Awaited<ReturnType<typeof spawnServer>> | undefined;
+			try {
+				if (options?.spawn) {
+					spawned = await spawnServer({ cwd: process.cwd() });
 				}
-				case "prompt": {
-					const sessionId = options?.session?.trim();
-					if (sessionId === undefined || sessionId === "") {
-						throw new Error("--session <id> is required");
+				const server =
+					spawned !== undefined
+						? resolveServer({ url: spawned.baseUrl })
+						: resolveServer({ url: options?.url });
+				switch (action ?? "") {
+					case "sessions": {
+						printSessions(await listSessions(server.baseUrl, fetcherFor(server.token)));
+						return;
 					}
-					const body = (text ?? []).join(" ").trim();
-					if (body === "") throw new Error("a prompt is required");
-					await sendPrompt(server.baseUrl, sessionId, body, fetcherFor(server.token));
-					console.log(`sent to ${sessionId}`);
-					return;
+					case "prompt": {
+						const sessionId = options?.session?.trim();
+						if (sessionId === undefined || sessionId === "") {
+							throw new Error("--session <id> is required");
+						}
+						const body = (text ?? []).join(" ").trim();
+						if (body === "") throw new Error("a prompt is required");
+						await sendPrompt(server.baseUrl, sessionId, body, fetcherFor(server.token));
+						console.log(`sent to ${sessionId}`);
+						return;
+					}
+					default: {
+						throw new Error("usage: jyz oc <sessions|prompt> [options]");
+					}
 				}
-				default: {
-					throw new Error("usage: jyz oc <sessions|prompt> [options]");
-				}
+			} finally {
+				if (spawned !== undefined) await spawned.stop();
 			}
 		});
 	});

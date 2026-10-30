@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import { existsSync } from "node:fs";
-import { nextAlpha, manifestFiles } from "../alpha-release";
+import { manifestFiles, nextAlpha } from "../alpha-release";
 
 test("nextAlpha bumps", () => {
 	expect(nextAlpha("0.1.0-alpha.1")).toBe("0.1.0-alpha.2");

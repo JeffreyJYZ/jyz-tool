@@ -1,6 +1,5 @@
 #!/usr/bin/env bun
-import { readFileSync } from "node:fs";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { $ } from "bun";
 
 export function nextAlpha(current: string): string {
