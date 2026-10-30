@@ -86,7 +86,7 @@ bun run scripts/verify-release.ts             # check a published release
 ## Docs
 
 - Plan of record: [docs/plan/agent/main.md](docs/plan/agent/main.md)
-- v1 milestone report: [docs/progress/reports/v1-milestone.md](docs/progress/reports/v1-milestone.md)
+- v1 milestone report: [docs/progress/subagent/reports/v1-milestone.md](docs/progress/subagent/reports/v1-milestone.md)
 - Scaffold notes and traps: [docs/progress/notes/](docs/progress/notes/)
 
 ## License

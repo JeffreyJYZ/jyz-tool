@@ -86,7 +86,7 @@ The `docs/` tree exists already and is planned, not incidental:
 - `docs/plan/agent/` holds this plan, one file per feature.
 - `docs/progress/log/` holds dated work logs, one file per session.
 - `docs/progress/notes/` holds decisions, gotchas and corrections worth keeping.
-- `docs/progress/reports/` holds subagent and review reports verbatim, plus one report per milestone and one per released version.
+- `docs/progress/subagent/{tasks,briefs,reports}/` holds every task plan with its briefs and reports, one report per milestone and one per released version.
 
 ## Feature index
 
@@ -143,7 +143,7 @@ Gate: resolver tests per typechecker (`bun check`, `tsc`, `tsgo`, `tsrs`) and pe
 
 ## v2 — shipped
 
-All three seams closed at `0.1.0-alpha.6`; task plan [v2-tasks.md](v2-tasks.md), reports under [../../progress/reports/v2/](../../progress/reports/v2/).
+All three seams closed at `0.1.0-alpha.6`; task plan [../progress/subagent/tasks/v2-tasks.md](../progress/subagent/tasks/v2-tasks.md), reports under [../progress/subagent/reports/v2/](../progress/subagent/reports/v2/).
 
 - Desktop consumes the installed CLI over its JSON-RPC surface, and the installer carries that CLI as a Tauri sidecar (`bundle.externalBin`, staged by `packages/desktop/scripts/stage-sidecar.ts`). Three screens: call runner, config viewer, opencode panel with a 5 s session watch.
 - MCP imports the core API in-process, streams `jyz_watch`/`jyz_cancel`, and ships as `@jyz/mcp` with a `jyz-mcp` bin plus one compiled binary per platform.
