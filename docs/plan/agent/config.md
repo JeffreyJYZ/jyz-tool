@@ -18,9 +18,9 @@ Scope correction (2026-10-30): `jyz.config.toml` holds **jyz's own settings only
 ```toml
 [project]
 package_manager = "auto"   # auto | bun | pnpm
-typechecker = "auto"       # auto | bun-check | tsc | tsgo | tsrs | cargo
-linter = "biome"           # biome | eslint | bun-lint | cargo-clippy | none
-formatter = "biome"        # biome | bun-fmt | prettier | none
+typechecker = "auto"       # auto | bun-check | tsc | tsgo | tsrs | cargo | clang
+linter = "biome"           # biome | eslint | bun-lint | cargo-clippy | clang-tidy | none
+formatter = "biome"        # biome | bun-fmt | prettier | clang-format | rustfmt | none
 
 [aliases]
 a = "add"
@@ -77,6 +77,8 @@ Typechecker and linter detection follow the same shape: `bunfig.toml` plus a Bun
 Formatter detection is the same idea: `biome.json` means `biome`, a `[fmt]` block in `bunfig.toml` means `bun-fmt`, and any Prettier config (`.prettierrc`, `prettier.config.*` or a `prettier` key in `package.json`) means `prettier`. Two formatter signals at once is an error naming both, matching the lockfile rule.
 
 Linter detection mirrors it: `biome.json` with linter rules means `biome`, `eslint.config.*` or `.eslintrc*` or an `eslintConfig` key means `eslint`, and a `[lint]` block in `bunfig.toml` means `bun-lint`. Two linter signals is the same error.
+
+Language-native tools use their own files: `.clang-format` means `clang-format`, `.clang-tidy` means `clang-tidy`, `rustfmt.toml` or a `Cargo.toml` means `rustfmt`, and a `Cargo.toml` also means `cargo-clippy`. A C/C++ project with neither file gets `clang-format` and `clang-tidy` as the scaffolded defaults, not as implicit detection.
 
 ## Commands
 

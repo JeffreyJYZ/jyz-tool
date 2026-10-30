@@ -18,8 +18,8 @@
 - jyz delegates to the installed package manager and never resolves dependencies itself.
 - No `publish` verb.
 - `jyz check` aggregates `lint` and `typecheck`; each also runs alone.
-- Tabs at 4 wide, `printWidth` 100. Formatter is `biome`, `bun fmt` or `prettier`, picked per project in `jyz.config.toml`.
-- Linter is `biome`, `eslint`, `bun lint` or none, picked per project. One tool owns each job, never two.
+- Tabs at 4 wide, `printWidth` 100. Formatter is `biome`, `bun fmt`, `prettier`, `clang-format` or `rustfmt`, picked per project in `jyz.config.toml`.
+- Linter is `biome`, `eslint`, `bun lint`, `cargo clippy`, `clang-tidy` or none, picked per project. One tool owns each job, never two.
 
 ## House rules
 

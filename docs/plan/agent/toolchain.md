@@ -27,6 +27,7 @@ Four verbs, one job each:
 | `tsgo` | `tsgo --noEmit` |
 | `tsrs` | project-local tsrs binary, `--noEmit` |
 | `cargo` | `cargo check` |
+| `clang` | `clang -fsyntax-only <sources>` |
 | `make` / `just` | `make typecheck` / `just typecheck` only when the target exists |
 
 ## `jyz lint`
@@ -37,6 +38,7 @@ Four verbs, one job each:
 | `eslint` | `eslint <paths>` |
 | `bun-lint` | `bun lint` |
 | `cargo-clippy` | `cargo clippy -- -D warnings` |
+| `clang-tidy` | `clang-tidy <paths>` |
 | `none` | no-op that prints the configured reason and exits 0 |
 
 ## `jyz check`
@@ -57,15 +59,19 @@ The aggregate, with these rules:
 | `biome` | `biome check --write` on tracked paths |
 | `bun-fmt` | `bun fmt` |
 | `prettier` | `prettier --write <paths>` |
+| `clang-format` | `clang-format -i <paths>` |
+| `rustfmt` | `cargo fmt --all` |
 | `none` | no-op that prints the configured reason and exits 0 |
 
-`jyz fmt --check` must run the read-only form (`biome check`, `bun fmt --check`, `prettier --check <paths>`), because a writing formatter can never be a gate.
+`jyz fmt --check` must run the read-only form (`biome check`, `bun fmt --check`, `prettier --check <paths>`, `clang-format --dry-run --Werror <paths>`, `cargo fmt --all -- --check`), because a writing formatter can never be a gate.
 
 Formatter files, never two at once:
 
 - `biome` → `biome.json`, with its formatter rules at tabs 4 / width 100
 - `bun-fmt` → `[fmt]` in `bunfig.toml`
 - `prettier` → `.prettierrc` plus `.prettierignore`, with `useTabs: true`, `tabWidth: 4`, `printWidth: 100`
+- `clang-format` → `.clang-format`, with `UseTab: ForIndentation`, `IndentWidth: 4`, `ColumnLimit: 100`
+- `rustfmt` → `rustfmt.toml`, with `hard_tabs = true`, `tab_spaces = 4`, `max_width = 100`
 
 A `prettier` formatter beside a `biome` linter means the shared `biome.json` disables Biome's formatter, so the two tools never rewrite the same lines. The mirror case holds too: an `eslint` linter beside a `biome` formatter means that `biome.json` disables Biome's linter, so exactly one tool owns each job.
 

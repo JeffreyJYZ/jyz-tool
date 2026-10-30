@@ -20,8 +20,8 @@ Hard rule: no external scaffolding tool. No `create-next-app`, no `cargo init`, 
 | `--template <t>` | `next`, `vite-tauri`, `cli`, `rust-bin`, `rust-lib`, `c`, `monorepo` |
 | `--pm <pm>` | `bun`, `pnpm` |
 | `--typechecker <c>` | `bun-check`, `tsc`, `tsgo`, `tsrs` |
-| `--linter <l>` | `biome`, `eslint`, `bun-lint`, `none` |
-| `--formatter <f>` | `biome`, `bun-fmt`, `prettier`, `none` |
+| `--linter <l>` | `biome`, `eslint`, `bun-lint`, `clang-tidy`, `cargo-clippy`, `none` |
+| `--formatter <f>` | `biome`, `bun-fmt`, `prettier`, `clang-format`, `rustfmt`, `none` |
 | `--docs[=bool]` | include the `docs/` scaffold |
 | `--git <mode>` | `skip`, `init`, `commit`, `github` |
 | `--install[=bool]` | run the package manager after writing |
@@ -55,6 +55,8 @@ The two choices stay coherent, so a project never carries two tools doing one jo
 - `--formatter none` writes neither.
 - `--linter biome` reuses the same `biome.json`; choosing `biome` as both formatter and linter still yields one file, but with `--formatter prettier` the shared `biome.json` disables Biome's own formatter so the two never fight over the same lines.
 - `--linter eslint` writes an `eslint.config.js` flat config (TypeScript rules via `typescript-eslint`) and declares the dev dependencies, without installing them unless `--install` is set. With `--formatter biome`, the shared `biome.json` disables Biome's linter so linting has one owner.
+- `--linter clang-tidy` writes `.clang-tidy`, and `--formatter clang-format` writes `.clang-format`; the C template defaults to both, and the `Makefile` and `justfile` gain matching `fmt`, `check` and `lint` targets.
+- `--linter cargo-clippy` writes nothing extra beyond the Cargo project, and `--formatter rustfmt` writes `rustfmt.toml`; the Rust templates default to both.
 - `--linter bun-lint` depends on `--formatter bun-fmt`, because both live in the Bun toolchain; an incompatible pair fails before any file is written.
 
 `bun fmt` and `prettier` are first-class formatters, not fallbacks: each has a write mode and a read-only check mode (`bun fmt --check`, `prettier --check <paths>`), and the chosen one is what `jyz fmt` resolves to.
@@ -64,6 +66,7 @@ The two choices stay coherent, so a project never carries two tools doing one jo
 - Standard extensions only: `.c/.h` and `.cpp/.hpp`. No `.c++`, no `.hxx`.
 - Headers sit beside their sources in `src/`; no separate `include/` in v1.
 - Both `Makefile` and `justfile` ship, holding the same build, check and clean commands, so either workflow works without editing.
+- Tooling defaults: `.clang-format` and `.clang-tidy` ship with the template, and both build files expose `fmt`, `check` and `lint` recipes that wrap `clang-format`, the compiler's syntax check and `clang-tidy`.
 - `dist/` is gitignored and created by the build, never committed.
 
 ## Shared structure

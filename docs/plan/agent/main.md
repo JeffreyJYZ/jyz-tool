@@ -36,8 +36,8 @@ Settled 2026-10-30. Each one is load-bearing for the milestone plan below.
 | create git modes | `skip`, `init`, `commit` and `github` all ship in v1. |
 | Command surface | `install`, `add`, `remove`, `run`, `exec`, `update`, `outdated`, `create`, `config`, `lint`, `typecheck`, `check`, `fmt`. No `publish`. |
 | Check semantics | `lint` and `typecheck` are separate verbs; `check` runs both when applicable and skips the half configured as `none`. |
-| Formatter | `biome`, `bun fmt` or `prettier`, picked per project; all three expose a read-only check mode. |
-| Linter | `biome`, `eslint`, `bun lint`, `cargo clippy` or `none`, picked per project. |
+| Formatter | `biome`, `bun fmt`, `prettier`, `clang-format` or `rustfmt`, picked per project; every one exposes a read-only check mode. |
+| Linter | `biome`, `eslint`, `bun lint`, `cargo clippy`, `clang-tidy` or `none`, picked per project. |
 | Monorepo routing | Infer the package from cwd upward, plus `-F/--filter <name>`. |
 | Phasing | Milestones with explicit acceptance gates. |
 | Code layout | Bun workspace: `packages/core`, `packages/cli`. |
