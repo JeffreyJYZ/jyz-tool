@@ -103,10 +103,9 @@ describe("registerOc", () => {
 		const cli = cac("jyz");
 		registerOc(cli);
 		try {
-			cli.parse(
-				["bun", "jyz", "oc", "prompt", "hello", "there", "--session", "ses_a"],
-				{ run: false },
-			);
+			cli.parse(["bun", "jyz", "oc", "prompt", "hello", "there", "--session", "ses_a"], {
+				run: false,
+			});
 			const returned = cli.runMatchedCommand();
 			if (returned instanceof Promise) await returned;
 		} finally {

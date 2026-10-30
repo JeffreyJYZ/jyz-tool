@@ -136,11 +136,14 @@
 	<body>
 		<main>
 			<form id="call">
-				<label for="method">method
+				<label for="method"
+					>method
 					<select id="method" name="method"></select>
 				</label>
-				<label for="params">params
-					<textarea id="params" name="params" spellcheck="false" autocomplete="off">{}</textarea>
+				<label for="params"
+					>params
+					<textarea id="params" name="params" spellcheck="false" autocomplete="off">
+{}</textarea>
 				</label>
 				<button id="run" type="submit">Run</button>
 			</form>
@@ -199,7 +202,8 @@
 					return;
 				}
 				if (frame.error) {
-					const code = typeof frame.error.code === "number" ? ` (${frame.error.code})` : "";
+					const code =
+						typeof frame.error.code === "number" ? ` (${frame.error.code})` : "";
 					show("error", `${frame.error.message ?? "the CLI reported an error"}${code}`);
 					return;
 				}

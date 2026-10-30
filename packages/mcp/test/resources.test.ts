@@ -11,7 +11,7 @@ test("lists two resources", () => {
 test("reads config resource", () => {
 	const dir = mkdtempSync(join(tmpdir(), "jyz-mcp-"));
 	writeFileSync(join(dir, "package.json"), JSON.stringify({ name: "fixture", version: "1.0.0" }));
-	writeFileSync(join(dir, "jyz.config.toml"), "[project]\npackage_manager = \"bun\"\n");
+	writeFileSync(join(dir, "jyz.config.toml"), '[project]\npackage_manager = "bun"\n');
 	const r = readResource("jyz://config", dir);
 	expect(r.mimeType).toBe("application/json");
 	const payload = JSON.parse(r.text);

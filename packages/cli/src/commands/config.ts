@@ -2,12 +2,14 @@ import { writeFileSync } from "node:fs";
 
 import { CONFIG_FILENAME, findConfigPath, readConfigFile, writeConfigValue } from "@jyz/core";
 import type { CAC } from "cac";
-import { formatConfigShow, lookupConfigValue } from "../lib/config-view.ts";
+import { formatConfigShow, lookupConfigValue, projectEntries } from "../lib/config-view.ts";
 import { configPathIn, loadConfigAt } from "../lib/context.ts";
 import { guard } from "../lib/errors.ts";
+import { emit, isJson } from "../lib/output.ts";
 
 interface ConfigFlags {
 	strict?: boolean;
+	json?: boolean;
 }
 
 /**
@@ -17,6 +19,7 @@ interface ConfigFlags {
 export function registerConfig(cli: CAC): void {
 	cli.command("config [action] [key] [value]", "read and write jyz.config.toml")
 		.option("--strict", "treat config warnings as errors")
+		.option("--json", "emit machine-readable JSON")
 		.usage("config show | get <key> | set <key> <value> | path | check [--strict]")
 		.example("  jyz config show")
 		.example("  jyz config get project.linter")
@@ -44,10 +47,28 @@ function runConfig(
 	value: string | undefined,
 	flags: ConfigFlags,
 ): void {
+	const json = flags.json === true || isJson();
 	const cwd = process.cwd();
 	switch (action) {
 		case "show": {
-			console.log(formatConfigShow(loadConfigAt(cwd)));
+			const config = loadConfigAt(cwd);
+			if (json) {
+				const project: Record<string, { value: string; source: string }> = {};
+				for (const entry of projectEntries(config)) {
+					const bare = entry.key.slice("project.".length);
+					project[bare] = { value: entry.value, source: entry.source };
+				}
+				emit({
+					project,
+					aliases: config.aliases,
+					scripts: config.scripts,
+					path: config.path,
+					layers: config.layers,
+					warnings: config.warnings,
+				});
+			} else {
+				console.log(formatConfigShow(config));
+			}
 			return;
 		}
 		case "get": {
@@ -60,7 +81,8 @@ function runConfig(
 					`unknown config key "${key}"; run jyz config show for the known keys`,
 				);
 			}
-			console.log(entry.value);
+			if (json) emit({ key: entry.key, value: entry.value });
+			else console.log(entry.value);
 			return;
 		}
 		case "set": {
@@ -72,26 +94,32 @@ function runConfig(
 			const path = configPathIn(cwd);
 			const { text } = writeConfigValue(path, key, value);
 			writeFileSync(path, text, "utf8");
-			console.log(`${path}: set ${key} = ${value}`);
+			if (json) emit({ path, key, value });
+			else console.log(`${path}: set ${key} = ${value}`);
 			return;
 		}
 		case "path": {
-			console.log(configPathIn(cwd));
+			const p = configPathIn(cwd);
+			if (json) emit({ path: p });
+			else console.log(p);
 			return;
 		}
 		case "check": {
 			const path = findConfigPath(cwd);
 			if (path === null) {
-				console.log(`no ${CONFIG_FILENAME} found from ${cwd}`);
+				if (json) emit({ path: null, warnings: [], ok: false });
+				else console.log(`no ${CONFIG_FILENAME} found from ${cwd}`);
 				return;
 			}
 			const { warnings } = readConfigFile(path);
 			if (warnings.length === 0) {
-				console.log(`${path}: ok`);
+				if (json) emit({ path, warnings: [], ok: true });
+				else console.log(`${path}: ok`);
 				return;
 			}
 			for (const warning of warnings) console.error(`warning: ${warning} (${path})`);
 			if (flags.strict === true) process.exitCode = 1;
+			if (json) emit({ path, warnings, ok: warnings.length === 0 });
 			return;
 		}
 		default: {

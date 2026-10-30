@@ -5,6 +5,7 @@ import {
 	ProjectError,
 	ToolchainError,
 } from "@jyz/core";
+import { emit, isJson } from "./output.ts";
 import { AliasError } from "./verbs.ts";
 
 /** Prints one error the way jyz reports it and returns the exit code to use. */
@@ -40,6 +41,11 @@ export async function guard(body: () => Promise<void> | void): Promise<void> {
 	try {
 		await body();
 	} catch (error) {
-		process.exitCode = reportError(error);
+		const code = reportError(error);
+		if (isJson()) {
+			const message = error instanceof Error ? error.message : String(error);
+			emit({ error: message, exitCode: code });
+		}
+		process.exitCode = code;
 	}
 }

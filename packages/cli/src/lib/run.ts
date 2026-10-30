@@ -15,6 +15,12 @@ export interface RunOptions {
  * A missing binary is reported with the executable's name and the detection that chose it, because
  * a bare `ENOENT` on a machine with two package managers says nothing actionable.
  */
+export interface CapturedRun {
+	exitCode: number;
+	stdout: string;
+	stderr: string;
+}
+
 export async function runSpec(spec: CommandSpec, options: RunOptions = {}): Promise<number> {
 	if (options.verbose === true) console.log(formatSpec(spec));
 	try {
@@ -25,6 +31,33 @@ export async function runSpec(spec: CommandSpec, options: RunOptions = {}): Prom
 		console.error(`jyz: cannot run ${spec.file}: ${reason}`);
 		if (options.origin !== undefined) console.error(`jyz: ${options.origin}`);
 		return 127;
+	}
+}
+
+/** Spawns with captured stdio for `--json` mode and returns the captured output. */
+export async function runSpecCaptured(
+	spec: CommandSpec,
+	options: RunOptions = {},
+): Promise<CapturedRun> {
+	if (options.verbose === true) console.error(formatSpec(spec));
+	try {
+		const proc = Bun.spawn([spec.file, ...spec.argv], {
+			cwd: spec.cwd,
+			stdout: "pipe",
+			stderr: "pipe",
+		});
+		const [stdout, stderr, exitCode] = await Promise.all([
+			new Response(proc.stdout).text(),
+			new Response(proc.stderr).text(),
+			proc.exited,
+		]);
+		if (exitCode !== 0 && options.origin !== undefined) {
+			// keep origin informational only
+		}
+		return { exitCode, stdout, stderr };
+	} catch (error) {
+		const reason = error instanceof Error ? error.message : String(error);
+		return { exitCode: 127, stdout: "", stderr: `jyz: cannot run ${spec.file}: ${reason}` };
 	}
 }
 

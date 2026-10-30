@@ -8,7 +8,8 @@ import {
 } from "@jyz/core";
 import type { CAC } from "cac";
 import { formatSpec } from "../lib/dispatch.ts";
-import { runSpec } from "../lib/run.ts";
+import { emit, isJson } from "../lib/output.ts";
+import { runSpec, runSpecCaptured } from "../lib/run.ts";
 
 /** One half of `jyz check`, paired with the command that runs it. */
 export interface CheckStep {
@@ -26,7 +27,7 @@ export interface ToolchainRunOptions {
 }
 
 function forwarded(args: string[]): string[] {
-	return args.filter((arg) => arg !== "--verbose");
+	return args.filter((arg) => arg !== "--verbose" && arg !== "--json");
 }
 
 async function execute(spec: CommandSpec, options: ToolchainRunOptions): Promise<number> {
@@ -68,38 +69,90 @@ export async function runCheckPlan(
 export function registerToolchain(cli: CAC): void {
 	cli.command("lint [args...]", "run the configured linter")
 		.option("--verbose", "print the resolved command before running")
-		.action(async (args: string[], options: { verbose?: boolean }) => {
+		.option("--json", "emit machine-readable JSON")
+		.action(async (args: string[], options: { verbose?: boolean; json?: boolean }) => {
 			const ctx = resolveProject(process.cwd());
 			const spec = buildLintCommand(ctx, forwarded(args));
-			const r = await execute(spec, { verbose: options?.verbose });
-			process.exitCode = r;
+			const json = options?.json === true || isJson();
+			if (json) {
+				const r = await runSpecCaptured(spec, { verbose: options?.verbose });
+				process.exitCode = r.exitCode;
+				emit({
+					commands: [{ file: spec.file, argv: spec.argv, cwd: spec.cwd }],
+					exitCode: r.exitCode,
+				});
+			} else {
+				const r = await execute(spec, { verbose: options?.verbose });
+				process.exitCode = r;
+			}
 		});
 
 	cli.command("typecheck [args...]", "run the configured typechecker")
 		.option("--verbose", "print the resolved command before running")
-		.action(async (args: string[], options: { verbose?: boolean }) => {
+		.option("--json", "emit machine-readable JSON")
+		.action(async (args: string[], options: { verbose?: boolean; json?: boolean }) => {
 			const ctx = resolveProject(process.cwd());
 			const spec = buildTypecheckCommand(ctx, forwarded(args));
-			const r = await execute(spec, { verbose: options?.verbose });
-			process.exitCode = r;
+			const json = options?.json === true || isJson();
+			if (json) {
+				const r = await runSpecCaptured(spec, { verbose: options?.verbose });
+				process.exitCode = r.exitCode;
+				emit({
+					commands: [{ file: spec.file, argv: spec.argv, cwd: spec.cwd }],
+					exitCode: r.exitCode,
+				});
+			} else {
+				const r = await execute(spec, { verbose: options?.verbose });
+				process.exitCode = r;
+			}
 		});
 
 	cli.command("check [args...]", "run typecheck then lint")
 		.option("--verbose", "print the resolved command before running")
-		.action(async (args: string[], options: { verbose?: boolean }) => {
+		.option("--json", "emit machine-readable JSON")
+		.action(async (args: string[], options: { verbose?: boolean; json?: boolean }) => {
 			const ctx = resolveProject(process.cwd());
 			const steps = buildCheckSteps(ctx, forwarded(args));
-			const code = await runCheckPlan(steps, { verbose: options?.verbose });
-			process.exitCode = code;
+			const json = options?.json === true || isJson();
+			if (json) {
+				let code = 0;
+				for (const { spec } of steps) {
+					const r = await runSpecCaptured(spec, { verbose: options?.verbose });
+					if (r.exitCode !== 0) code = r.exitCode;
+				}
+				process.exitCode = code;
+				emit({
+					commands: steps.map(({ spec }) => ({
+						file: spec.file,
+						argv: spec.argv,
+						cwd: spec.cwd,
+					})),
+					exitCode: code,
+				});
+			} else {
+				const code = await runCheckPlan(steps, { verbose: options?.verbose });
+				process.exitCode = code;
+			}
 		});
 
 	cli.command("fmt", "format the project")
 		.option("--check", "check only")
 		.option("--verbose", "print the resolved command before running")
-		.action(async (options: { check?: boolean; verbose?: boolean }) => {
+		.option("--json", "emit machine-readable JSON")
+		.action(async (options: { check?: boolean; verbose?: boolean; json?: boolean }) => {
 			const ctx = resolveProject(process.cwd());
 			const spec = buildFmtCommand(ctx, { check: options?.check });
-			const r = await execute(spec, { verbose: options?.verbose });
-			process.exitCode = r;
+			const json = options?.json === true || isJson();
+			if (json) {
+				const r = await runSpecCaptured(spec, { verbose: options?.verbose });
+				process.exitCode = r.exitCode;
+				emit({
+					commands: [{ file: spec.file, argv: spec.argv, cwd: spec.cwd }],
+					exitCode: r.exitCode,
+				});
+			} else {
+				const r = await execute(spec, { verbose: options?.verbose });
+				process.exitCode = r;
+			}
 		});
 }

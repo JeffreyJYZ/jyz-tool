@@ -9,6 +9,7 @@ import { registerServe } from "./commands/serve.ts";
 import { registerToolchain } from "./commands/toolchain.ts";
 import { loadConfigAt, packageDirOf, readConfigTables } from "./lib/context.ts";
 import { reportError } from "./lib/errors.ts";
+import { emit, isJson } from "./lib/output.ts";
 import { runSpec } from "./lib/run.ts";
 import { buildScriptSpec, mergeScripts, readPackageScripts } from "./lib/scripts.ts";
 import { assertAliases, expandAlias, formatAliases, isCoreVerb } from "./lib/verbs.ts";
@@ -19,7 +20,10 @@ let tables: ReturnType<typeof readConfigTables>;
 try {
 	tables = readConfigTables(cwd);
 } catch (error) {
-	process.exit(reportError(error));
+	const code = reportError(error);
+	if (isJson(process.argv))
+		emit({ error: error instanceof Error ? error.message : String(error), exitCode: code });
+	process.exit(code);
 }
 
 const cli = cac("jyz");

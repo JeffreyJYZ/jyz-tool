@@ -142,7 +142,8 @@ describe("listSessions", () => {
 	});
 
 	test("an unreachable server throws OpencodeError with no status", async () => {
-		const fetcher = (() => Promise.reject(new Error("connection refused"))) as unknown as typeof fetch;
+		const fetcher = (() =>
+			Promise.reject(new Error("connection refused"))) as unknown as typeof fetch;
 
 		let caught: unknown;
 		try {

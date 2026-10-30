@@ -128,7 +128,8 @@ function readUpdated(record: Record<string, unknown>): string {
 	}
 	const direct = record.updatedAt;
 	if (typeof direct === "string") return direct;
-	if (typeof direct === "number" && Number.isFinite(direct)) return new Date(direct).toISOString();
+	if (typeof direct === "number" && Number.isFinite(direct))
+		return new Date(direct).toISOString();
 	return "";
 }
 

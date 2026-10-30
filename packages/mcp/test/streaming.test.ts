@@ -6,9 +6,16 @@ import { callTool } from "../src/handler.ts";
 
 test("watch streams and cancel stops", async () => {
 	const dir = mkdtempSync(join(tmpdir(), "jyz-mcp-"));
-	writeFileSync(join(dir, "package.json"), JSON.stringify({ name: "fixture", version: "1.0.0", scripts: { slow: "sleep 30" } }));
+	writeFileSync(
+		join(dir, "package.json"),
+		JSON.stringify({ name: "fixture", version: "1.0.0", scripts: { slow: "sleep 30" } }),
+	);
 	const frames: any[] = [];
-	const start = await callTool("jyz_watch", { script: "slow" }, { cwd: dir, onProgress: (f: any) => frames.push(f) });
+	const start = await callTool(
+		"jyz_watch",
+		{ script: "slow" },
+		{ cwd: dir, onProgress: (f: any) => frames.push(f) },
+	);
 	expect((start as any).streaming).toBe(true);
 	const handle = (start as any).handle;
 	await new Promise((r) => setTimeout(r, 200));

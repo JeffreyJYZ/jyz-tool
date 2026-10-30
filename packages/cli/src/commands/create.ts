@@ -3,6 +3,7 @@ import { createProject } from "@jyz/core";
 import type { CAC } from "cac";
 import { loadConfigAt } from "../lib/context.ts";
 import { guard } from "../lib/errors.ts";
+import { emit, isJson } from "../lib/output.ts";
 import { confirm } from "../lib/prompt.ts";
 
 interface CreateFlags {
@@ -18,6 +19,7 @@ interface CreateFlags {
 	dir?: string;
 	yes?: boolean;
 	verbose?: boolean;
+	json?: boolean;
 }
 
 export function registerCreate(cli: CAC): void {
@@ -32,6 +34,7 @@ export function registerCreate(cli: CAC): void {
 		.option("--install", "install dependencies after writing files")
 		.option("--publishable", "strip private and add publish metadata")
 		.option("--dir <dir>", "target directory, defaults to the project name")
+		.option("--json", "emit machine-readable JSON")
 		.option("-y, --yes", "accept the resolved options without asking")
 		.example("  jyz create acme --template cli --publishable --install")
 		.action((name: string, flags: CreateFlags) => {
@@ -44,13 +47,15 @@ export function registerCreate(cli: CAC): void {
 async function runCreate(name: string, flags: CreateFlags): Promise<void> {
 	const cwd = process.cwd();
 	const config = loadConfigAt(cwd);
+	const json = flags.json === true || isJson();
 
 	let template = flags.template;
 	if (template === undefined) {
 		if (flags.yes === true) {
 			template = config.create.default_template;
 		} else {
-			console.error("jyz: missing required flag --template");
+			if (json) emit({ error: "missing required flag --template", exitCode: 1 });
+			else console.error("jyz: missing required flag --template");
 			process.exitCode = 1;
 			return;
 		}
@@ -71,24 +76,29 @@ async function runCreate(name: string, flags: CreateFlags): Promise<void> {
 		yes: flags.yes,
 	};
 
-	if (flags.yes !== true) {
+	if (flags.yes !== true && !json) {
 		const accepted = await confirm(
 			`Create ${name} from template ${options.template} in ${options.dir ?? name}?`,
 		);
 		if (!accepted) {
-			console.error("jyz: cancelled");
+			if (json) emit({ error: "cancelled", exitCode: 1 });
+			else console.error("jyz: cancelled");
 			process.exitCode = 1;
 			return;
 		}
 	}
 
 	const result = await createProject(options, cwd);
-	console.log(`created ${result.dir}`);
-	for (const file of result.files) console.log(`  ${file}`);
-	for (const warning of result.warnings) console.error(`jyz: warning: ${warning}`);
-	for (const warning of result.warnings) {
-		const match = warning.match(/https?:\/\/\S+/);
-		if (match !== null) console.log(match[0]);
+	if (json) {
+		emit({ dir: result.dir, files: result.files, warnings: result.warnings });
+	} else {
+		console.log(`created ${result.dir}`);
+		for (const file of result.files) console.log(`  ${file}`);
+		for (const warning of result.warnings) console.error(`jyz: warning: ${warning}`);
+		for (const warning of result.warnings) {
+			const match = warning.match(/https?:\/\/\S+/);
+			if (match !== null) console.log(match[0]);
+		}
 	}
 }
 

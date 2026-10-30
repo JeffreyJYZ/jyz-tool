@@ -4,7 +4,8 @@ import { parseVerbArgs } from "../lib/args.ts";
 import { resolveContext } from "../lib/context.ts";
 import { buildDispatchSpec } from "../lib/dispatch.ts";
 import { guard } from "../lib/errors.ts";
-import { runSpec } from "../lib/run.ts";
+import { emit, isJson } from "../lib/output.ts";
+import { runSpec, runSpecCaptured } from "../lib/run.ts";
 import {
 	buildScriptSpec,
 	formatScripts,
@@ -93,9 +94,18 @@ async function dispatch(cli: CAC, spec: VerbSpec): Promise<void> {
 	const ctx = resolveContext(process.cwd(), term.filter);
 	const pm = ctx.config.project.package_manager.value;
 	const origin = `package manager ${pm} (${ctx.config.project.package_manager.source})`;
+	const json = isJson();
 
 	if (spec.verb === "run") {
 		if (term.args.length === 0) {
+			if (json) {
+				const entries = mergeScripts(
+					ctx.config.scripts,
+					readPackageScripts(ctx.packageDir),
+				);
+				emit({ scripts: entries });
+				return;
+			}
 			listScripts(ctx.config.scripts, ctx.packageDir, ctx.packageName);
 			return;
 		}
@@ -108,7 +118,21 @@ async function dispatch(cli: CAC, spec: VerbSpec): Promise<void> {
 				ctx.config.scripts,
 				term.args.slice(1),
 			);
-			process.exitCode = await runSpec(scripted, { verbose: term.verbose, origin });
+			if (json) {
+				const r = await runSpecCaptured(scripted, { verbose: term.verbose, origin });
+				process.exitCode = r.exitCode;
+				emit({
+					verb: spec.verb,
+					argv: scripted.argv,
+					cwd: scripted.cwd,
+					packageDir: ctx.packageDir,
+					exitCode: r.exitCode,
+					stdout: r.stdout,
+					stderr: r.stderr,
+				});
+			} else {
+				process.exitCode = await runSpec(scripted, { verbose: term.verbose, origin });
+			}
 			return;
 		}
 	}
@@ -119,7 +143,21 @@ async function dispatch(cli: CAC, spec: VerbSpec): Promise<void> {
 		dev: term.dev,
 		latest: term.latest,
 	});
-	process.exitCode = await runSpec(built, { verbose: term.verbose, origin });
+	if (json) {
+		const r = await runSpecCaptured(built, { verbose: term.verbose, origin });
+		process.exitCode = r.exitCode;
+		emit({
+			verb: spec.verb,
+			argv: built.argv,
+			cwd: built.cwd,
+			packageDir: ctx.packageDir,
+			exitCode: r.exitCode,
+			stdout: r.stdout,
+			stderr: r.stderr,
+		});
+	} else {
+		process.exitCode = await runSpec(built, { verbose: term.verbose, origin });
+	}
 }
 
 function listScripts(
