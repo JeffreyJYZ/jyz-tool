@@ -1,5 +1,4 @@
 #!/usr/bin/env bun
-import { VERSION } from "@jyz/core";
 import { cac } from "cac";
 import { registerCapabilities } from "./commands/capabilities.ts";
 import { registerConfig } from "./commands/config.ts";
@@ -14,6 +13,7 @@ import { emit, isJson } from "./lib/output.ts";
 import { runSpec } from "./lib/run.ts";
 import { buildScriptSpec, mergeScripts, readPackageScripts } from "./lib/scripts.ts";
 import { assertAliases, expandAlias, formatAliases, isCoreVerb } from "./lib/verbs.ts";
+import { versionLine } from "./lib/version-line.ts";
 
 const cwd = process.cwd();
 
@@ -28,7 +28,6 @@ try {
 }
 
 const cli = cac("jyz");
-cli.version(VERSION);
 cli.option("--verbose", "print the resolved command before running it");
 registerConfig(cli);
 registerCapabilities(cli);
@@ -60,6 +59,13 @@ async function main(): Promise<void> {
 
 	if (argv.length === 0) {
 		cli.outputHelp();
+		return;
+	}
+
+	// `--version` is answered here rather than by cac, whose line appends the Node compatibility
+	// version under Bun; see lib/version-line.ts.
+	if (argv.includes("--version") || argv.includes("-v")) {
+		console.log(versionLine());
 		return;
 	}
 
