@@ -1,9 +1,0 @@
-# Task 29 — startup and dispatch benchmark
-
-Status: done
-
-Files: scripts/bench.ts, scripts/test/bench.test.ts
-
-Tests: 4 pass, 0 fail (percentile, summarize empty/single, JSON shape).
-
-Concerns: none. Bench spawns one child at a time with a 10s timeout; fixture created in temp dir and removed in finally.
