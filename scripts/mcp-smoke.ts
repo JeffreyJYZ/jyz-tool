@@ -16,8 +16,10 @@ function killProc(proc: ReturnType<typeof Bun.spawn>): void {
 	}
 }
 
+type ByteReader = { read(): Promise<{ done: boolean; value?: Uint8Array }> };
+
 async function readLine(
-	reader: ReadableStreamDefaultReader<Uint8Array>,
+	reader: ByteReader,
 	decoder: TextDecoder,
 	state: { buffer: string },
 	deadline: number,
