@@ -3,7 +3,7 @@
 ## Where things are
 
 - Plan of record: `docs/plan/agent/main.md` — overview, decisions, milestones, feature index. One file per feature sits beside it.
-- Task plans live at `docs/plan/agent/<plan>.md` with their briefs in `docs/plan/agent/<plan>/briefs/`; subagent reports land in `docs/progress/reports/<plan>/`.
+- Task plans live at `docs/plan/agent/<plan>.md` with their briefs in `docs/progress/briefs/<plan>/`; subagent reports land in `docs/progress/reports/<plan>/`.
 - Ledgers and work logs go to `docs/progress/log/`, decisions and gotchas to `docs/progress/notes/`.
 - `docs/progress/reports/` holds subagent reports verbatim, one report per milestone, and one per released version.
 - Never write coordination artefacts to `.superpowers/` or any hidden scratch dir: everything lives under `docs/`.
