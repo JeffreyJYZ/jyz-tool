@@ -24,6 +24,7 @@ Hard rule: no external scaffolding tool. No `create-next-app`, no `cargo init`, 
 | `--docs[=bool]` | include the `docs/` scaffold |
 | `--git <mode>` | `skip`, `init`, `commit`, `github` |
 | `--install[=bool]` | run the package manager after writing |
+| `--publishable[=bool]` | JS templates get the manifest fields a release needs |
 | `--dir <path>` | target directory, defaults to `./<name>` |
 | `--yes` | accept defaults for anything unflagged |
 
@@ -70,6 +71,17 @@ Minimalism rules:
 
 `jyz create <name> --template monorepo` writes a root with the selected members, each scaffolded by the same template code used for a standalone project. The root carries `jyz.config.toml`, a root `package.json` if any member is JS, and the `docs/` scaffold. Members keep their own config only when they differ from the root.
 
+## Publishing
+
+`jyz publish` is a v1 non-goal: releasing belongs to CI and tags. The scaffolder still has to leave a project *able* to publish, so `--publishable` writes the manifest fields a release needs and nothing more:
+
+- `bin` for CLI templates, pointing at the built entry
+- `files` listing only what ships
+- `publishConfig.access` set explicitly, never left to a default
+- `engines` and a pinned `packageManager`, so CI resolves the same toolchain
+
+Preparing a manifest is not publishing: jyz never calls `npm publish` and never holds a registry token.
+
 ## Git options
 
 All four modes ship in v1.
@@ -91,6 +103,7 @@ All four modes ship in v1.
 - golden snapshot per template × package manager, byte-comparable apart from declared placeholders
 - every generated project passes `jyz check` and its own build in CI on all three platforms
 - a non-TTY run missing a required value fails with a message naming the flag
+- `--publishable` asserted on the manifest fields: `bin`, `files`, `publishConfig.access`, `engines`
 - `--git github` tested against a stubbed `gh` on `PATH`, covering success, missing `gh` and non-zero exit
 - `jyz create --help` documents every flag above
 
