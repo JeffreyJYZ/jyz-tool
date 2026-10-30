@@ -1,5 +1,5 @@
 #!/usr/bin/env bun
-import { mkdtempSync, writeFileSync, rmSync } from "node:fs";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -24,17 +24,17 @@ export function percentile(samples: number[], p: number): number {
 	const sorted = [...samples].sort((a, b) => a - b);
 	const rank = Math.ceil((p / 100) * sorted.length);
 	const idx = Math.min(sorted.length - 1, Math.max(0, rank - 1));
-	return sorted[idx]!;
+	return sorted[idx] as number;
 }
 
 export function summarize(samples: number[]): Summary {
 	if (samples.length === 0) return { min: 0, p50: 0, p95: 0, max: 0 };
 	const sorted = [...samples].sort((a, b) => a - b);
 	return {
-		min: sorted[0]!,
+		min: sorted[0] as number,
 		p50: percentile(samples, 50),
 		p95: percentile(samples, 95),
-		max: sorted[sorted.length - 1]!,
+		max: sorted[sorted.length - 1] as number,
 	};
 }
 

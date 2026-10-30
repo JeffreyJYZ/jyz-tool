@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { percentile, summarize, buildReport } from "../bench";
+import { buildReport, percentile, summarize } from "../bench";
 
 test("percentile known array", () => {
 	const samples = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
@@ -23,6 +23,12 @@ test("json shape from stubbed run list", () => {
 	]);
 	expect(Object.keys(report)).toEqual(["cases"]);
 	expect(report.cases.length).toBe(2);
-	expect(Object.keys(report.cases[0]!)).toEqual(["name", "min", "p50", "p95", "max"]);
-	expect(report.cases[1]!.p50).toBe(0);
+	expect(Object.keys(report.cases[0] as { name: string })).toEqual([
+		"name",
+		"min",
+		"p50",
+		"p95",
+		"max",
+	]);
+	expect((report.cases[1] as { p50: number }).p50).toBe(0);
 });
