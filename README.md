@@ -2,7 +2,7 @@
 
 Personal hub for projects: a scaffolder, one config file, and a CLI that behaves as whatever package manager a project already uses. One core powers the CLI, a desktop shell and an MCP server, so the surfaces cannot drift apart.
 
-Version line: `0.1.0-alpha.x`. Latest release: [v0.1.0-alpha.5](https://github.com/JeffreyJYZ/jyz-tool/releases).
+Version line: `0.1.0-alpha.x`. Latest release: [v0.1.0-alpha.6](https://github.com/JeffreyJYZ/jyz-tool/releases).
 
 ## Install
 
@@ -55,9 +55,19 @@ Precedence: flag, environment (`JYZ_PACKAGE_MANAGER`, …), config file, detecti
 ```
 packages/core     every capability: config, detection, dispatch, toolchain, create, capabilities
 packages/cli      cac-based adapter over core, plus the JSON-RPC serve mode
-packages/mcp      MCP tools, resources and a stdio server over core
-packages/desktop  Tauri 2 shell; the window drives `jyz serve`
+packages/mcp      MCP tools, resources and a stdio server over core; ships a `jyz-mcp` bin
+packages/desktop  Tauri 2 shell: three screens (call, config, opencode) over `jyz serve`, with the CLI bundled as a sidecar
 ```
+
+## Desktop and MCP
+
+```sh
+bun run --cwd packages/desktop build   # stages the CLI sidecar, then `tauri build`
+bun run mcp                            # the MCP server from the checkout; hosts launch `jyz-mcp`
+bun scripts/ui-walkthrough.ts          # drives all three screens in a browser (needs agent-browser)
+```
+
+The installer carries its own `jyz`, so the desktop never depends on the shell's `PATH`. Each GitHub release attaches `cli-` and `mcp-` binaries for five targets, plus `mcp-<version>.tgz` for hosts that would rather install the package.
 
 ## Development
 
