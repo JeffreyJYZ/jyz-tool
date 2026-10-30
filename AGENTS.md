@@ -26,6 +26,7 @@
 - `jyz check` aggregates `lint` and `typecheck`; each also runs alone.
 - Tabs at 4 wide, `printWidth` 100. Formatter is `biome`, `bun fmt`, `prettier`, `clang-format` or `rustfmt`, picked per project in `jyz.config.toml`.
 - Linter is `biome`, `eslint`, `bun lint`, `cargo clippy`, `clang-tidy` or none, picked per project. One tool owns each job, never two.
+- The CLI is built with `cac`, a cli-making tool: `cac("jyz")` gives the command, option, alias, version and help API, so argv parsing is never hand-rolled. Version 7.x.
 
 ## House rules
 

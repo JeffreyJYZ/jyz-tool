@@ -1,0 +1,4 @@
+# bun fmt reads this file. Docs are hand-written prose and must never be
+# reflowed, so they stay out of any format pass.
+docs/
+local/

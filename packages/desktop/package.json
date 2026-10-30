@@ -1,0 +1,7 @@
+{
+	"name": "@jyz/desktop",
+	"version": "0.0.0",
+	"private": true,
+	"type": "module",
+	"description": "Tauri desktop shell for jyz. Arrives at v2; see docs/plan/agent/desktop.md."
+}

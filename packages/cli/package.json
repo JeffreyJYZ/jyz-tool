@@ -1,0 +1,13 @@
+{
+	"name": "jyz",
+	"version": "0.0.0",
+	"private": true,
+	"type": "module",
+	"bin": {
+		"jyz": "./src/bin.ts"
+	},
+	"dependencies": {
+		"@jyz/core": "workspace:*",
+		"cac": "^7.1.0"
+	}
+}

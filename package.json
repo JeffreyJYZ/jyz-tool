@@ -1,0 +1,21 @@
+{
+	"name": "jyz",
+	"version": "0.0.0",
+	"private": true,
+	"type": "module",
+	"workspaces": [
+		"packages/*"
+	],
+	"scripts": {
+		"jyz": "bun packages/cli/src/bin.ts",
+		"typecheck": "bun check",
+		"lint": "biome check .",
+		"format": "bun fmt",
+		"format:check": "bun fmt --check",
+		"test": "bun test"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.5.15",
+		"@types/bun": "^1.4.4"
+	}
+}
