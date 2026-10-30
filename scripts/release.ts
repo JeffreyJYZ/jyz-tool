@@ -138,11 +138,15 @@ for (const file of files) console.log(`  ${file}`);
 
 if (publish) {
 	const view = await $`gh release view ${TAG}`.quiet().nothrow();
+	// No `--prerelease`: `releases/latest/download/latest.json` is the updater endpoint, and GitHub
+	// serves "latest" only for a non-prerelease. Marking it latest also keeps the endpoint pointed at
+	// the newest build, which is what an alpha channel wants.
 	if (view.exitCode === 0) {
 		await $`gh release upload ${TAG} ${files} --clobber`;
+		await $`gh release edit ${TAG} --latest --prerelease=false`;
 		console.log(`uploaded to existing release ${TAG}`);
 	} else {
-		await $`gh release create ${TAG} ${files} --title ${TAG} --prerelease --notes ${notes}`;
+		await $`gh release create ${TAG} ${files} --title ${TAG} --latest --notes ${notes}`;
 		console.log(`created release ${TAG}`);
 	}
 }

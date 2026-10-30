@@ -1,5 +1,11 @@
 import { describe, expect, test } from "bun:test";
-import { assetPlan, expectedTag, refusals, signatureVersion } from "../release-local";
+import {
+	assetPlan,
+	expectedTag,
+	refusals,
+	requiredAssets,
+	signatureVersion,
+} from "../release-local";
 
 describe("expectedTag", () => {
 	test("alpha", () => {
@@ -27,6 +33,18 @@ describe("assetPlan", () => {
 		expect(names).toContain("jyz.app.tar.gz.sig");
 		expect(names).toContain("jyz_0.1.0-alpha.10.dmg");
 		expect(names).toContain("latest.json");
+	});
+});
+
+describe("requiredAssets", () => {
+	test("a release that cannot self-update is missing one of these", () => {
+		const names = requiredAssets("jyz_0.1.0-alpha.10_aarch64.dmg").map((asset) => asset.name);
+		expect(names).toEqual([
+			"jyz.app.tar.gz",
+			"jyz.app.tar.gz.sig",
+			"jyz_0.1.0-alpha.10_aarch64.dmg",
+			"latest.json",
+		]);
 	});
 });
 

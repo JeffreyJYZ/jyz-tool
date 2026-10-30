@@ -26,6 +26,28 @@ export function expectedTag(version: string): string {
 	return `v${version}`;
 }
 
+/** The four assets an installable, self-updating release cannot do without. */
+export function requiredAssets(dmgName: string): { name: string }[] {
+	return [
+		{ name: "jyz.app.tar.gz" },
+		{ name: "jyz.app.tar.gz.sig" },
+		{ name: dmgName },
+		{ name: "latest.json" },
+	];
+}
+
+/**
+ * Every file in `dist/release`, as `gh` wants them: `path#name`. `notes.md` is the release body, not
+ * an asset, and the partial manifests are gone by now because the merge consumed them.
+ */
+export function releaseAssets(distDir = join(ROOT, "dist", "release")): string[] {
+	if (!existsSync(distDir)) return [];
+	return readdirSync(distDir)
+		.filter((name) => name !== "notes.md")
+		.sort()
+		.map((name) => `${join(distDir, name)}#${name}`);
+}
+
 export function signatureVersion(signature: string): string | null {
 	const trimmed = signature.trim();
 	if (trimmed === "") {
@@ -263,17 +285,20 @@ async function main(): Promise<void> {
 			exists = false;
 		}
 
-		const files = [
-			`${ARCHIVE}#jyz.app.tar.gz`,
-			`${ARCHIVE_SIG}#jyz.app.tar.gz.sig`,
-			`${join(DMG_DIR, dmgName as string)}#${dmgName}`,
-			`${join(ROOT, "dist", "release", "latest.json")}#latest.json`,
-		];
+		const files = releaseAssets();
 
 		if (exists) {
 			log(`release ${tag} exists, replacing assets`);
 			run("gh", ["release", "upload", tag, ...files, "--clobber"]);
-			run("gh", ["release", "edit", tag, "--notes-file", notesTmp]);
+			run("gh", [
+				"release",
+				"edit",
+				tag,
+				"--notes-file",
+				notesTmp,
+				"--prerelease=false",
+				"--latest",
+			]);
 		} else {
 			log(`creating release ${tag}`);
 			const createArgs = [
@@ -283,51 +308,56 @@ async function main(): Promise<void> {
 				...files,
 				"--title",
 				tag,
-				"--prerelease",
+				// Not `--prerelease`: `releases/latest/download/latest.json` is the update endpoint, and
+				// GitHub only serves "latest" for a non-prerelease. Quarry ships alphas the same way.
+				"--latest",
 				"--notes-file",
 				notesTmp,
 			];
 			run("gh", createArgs);
 		}
 
-		log("verifying the published manifest");
-		let published: {
-			version?: string;
-			platforms?: Record<string, { signature?: string; url?: string }>;
-		} = {};
-		let lastError = "";
+		log("verifying the published release");
+		// Verified through the API, not the public asset URL: this repo is private, and GitHub serves
+		// release assets only on a public repo, so `releases/latest/download/latest.json` answers 404
+		// to an anonymous fetcher no matter what we upload. The updater needs that URL to be public —
+		// either the repo goes public or the manifest moves to a public host.
+		let tagName = "";
+		let assets: string[] = [];
 		for (let attempt = 0; attempt < 10; attempt += 1) {
-			try {
-				const response = await fetch(
-					`https://github.com/${REPO}/releases/latest/download/latest.json`,
-					{ redirect: "follow" },
+			const latest = run("gh", ["api", `repos/${REPO}/releases/latest`, "--jq", ".tag_name"]);
+			if (latest.trim() === tag) {
+				tagName = tag;
+				const view = run("gh", ["release", "view", tag, "--json", "assets"]);
+				assets = (JSON.parse(view) as { assets: { name: string }[] }).assets.map(
+					(asset) => asset.name,
 				);
-				if (response.ok) {
-					published = (await response.json()) as typeof published;
-					break;
-				}
-				lastError = `HTTP ${response.status}`;
-			} catch (error) {
-				lastError = error instanceof Error ? error.message : String(error);
+				break;
 			}
 			await new Promise((resolve) => setTimeout(resolve, 5000));
 		}
-		if (published.version !== version) {
+		if (tagName !== tag) {
 			fail(
-				`latest.json reports ${published.version ?? "nothing"} (${lastError}), expected ${version}`,
+				`the latest release is not ${tag}; gh reports ${tagName === "" ? "nothing" : tagName}`,
 			);
 		}
-		for (const platform of Object.keys(published.platforms ?? {})) {
-			const row = published.platforms?.[platform];
-			if (
-				row === undefined ||
-				row.signature === undefined ||
-				row.signature.trim() === "" ||
-				row.url === undefined ||
-				row.url.trim() === ""
-			) {
-				fail(`latest.json has no usable ${platform} entry`);
-			}
+		for (const asset of requiredAssets(dmgName as string)) {
+			if (!assets.includes(asset.name)) fail(`${tag} is missing asset ${asset.name}`);
+		}
+
+		const manifestUrl = `https://github.com/${REPO}/releases/latest/download/latest.json`;
+		let publicStatus = 0;
+		try {
+			const probe = await fetch(manifestUrl, { redirect: "follow" });
+			publicStatus = probe.status;
+		} catch {
+			publicStatus = 0;
+		}
+		if (publicStatus !== 200) {
+			log(
+				`WARNING: the public updater endpoint answers ${publicStatus === 0 ? "nothing" : publicStatus}` +
+					` — the app cannot self-update until ${manifestUrl} is publicly reachable`,
+			);
 		}
 	}
 
