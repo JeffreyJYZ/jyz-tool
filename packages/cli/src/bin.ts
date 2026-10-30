@@ -4,6 +4,7 @@ import { cac } from "cac";
 import { registerConfig } from "./commands/config.ts";
 import { registerCreate } from "./commands/create.ts";
 import { registerDispatch } from "./commands/dispatch.ts";
+import { registerServe } from "./commands/serve.ts";
 import { registerToolchain } from "./commands/toolchain.ts";
 import { loadConfigAt, packageDirOf, readConfigTables } from "./lib/context.ts";
 import { reportError } from "./lib/errors.ts";
@@ -27,6 +28,7 @@ registerConfig(cli);
 registerCreate(cli);
 registerDispatch(cli);
 registerToolchain(cli);
+registerServe(cli);
 cli.help((sections) => {
 	const aliases = formatAliases(tables.aliases);
 	if (aliases === "") return sections;

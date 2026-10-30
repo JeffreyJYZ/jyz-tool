@@ -19,6 +19,7 @@ export const CORE_VERBS = [
 	"remove",
 	"rm",
 	"run",
+	"serve",
 	"typecheck",
 	"update",
 	"x",

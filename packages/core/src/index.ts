@@ -3,6 +3,8 @@ export { VERSION } from "./const/version.ts";
 export { CreateError } from "./create/errors.ts";
 export { createProject } from "./create/index.ts";
 export { buildArgv } from "./funcs/argv.ts";
+export type { Capability, CapabilityKind } from "./funcs/capabilities.ts";
+export { findCapability, listCapabilities } from "./funcs/capabilities.ts";
 export {
 	ConfigError,
 	ConfigWriteError,
