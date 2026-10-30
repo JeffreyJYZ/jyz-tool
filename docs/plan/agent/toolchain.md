@@ -20,26 +20,26 @@ Four verbs, one job each:
 
 ## `jyz typecheck`
 
-| Typechecker | Command |
-| --- | --- |
-| `bun-check` | `bun check` |
-| `tsc` | `tsc --noEmit` |
-| `tsgo` | `tsgo --noEmit` |
-| `tsrs` | project-local tsrs binary, `--noEmit` |
-| `cargo` | `cargo check` |
-| `clang` | `clang -fsyntax-only <sources>` |
+| Typechecker     | Command                                                         |
+| --------------- | --------------------------------------------------------------- |
+| `bun-check`     | `bun check`                                                     |
+| `tsc`           | `tsc --noEmit`                                                  |
+| `tsgo`          | `tsgo --noEmit`                                                 |
+| `tsrs`          | project-local tsrs binary, `--noEmit`                           |
+| `cargo`         | `cargo check`                                                   |
+| `clang`         | `clang -fsyntax-only <sources>`                                 |
 | `make` / `just` | `make typecheck` / `just typecheck` only when the target exists |
 
 ## `jyz lint`
 
-| Linter | Command |
-| --- | --- |
-| `biome` | `biome check <paths>` (read-only; formatting rules included) |
-| `eslint` | `eslint <paths>` |
-| `bun-lint` | `bun lint` |
-| `cargo-clippy` | `cargo clippy -- -D warnings` |
-| `clang-tidy` | `clang-tidy <paths>` |
-| `none` | no-op that prints the configured reason and exits 0 |
+| Linter         | Command                                                      |
+| -------------- | ------------------------------------------------------------ |
+| `biome`        | `biome check <paths>` (read-only; formatting rules included) |
+| `eslint`       | `eslint <paths>`                                             |
+| `bun-lint`     | `bun lint`                                                   |
+| `cargo-clippy` | `cargo clippy -- -D warnings`                                |
+| `clang-tidy`   | `clang-tidy <paths>`                                         |
+| `none`         | no-op that prints the configured reason and exits 0          |
 
 ## `jyz check`
 
@@ -54,14 +54,14 @@ The aggregate, with these rules:
 
 ## `jyz fmt`
 
-| Formatter | Command |
-| --- | --- |
-| `biome` | `biome check --write` on tracked paths |
-| `bun-fmt` | `bun fmt` |
-| `prettier` | `prettier --write <paths>` |
-| `clang-format` | `clang-format -i <paths>` |
-| `rustfmt` | `cargo fmt --all` |
-| `none` | no-op that prints the configured reason and exits 0 |
+| Formatter      | Command                                             |
+| -------------- | --------------------------------------------------- |
+| `biome`        | `biome check --write` on tracked paths              |
+| `bun-fmt`      | `bun fmt`                                           |
+| `prettier`     | `prettier --write <paths>`                          |
+| `clang-format` | `clang-format -i <paths>`                           |
+| `rustfmt`      | `cargo fmt --all`                                   |
+| `none`         | no-op that prints the configured reason and exits 0 |
 
 `jyz fmt --check` must run the read-only form (`biome check`, `bun fmt --check`, `prettier --check <paths>`, `clang-format --dry-run --Werror <paths>`, `cargo fmt --all -- --check`), because a writing formatter can never be a gate.
 

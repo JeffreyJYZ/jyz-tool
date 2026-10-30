@@ -1,0 +1,20 @@
+import type { CliOptions } from "../types/index.ts";
+
+/** Minimal argv parsing: enough for one bin entry, replaced when the command set grows. */
+export function parseArgs(argv: readonly string[]): CliOptions {
+	let help = false;
+	let version = false;
+	const rest: string[] = [];
+	for (const arg of argv) {
+		if (arg === "--help" || arg === "-h") {
+			help = true;
+			continue;
+		}
+		if (arg === "--version" || arg === "-v") {
+			version = true;
+			continue;
+		}
+		rest.push(arg);
+	}
+	return { help, version, rest };
+}

@@ -1,0 +1,15 @@
+{
+	"name": "__NAME__",
+	"version": "__VERSION__",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"dev": "bun --watch src/bin.ts",
+		"start": "bun src/bin.ts",
+		"test": "bun test"
+	},
+	"devDependencies": {
+		"@types/bun": "^1.4.4",
+		"typescript": "^5.9.3"
+	}
+}

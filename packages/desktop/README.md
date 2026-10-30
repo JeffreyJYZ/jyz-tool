@@ -11,3 +11,5 @@ Constraints already settled:
 - every core capability must be reachable from the UI, checked against the capability manifest
 
 Nothing here runs yet, and no dependency is declared for it. That is deliberate: an empty package that builds nothing cannot lie about being finished.
+
+v1 ships a documented stub of the stdio JSON-RPC client shape in `src/rpc.ts` (types + NDJSON framing only); no Tauri commands are registered and no process is spawned.

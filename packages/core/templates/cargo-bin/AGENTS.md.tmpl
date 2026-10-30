@@ -1,0 +1,14 @@
+# __NAME__
+
+Rust binary on the stable toolchain. `[[bin]]` in `Cargo.toml` names the artefact; modules live under `src/`.
+
+## Commands
+
+- Build: `cargo build --release`
+- Run: `cargo run`
+- Test: `cargo test`
+- Typecheck: `cargo check` (typechecker `__TYPECHECKER__`)
+- Lint: `cargo clippy -- -D warnings` (linter `__LINTER__`)
+- Format: `cargo fmt` (formatter `__FORMATTER__`)
+
+`rustfmt.toml` pins hard tabs, tab width 4 and max width 100.

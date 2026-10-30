@@ -1,0 +1,10 @@
+import { expect, test } from "bun:test";
+import { parseArgs } from "../src/funcs/parse.ts";
+
+test("reads --version", () => {
+	expect(parseArgs(["--version"]).version).toBe(true);
+});
+
+test("keeps arguments the binary does not own", () => {
+	expect(parseArgs(["build", "x"]).rest).toEqual(["build", "x"]);
+});

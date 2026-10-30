@@ -18,13 +18,13 @@ Start, watch and drive opencode sessions from jyz, using the client packages ope
 
 ## v2 surface
 
-| Capability | CLI | Desktop |
-| --- | --- | --- |
-| list sessions for a project | `jyz oc sessions` | session list |
-| start a session | `jyz oc start [--spawn] [--prompt]` | new session button |
-| send a prompt | `jyz oc prompt <text>` | composer |
-| watch status and output | `jyz oc watch` | live view |
-| open the TUI for a session | `jyz oc attach` | open terminal button |
+| Capability                  | CLI                                 | Desktop              |
+| --------------------------- | ----------------------------------- | -------------------- |
+| list sessions for a project | `jyz oc sessions`                   | session list         |
+| start a session             | `jyz oc start [--spawn] [--prompt]` | new session button   |
+| send a prompt               | `jyz oc prompt <text>`              | composer             |
+| watch status and output     | `jyz oc watch`                      | live view            |
+| open the TUI for a session  | `jyz oc attach`                     | open terminal button |
 
 ## Rules
 

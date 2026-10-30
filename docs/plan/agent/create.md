@@ -15,19 +15,19 @@ Hard rule: no external scaffolding tool. No `create-next-app`, no `cargo init`, 
 
 `jyz create <name>` starts a project. Every prompt has an identical flag, so CI and agents never need a TTY.
 
-| Flag | Meaning |
-| --- | --- |
-| `--template <t>` | `next`, `vite-tauri`, `cli`, `rust-bin`, `rust-lib`, `c`, `monorepo` |
-| `--pm <pm>` | `bun`, `pnpm` |
-| `--typechecker <c>` | `bun-check`, `tsc`, `tsgo`, `tsrs` |
-| `--linter <l>` | `biome`, `eslint`, `bun-lint`, `clang-tidy`, `cargo-clippy`, `none` |
-| `--formatter <f>` | `biome`, `bun-fmt`, `prettier`, `clang-format`, `rustfmt`, `none` |
-| `--docs[=bool]` | include the `docs/` scaffold |
-| `--git <mode>` | `skip`, `init`, `commit`, `github` |
-| `--install[=bool]` | run the package manager after writing |
-| `--publishable[=bool]` | JS templates get the manifest fields a release needs |
-| `--dir <path>` | target directory, defaults to `./<name>` |
-| `--yes` | accept defaults for anything unflagged |
+| Flag                   | Meaning                                                              |
+| ---------------------- | -------------------------------------------------------------------- |
+| `--template <t>`       | `next`, `vite-tauri`, `cli`, `rust-bin`, `rust-lib`, `c`, `monorepo` |
+| `--pm <pm>`            | `bun`, `pnpm`                                                        |
+| `--typechecker <c>`    | `bun-check`, `tsc`, `tsgo`, `tsrs`                                   |
+| `--linter <l>`         | `biome`, `eslint`, `bun-lint`, `clang-tidy`, `cargo-clippy`, `none`  |
+| `--formatter <f>`      | `biome`, `bun-fmt`, `prettier`, `clang-format`, `rustfmt`, `none`    |
+| `--docs[=bool]`        | include the `docs/` scaffold                                         |
+| `--git <mode>`         | `skip`, `init`, `commit`, `github`                                   |
+| `--install[=bool]`     | run the package manager after writing                                |
+| `--publishable[=bool]` | JS templates get the manifest fields a release needs                 |
+| `--dir <path>`         | target directory, defaults to `./<name>`                             |
+| `--yes`                | accept defaults for anything unflagged                               |
 
 Non-TTY without `--yes` or the required flags: exit non-zero with the missing flag named. Never hang on a prompt.
 
@@ -91,7 +91,7 @@ Minimalism rules:
 
 ## Publishing
 
-`jyz publish` is a v1 non-goal: releasing belongs to CI and tags. The scaffolder still has to leave a project *able* to publish, so `--publishable` writes the manifest fields a release needs and nothing more:
+`jyz publish` is a v1 non-goal: releasing belongs to CI and tags. The scaffolder still has to leave a project _able_ to publish, so `--publishable` writes the manifest fields a release needs and nothing more:
 
 - `bin` for CLI templates, pointing at the built entry
 - `files` listing only what ships

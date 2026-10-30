@@ -1,0 +1,33 @@
+import { APP_DESCRIPTION, APP_NAME } from "./const/app.ts";
+import { VERSION } from "./const/version.ts";
+import { parseArgs } from "./funcs/parse.ts";
+
+/** Runs one invocation and returns the process exit code. */
+export function run(argv: readonly string[]): number {
+	const options = parseArgs(argv);
+	if (options.version) {
+		console.log(`${APP_NAME} ${VERSION}`);
+		return 0;
+	}
+	if (options.help || options.rest.length === 0) {
+		console.log(usage());
+		return 0;
+	}
+	console.error(`${APP_NAME}: unknown command "${options.rest[0]}"`);
+	return 1;
+}
+
+function usage(): string {
+	return [
+		`${APP_NAME} ${VERSION}`,
+		"",
+		APP_DESCRIPTION,
+		"",
+		"Usage:",
+		`  ${APP_NAME} [command]`,
+		"",
+		"Flags:",
+		"  -h, --help     print this help",
+		"  -v, --version  print the version",
+	].join("\n");
+}

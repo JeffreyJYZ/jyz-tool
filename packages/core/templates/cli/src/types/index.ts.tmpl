@@ -1,0 +1,6 @@
+/** Parsed command line; `rest` keeps every argument this binary does not own. */
+export interface CliOptions {
+	readonly help: boolean;
+	readonly version: boolean;
+	readonly rest: string[];
+}

@@ -1,0 +1,13 @@
+# __NAME__
+
+Bun workspace. Packages live under `packages/`; the root holds one lockfile and one toolchain choice.
+
+## Commands
+
+- Install: `__PACKAGE_MANAGER__ install`
+- Test: `bun test`
+- Typecheck: `bun run typecheck` (typechecker `__TYPECHECKER__`)
+- Lint: `bun run lint` (linter `__LINTER__`)
+- Format: `bun run format` (formatter `__FORMATTER__`)
+
+`jyz.config.toml` at the root sets the toolchain for every member; a member overrides it only when it differs. Tabs at 4 wide, printWidth 100.

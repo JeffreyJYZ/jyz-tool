@@ -1,0 +1,14 @@
+# __NAME__
+
+TypeScript CLI on Bun. One bin entry at `src/bin.ts`; new code goes into `src/types/`, `src/const/` or `src/funcs/`.
+
+## Commands
+
+- Install: `__PACKAGE_MANAGER__ install`
+- Run: `bun src/bin.ts`
+- Test: `bun test`
+- Typecheck: `bun run typecheck` (typechecker `__TYPECHECKER__`)
+- Lint: `bun run lint` (linter `__LINTER__`)
+- Format: `bun run format` (formatter `__FORMATTER__`)
+
+Tabs at 4 wide, printWidth 100. `jyz.config.toml` holds the toolchain choice; edit it rather than the tool configs.

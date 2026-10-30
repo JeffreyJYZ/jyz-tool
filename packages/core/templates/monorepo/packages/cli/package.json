@@ -1,0 +1,12 @@
+{
+	"name": "@__NAME__/cli",
+	"version": "__VERSION__",
+	"private": true,
+	"type": "module",
+	"bin": {
+		"__NAME__": "./src/bin.ts"
+	},
+	"dependencies": {
+		"@__NAME__/core": "workspace:*"
+	}
+}

@@ -1,0 +1,14 @@
+# __NAME__
+
+C17 project. Sources and headers sit together in `src/`; `dist/` is build output and never committed. `Makefile` and `justfile` hold the same commands.
+
+## Commands
+
+- Build: `make build` (or `just build`)
+- Run: `make run` (or `just run`)
+- Check: `make check` (or `just check`), typechecker `__TYPECHECKER__`
+- Lint: `make lint` (or `just lint`), linter `__LINTER__`
+- Format: `make fmt` (or `just fmt`), formatter `__FORMATTER__`
+- Clean: `make clean`
+
+`.clang-format` and `.clang-tidy` are the toolchain defaults; Clang 16 or newer is assumed.

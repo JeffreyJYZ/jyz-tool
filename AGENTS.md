@@ -3,8 +3,10 @@
 ## Where things are
 
 - Plan of record: `docs/plan/agent/main.md` — overview, decisions, milestones, feature index. One file per feature sits beside it.
-- Work logs to `docs/progress/log/`, decisions and gotchas to `docs/progress/notes/`.
+- Task plans live at `docs/plan/agent/<plan>.md` with their briefs in `docs/plan/agent/<plan>/briefs/`; subagent reports land in `docs/progress/reports/<plan>/`.
+- Ledgers and work logs go to `docs/progress/log/`, decisions and gotchas to `docs/progress/notes/`.
 - `docs/progress/reports/` holds subagent reports verbatim, one report per milestone, and one per released version.
+- Never write coordination artefacts to `.superpowers/` or any hidden scratch dir: everything lives under `docs/`.
 - No source yet. `packages/core` and `packages/cli` arrive at M0; until then this repo is docs only.
 
 ## Status
@@ -37,7 +39,8 @@
 
 ## Commands
 
-- `bun run jyz` prints help; `bun run jyz --version` prints `jyz/<version> <os>-<arch> bun-v<ver>`.
+- `jyz` is linked globally with `bun link` (`~/.bun/install/global/node_modules/jyz` → `packages/cli`), so call `jyz …` from anywhere and edits take effect with no reinstall; never spell out `bun packages/cli/src/bin.ts`.
+- `bun run jyz` prints help; `jyz --version` prints `jyz/<version> <os>-<arch> bun-v<ver>`.
 - Gates: `bun run typecheck` (`bun check`), `bun run lint` (`biome check .`), `bun run format:check` (`bun fmt --check`), `bun run test`.
 - Desktop: `cd packages/desktop && bunx tauri build`; needs Rust plus Xcode CLT on macOS.
 - Release: `bun run scripts/release.ts --all --publish` builds `core-`, `cli-` and `desktop-` artefacts into `dist/release` and publishes them to the `v<version>` GitHub release; it is idempotent, `--clobber` on an existing tag.
@@ -45,7 +48,8 @@
 
 ## Traps
 
-- `bun fmt` formats Markdown at width 80 and reflows prose; `.prettierignore` excludes `docs/` and `local/` because `bun fmt` reads it.
+- `bun fmt` does NOT wrap Markdown by default (`proseWrap` is `preserve`); `[[fmt.overrides]]` with `proseWrap = "never"` pins that for `**/*.md`. What it does change is table column alignment and `*emphasis*` style. `.prettierignore` now excludes only `local/`.
+- Never hard-wrap markdown by hand even though the formatter allows it: one line per bullet, no soft wraps.
 - Never name a package script `fmt` or `check`: both shadow Bun builtins, so `bun fmt --check` would write and `bun check` would stop typechecking.
 - Biome installed as 2.6.4, where `rules.recommended` is deprecated in favour of `rules.preset`; run `bunx biome migrate --write` after a bump.
 - One version source: `packages/core/src/const/version.ts` imports `packages/core/package.json`, and the CLI reads it. Bump all four `package.json` files together or the release tag lies.

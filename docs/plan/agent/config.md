@@ -64,13 +64,13 @@ Discovery walks up from cwd to the filesystem root or a directory containing `.g
 
 ## Detection
 
-| Signal | Result |
-| --- | --- |
-| `bun.lock` or `bun.lockb` | bun |
-| `pnpm-lock.yaml` | pnpm |
+| Signal                                | Result                                           |
+| ------------------------------------- | ------------------------------------------------ |
+| `bun.lock` or `bun.lockb`             | bun                                              |
+| `pnpm-lock.yaml`                      | pnpm                                             |
 | `package.json` `packageManager` field | whichever it names, only when no lockfile exists |
-| both lockfiles | error naming both; never guess |
-| no signal in a JS project | configured default, else `bun` |
+| both lockfiles                        | error naming both; never guess                   |
+| no signal in a JS project             | configured default, else `bun`                   |
 
 Typechecker and linter detection follow the same shape: `bunfig.toml` plus a Bun workspace means `bun-check` is available, `tsconfig.json` means `tsc`, `biome.json` means `biome`, `Cargo.toml` means `cargo`, and `tsgo`/`tsrs` are only selected when the binary resolves in `node_modules/.bin` or `PATH`.
 
@@ -82,13 +82,13 @@ Language-native tools use their own files: `.clang-format` means `clang-format`,
 
 ## Commands
 
-| Command | Behaviour |
-| --- | --- |
-| `jyz config show` | print the merged config with each value's source layer |
-| `jyz config get <key>` | print one resolved value |
-| `jyz config set <key> <value>` | write the nearest file |
-| `jyz config path` | print the file jyz would read |
-| `jyz config check` | validate; `--strict` fails on unknown keys |
+| Command                        | Behaviour                                              |
+| ------------------------------ | ------------------------------------------------------ |
+| `jyz config show`              | print the merged config with each value's source layer |
+| `jyz config get <key>`         | print one resolved value                               |
+| `jyz config set <key> <value>` | write the nearest file                                 |
+| `jyz config path`              | print the file jyz would read                          |
+| `jyz config check`             | validate; `--strict` fails on unknown keys             |
 
 `config set` preserves comments and formatting. When a file cannot be round-tripped without losing something, the command refuses, names the line it cannot handle and writes nothing. A silent rewrite that drops comments is a defect.
 

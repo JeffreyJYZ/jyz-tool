@@ -1,0 +1,5 @@
+[project]
+package_manager = "bun"
+typechecker = "bun-check"
+linter = "biome"
+formatter = "bun-fmt"

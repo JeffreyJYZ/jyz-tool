@@ -90,15 +90,15 @@ The `docs/` tree exists already and is planned, not incidental:
 
 ## Feature index
 
-| Feature | File | Milestone |
-| --- | --- | --- |
-| Scaffolder (`jyz create`) | [create.md](create.md) | M3 |
-| Config system | [config.md](config.md) | M1 |
-| Command dispatch (`install` … `outdated`) | [dispatch.md](dispatch.md) | M2 |
-| Toolchain verbs (`lint`, `typecheck`, `check`, `fmt`) | [toolchain.md](toolchain.md) | M4 |
-| Tauri desktop | [desktop.md](desktop.md) | v2 |
-| MCP server | [mcp.md](mcp.md) | v2 |
-| opencode integration | [opencode.md](opencode.md) | v2 |
+| Feature                                               | File                         | Milestone |
+| ----------------------------------------------------- | ---------------------------- | --------- |
+| Scaffolder (`jyz create`)                             | [create.md](create.md)       | M3        |
+| Config system                                         | [config.md](config.md)       | M1        |
+| Command dispatch (`install` … `outdated`)             | [dispatch.md](dispatch.md)   | M2        |
+| Toolchain verbs (`lint`, `typecheck`, `check`, `fmt`) | [toolchain.md](toolchain.md) | M4        |
+| Tauri desktop                                         | [desktop.md](desktop.md)     | v2        |
+| MCP server                                            | [mcp.md](mcp.md)             | v2        |
+| opencode integration                                  | [opencode.md](opencode.md)   | v2        |
 
 ## Milestones
 

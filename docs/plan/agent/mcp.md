@@ -15,21 +15,21 @@ Because core is TypeScript on Bun, the server imports the core API in-process. I
 
 Mirror the v1 command surface, in core terms rather than argv terms:
 
-| Tool | Underlying operation |
-| --- | --- |
-| `jyz_install` | install |
-| `jyz_add` | add, with `dev: true` for dev dependencies |
-| `jyz_remove` | remove |
-| `jyz_run` | run a script |
-| `jyz_exec` | execute a binary |
-| `jyz_update` | update |
-| `jyz_outdated` | outdated |
-| `jyz_create` | create, all template and git flags exposed as arguments |
-| `jyz_config` | show, get, set, check |
-| `jyz_typecheck` | typecheck |
-| `jyz_lint` | lint |
-| `jyz_check` | check |
-| `jyz_fmt` | fmt |
+| Tool            | Underlying operation                                    |
+| --------------- | ------------------------------------------------------- |
+| `jyz_install`   | install                                                 |
+| `jyz_add`       | add, with `dev: true` for dev dependencies              |
+| `jyz_remove`    | remove                                                  |
+| `jyz_run`       | run a script                                            |
+| `jyz_exec`      | execute a binary                                        |
+| `jyz_update`    | update                                                  |
+| `jyz_outdated`  | outdated                                                |
+| `jyz_create`    | create, all template and git flags exposed as arguments |
+| `jyz_config`    | show, get, set, check                                   |
+| `jyz_typecheck` | typecheck                                               |
+| `jyz_lint`      | lint                                                    |
+| `jyz_check`     | check                                                   |
+| `jyz_fmt`       | fmt                                                     |
 
 Each tool returns structured data, not scraped text: exit code, resolved package, resolved package manager, argv, and captured stdout/stderr.
 

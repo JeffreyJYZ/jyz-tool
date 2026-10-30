@@ -1,0 +1,9 @@
+{
+	"name": "@__NAME__/core",
+	"version": "__VERSION__",
+	"private": true,
+	"type": "module",
+	"exports": {
+		".": "./src/index.ts"
+	}
+}

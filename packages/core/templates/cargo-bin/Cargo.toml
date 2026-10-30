@@ -1,0 +1,10 @@
+[package]
+name = "__NAME__"
+version = "__VERSION__"
+edition = "2021"
+
+[[bin]]
+name = "__NAME__"
+path = "src/main.rs"
+
+[dependencies]
