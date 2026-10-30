@@ -96,6 +96,27 @@ if (!publishOnly) {
 				? "no desktop installer found"
 				: `collected ${found} desktop installer(s) for ${suffix}`,
 		);
+
+		let updaterFound = 0;
+		let sigFound = 0;
+		try {
+			for (const entry of await readdir(BUNDLE_ROOT, { recursive: true })) {
+				const file = basename(String(entry));
+				if (file !== "latest.json" && !file.endsWith(".sig")) continue;
+				const targetName = file === "latest.json" ? `latest-${platform}.json` : file;
+				await copyFile(join(BUNDLE_ROOT, String(entry)), join(OUT, targetName));
+				updaterFound++;
+				if (file.endsWith(".sig")) sigFound++;
+			}
+		} catch {
+			// no bundle on this platform yet
+		}
+		console.log(
+			updaterFound === 0
+				? "no updater artefacts found"
+				: `collected ${updaterFound} updater artefact(s)`,
+		);
+		if (sigFound === 0) console.log("warning: no updater signature found");
 	}
 }
 

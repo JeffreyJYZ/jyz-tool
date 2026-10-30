@@ -171,6 +171,22 @@
 					0.75rem/1.4 ui-monospace,
 					monospace;
 			}
+			#update-banner {
+				display: flex;
+				align-items: center;
+				gap: 0.75rem;
+				padding: 0.625rem 0.875rem;
+				border: 1px solid var(--line);
+				border-radius: 6px;
+				background: var(--panel);
+				color: var(--ink);
+			}
+			#update-banner[hidden] {
+				display: none;
+			}
+			#update-banner button {
+				margin-left: auto;
+			}
 			@media (max-width: 34rem) {
 				form {
 					grid-template-columns: 1fr;
@@ -180,6 +196,7 @@
 	</head>
 	<body>
 		<main>
+			<div id="update-banner" hidden></div>
 			<nav class="tabs" id="tabs">
 				<button type="button" data-screen="call" class="active">Call</button>
 				<button type="button" data-screen="config">Config</button>
@@ -550,6 +567,42 @@
 				}
 			}
 
+			const updateBanner = document.getElementById("update-banner");
+
+			function renderUpdate(offer) {
+				if (!offer || typeof offer.version !== "string") return;
+				updateBanner.hidden = false;
+				updateBanner.textContent = "";
+				const span = document.createElement("span");
+				span.textContent = `update available: ${offer.version}`;
+				updateBanner.append(span);
+				if (typeof offer.notes === "string" && offer.notes !== "") {
+					const detail = document.createElement("span");
+					detail.textContent = offer.notes;
+					updateBanner.append(detail);
+				}
+				const btn = document.createElement("button");
+				btn.type = "button";
+				btn.textContent = "Install";
+				btn.addEventListener("click", async () => {
+					if (!invoke) return;
+					btn.disabled = true;
+					btn.textContent = "installing… the app will restart";
+					try {
+						await invoke("jyz_update_install");
+					} catch (error) {
+						btn.disabled = false;
+						btn.textContent = "Install";
+						updateBanner.append(
+							Object.assign(document.createElement("span"), {
+								textContent: messageOf(error),
+							}),
+						);
+					}
+				});
+				updateBanner.append(btn);
+			}
+
 			const footer = document.getElementById("version");
 			// The first render runs last: showScreen reaches the screens' own consts, and a
 			// declaration above their initializer would throw on a deep link. Wiring the tab
@@ -565,6 +618,11 @@
 					.catch((error) => {
 						footer.textContent = `jyz · ${messageOf(error)}`;
 					});
+				invoke("jyz_update_check")
+					.then((offer) => {
+						if (offer) renderUpdate(offer);
+					})
+					.catch(() => {});
 			}
 		</script>
 	</body>

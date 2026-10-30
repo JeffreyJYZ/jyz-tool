@@ -4,6 +4,28 @@ import pkg from "../package.json";
 
 export const PLATFORMS = ["darwin-arm64", "darwin-x64", "linux-x64", "windows-x64"];
 
+export function collectUpdaterExtras(names: string[]): string[] {
+	return names.filter((name) => name === "latest.json" || name.endsWith(".sig"));
+}
+
+export function partialManifestName(platform: string): string {
+	return `latest-${platform}.json`;
+}
+
+export type UpdaterManifestLike = { platforms?: Record<string, unknown> };
+
+export function manifestPlatformCount(manifest: UpdaterManifestLike | null | undefined): number {
+	return Object.keys(manifest?.platforms ?? {}).length;
+}
+
+export function hasThreePlatforms(manifest: UpdaterManifestLike | null | undefined): boolean {
+	return manifestPlatformCount(manifest) >= 3;
+}
+
+export const threePlatforms = hasThreePlatforms;
+export const hasAtLeastThreePlatforms = hasThreePlatforms;
+export const platformCount = manifestPlatformCount;
+
 export function checkAssets(assets: { name: string }[], version: string): string[] {
 	const problems: string[] = [];
 	const names = assets.map((a) => a.name);
@@ -18,6 +40,8 @@ export function checkAssets(assets: { name: string }[], version: string): string
 		if (!names.some((n) => n.includes(platform)))
 			problems.push(`missing platform: ${platform}`);
 	}
+	if (!names.includes("latest.json")) problems.push("missing latest.json");
+	if (!names.some((n) => n.endsWith(".sig"))) problems.push("missing .sig");
 	return problems;
 }
 

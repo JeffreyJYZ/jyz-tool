@@ -14,6 +14,8 @@ test("happy path", () => {
 		...PLATFORMS.map((p) => `cli-${VERSION}-${p}`),
 		...PLATFORMS.map((p) => `mcp-${VERSION}-${p}`),
 		...PLATFORMS.map((p) => `desktop-${VERSION}-${p}.dmg`),
+		`latest.json`,
+		`foo.app.tar.gz.sig`,
 	];
 	expect(checkAssets(assets(names), VERSION)).toEqual([]);
 });

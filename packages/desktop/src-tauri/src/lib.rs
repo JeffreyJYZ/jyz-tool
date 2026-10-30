@@ -284,14 +284,63 @@ fn json_string(text: &str) -> String {
 	out
 }
 
+#[derive(serde::Serialize)]
+struct UpdateOffer {
+	current: String,
+	version: String,
+	notes: Option<String>,
+}
+
+#[allow(dead_code)]
+fn updater_pubkey_from_config(config: &serde_json::Value) -> Result<String, String> {
+	config
+		.get("plugins")
+		.and_then(|plugins| plugins.get("updater"))
+		.and_then(|updater| updater.get("pubkey"))
+		.and_then(|value| value.as_str())
+		.map(|value| value.to_string())
+		.ok_or_else(|| "missing updater pubkey in config".to_string())
+}
+
+#[tauri::command]
+async fn jyz_update_check(app: tauri::AppHandle) -> Result<Option<UpdateOffer>, String> {
+	use tauri_plugin_updater::UpdaterExt;
+	let updater = app.updater().map_err(|error| error.to_string())?;
+	match updater.check().await.map_err(|error| error.to_string())? {
+		Some(update) => Ok(Some(UpdateOffer {
+			current: update.current_version.clone(),
+			version: update.version.clone(),
+			notes: update.body.clone(),
+		})),
+		None => Ok(None),
+	}
+}
+
+#[tauri::command]
+async fn jyz_update_install(app: tauri::AppHandle) -> Result<(), String> {
+	use tauri_plugin_updater::UpdaterExt;
+	let updater = app.updater().map_err(|error| error.to_string())?;
+	let Some(update) = updater.check().await.map_err(|error| error.to_string())? else {
+		return Ok(());
+	};
+	update
+		.download_and_install(|_, _| {}, || {})
+		.await
+		.map_err(|error| error.to_string())?;
+	app.restart()
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
 	tauri::Builder::default()
+		.plugin(tauri_plugin_updater::Builder::new().build())
 		.invoke_handler(tauri::generate_handler![
 			jyz_call,
 			jyz_version,
 			jyz_capabilities,
-			jyz_oc
+			jyz_oc,
+			jyz_update_check,
+			jyz_update_install
 		])
 		.run(tauri::generate_context!())
 		.expect("error while running the jyz desktop shell");
@@ -344,5 +393,24 @@ mod tests {
 		let resolved = resolve_program(Some(&base));
 		assert_eq!(resolved, base.join(sidecar_name()).display().to_string());
 		let _ = std::fs::remove_dir_all(&base);
+	}
+
+	#[test]
+	fn offer_shape_serializes_three_fields() {
+		let offer = UpdateOffer {
+			current: "0.1.0".to_string(),
+			version: "0.1.1".to_string(),
+			notes: Some("notes".to_string()),
+		};
+		let value = serde_json::to_value(&offer).unwrap();
+		assert_eq!(value.get("current").unwrap(), "0.1.0");
+		assert_eq!(value.get("version").unwrap(), "0.1.1");
+		assert_eq!(value.get("notes").unwrap(), "notes");
+	}
+
+	#[test]
+	fn missing_config_key_is_an_error() {
+		let config = serde_json::json!({});
+		assert!(updater_pubkey_from_config(&config).is_err());
 	}
 }

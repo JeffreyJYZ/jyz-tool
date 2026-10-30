@@ -45,6 +45,9 @@ export function stubSource(): string {
 	async function invoke(command, args = {}) {
 		if (command === "jyz_capabilities") return manifest;
 		if (command === "jyz_version") return "jyz/0.0.0 walkthrough";
+		if (command === "jyz_update_check") {
+			return { current: "0.0.0", version: "9.9.9", notes: "walkthrough offer" };
+		}
 		if (command === "jyz_oc") {
 			const argv = args.args ?? [];
 			if (argv[0] === "sessions") return JSON.stringify(sessions);
@@ -207,6 +210,22 @@ async function main(): Promise<void> {
 			"sending a prompt reports the session",
 			typeof sent === "string" && sent.includes("ses_alpha"),
 			typeof sent === "string" ? sent : "",
+		);
+
+		const banner = evalJson(
+			await browser(session, [
+				"eval",
+				'new Promise((done) => setTimeout(() => done(JSON.stringify({ hidden: document.getElementById("update-banner").hidden, text: document.getElementById("update-banner").textContent })), 500))',
+			]),
+		);
+		const bannerState =
+			typeof banner === "string" && banner.startsWith("{")
+				? (JSON.parse(banner) as { hidden: boolean; text: string })
+				: { hidden: true, text: "" };
+		record(
+			"update banner offers the new version",
+			!bannerState.hidden && bannerState.text.includes("9.9.9"),
+			bannerState.text,
 		);
 	} finally {
 		await $`agent-browser close`
