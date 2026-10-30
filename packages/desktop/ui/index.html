@@ -492,13 +492,22 @@
 				return changed;
 			}
 			function renderSessions(rows, changed) {
-				sessionPicker.innerHTML = "";
-				for (const row of rows) {
-					const option = document.createElement("option");
-					option.value = row.id;
-					option.textContent = row.title + " (" + row.id + ")";
-					if (changed.includes(row.id)) option.textContent += " *";
-					sessionPicker.append(option);
+				// A poll must never steal the selection or the focus: rebuild the options only when the
+				// list actually differs, and put the person's chosen session back when it does.
+				const chosen = sessionPicker.value;
+				const wanted = rows.map((row) => row.id + "|" + row.title).join("\n");
+				if (sessionPicker.dataset.signature !== wanted) {
+					sessionPicker.innerHTML = "";
+					for (const row of rows) {
+						const option = document.createElement("option");
+						option.value = row.id;
+						option.textContent = row.title + " (" + row.id + ")";
+						if (changed.includes(row.id)) option.textContent += " *";
+						sessionPicker.append(option);
+					}
+					sessionPicker.dataset.signature = wanted;
+					const keep = rows.some((row) => row.id === chosen);
+					if (keep) sessionPicker.value = chosen;
 				}
 				ocBody.innerHTML = "";
 				for (const row of rows) {

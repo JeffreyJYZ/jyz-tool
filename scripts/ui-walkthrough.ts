@@ -227,6 +227,28 @@ async function main(): Promise<void> {
 			!bannerState.hidden && bannerState.text.includes("9.9.9"),
 			bannerState.text,
 		);
+
+		// A poll must not steal the choice: pick the second session, let the 5 s ticker run, and check
+		// both the value and the focus survive.
+		await browser(session, [
+			"eval",
+			'document.getElementById("session").value = "ses_beta"; document.getElementById("prompt").focus();',
+		]);
+		const held = evalJson(
+			await browser(session, [
+				"eval",
+				'new Promise((done) => setTimeout(() => done(JSON.stringify({ value: document.getElementById("session").value, focus: document.activeElement?.id ?? "" })), 6500))',
+			]),
+		);
+		const heldState =
+			typeof held === "string" && held.startsWith("{")
+				? (JSON.parse(held) as { value: string; focus: string })
+				: { value: "", focus: "" };
+		record(
+			"a poll keeps the chosen session and the focus",
+			heldState.value === "ses_beta" && heldState.focus === "prompt",
+			`value=${heldState.value} focus=${heldState.focus}`,
+		);
 	} finally {
 		await $`agent-browser close`
 			.env({ ...process.env, AGENT_BROWSER_SESSION: session })
