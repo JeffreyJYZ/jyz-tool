@@ -147,7 +147,7 @@ All three seams closed at `0.1.0-alpha.6`; task plan [v2-tasks.md](v2-tasks.md),
 
 - Desktop consumes the installed CLI over its JSON-RPC surface, and the installer carries that CLI as a Tauri sidecar (`bundle.externalBin`, staged by `packages/desktop/scripts/stage-sidecar.ts`). Three screens: call runner, config viewer, opencode panel with a 5 s session watch.
 - MCP imports the core API in-process, streams `jyz_watch`/`jyz_cancel`, and ships as `@jyz/mcp` with a `jyz-mcp` bin plus one compiled binary per platform.
-- opencode integration drives sessions through `@opencode/client` **2.0.29**, pinned exact: `session.list({ parentID: null })` for the root list, the flat `session.prompt` for sending, and `event.subscribe` behind `subscribeEvents` / `jyz oc watch`. The client surface and every payload trap came from the live `opencode-tauri-client` reference (`docs/opencode-api.md`), not from guesswork. The desktop panel still polls `oc sessions` on a timer; the event stream is what a terminal or a host drives.
+- opencode integration drives sessions through `@opencode/client` **2.2.3**, pinned exact: `session.list({ parentID: null })` for the root list, the flat `session.prompt` for sending, and `event.subscribe` behind `subscribeEvents` / `jyz oc watch`. The client surface and every payload trap came from the live `opencode-tauri-client` reference (`docs/opencode-api.md`), not from guesswork. The desktop panel still polls `oc sessions` on a timer; the event stream is what a terminal or a host drives.
 
 ## Non-goals for v1
 
