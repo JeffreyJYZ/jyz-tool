@@ -9,4 +9,3 @@ Owns: `packages/desktop/src-tauri/src/linux_process.rs`, `packages/desktop/src-t
 - `packages/desktop/src/bridge.ts`: the pure request/response shaping used by the UI, exported and unit tested; it must not import Tauri
 
 Tests: `packages/desktop/test/bridge.test.ts` covers request shaping, error mapping and result extraction. Rust is validated with `cargo check` inside `src-tauri`; report the exact command you ran.
-

@@ -11,4 +11,3 @@ A committed, reusable check for a published release — the rules require one pe
 - export the pure function `checkAssets(assets: {name: string}[], version: string): string[]` returning a list of problems, so it is testable without network
 
 Tests: pure-function coverage for the happy path, a missing cli asset, a missing desktop asset, a missing platform, and an empty asset list.
-
