@@ -8,6 +8,7 @@
 	],
 	"scripts": {
 		"jyz": "bun packages/cli/src/bin.ts",
+		"mcp": "bun packages/mcp/src/bin.ts",
 		"typecheck": "bun check",
 		"lint": "biome check .",
 		"format": "bun fmt",

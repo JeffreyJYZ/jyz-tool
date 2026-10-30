@@ -40,9 +40,10 @@
 ## Commands
 
 - `jyz` is linked globally with `bun link` (`~/.bun/install/global/node_modules/jyz` → `packages/cli`), so call `jyz …` from anywhere and edits take effect with no reinstall; never spell out `bun packages/cli/src/bin.ts`.
+- `bun run mcp` (or `bun packages/mcp/src/bin.ts`) runs the MCP server from the checkout; `--cwd <dir>` picks the project.
 - `bun run jyz` prints help; `jyz --version` prints `jyz/<version> <os>-<arch> bun-v<ver>`.
 - Gates: `bun run typecheck` (`bun check`), `bun run lint` (`biome check .`), `bun run format:check` (`bun fmt --check`), `bun run test`.
-- Desktop: `cd packages/desktop && bunx tauri build`; needs Rust plus Xcode CLT on macOS.
+- Desktop: `bun run --cwd packages/desktop build`; it stages the CLI sidecar (`scripts/stage-sidecar.ts`, output `src-tauri/binaries/jyz-<triple>`, gitignored) then runs `tauri build`. Needs Rust plus Xcode CLT on macOS.
 - Release: `bun run scripts/alpha-release.ts --push` runs the four gates, bumps every manifest, commits, tags and pushes; `--dry-run` shows the version without touching anything. `bun scripts/verify-release.ts` checks the published assets.
 - Machine surfaces: `jyz capabilities [--json]` prints the capability manifest; `jyz serve` speaks JSON-RPC over stdio; `bun scripts/mcp-smoke.ts` walks initialize, tools, resources, watch and cancel against the real MCP server.
 - Perf: `bun scripts/bench.ts --runs 5` prints p50/p95 for `--version`, `config path` and `run`.

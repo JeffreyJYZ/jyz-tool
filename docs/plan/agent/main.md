@@ -141,13 +141,13 @@ Gate: golden snapshot per template × package manager; every generated project p
 
 Gate: resolver tests per typechecker (`bun check`, `tsc`, `tsgo`, `tsrs`) and per linter; an aggregate test proving `jyz check` runs both halves and reports both failures in a single run; the capability manifest proves every core operation is reachable from the CLI; three-platform CI green.
 
-## v2 backlog
+## v2 — shipped
 
-Desktop, MCP and opencode integration are specified now so their seams are designed in, and built after M4.
+All three seams closed at `0.1.0-alpha.6`; task plan [v2-tasks.md](v2-tasks.md), reports under [../../progress/reports/v2/](../../progress/reports/v2/).
 
-- Desktop consumes the installed CLI over its JSON-RPC surface and ships that CLI with the installer.
-- MCP imports the core API in-process and adds streaming tools for long verbs.
-- opencode integration drives sessions through the opencode client SDK.
+- Desktop consumes the installed CLI over its JSON-RPC surface, and the installer carries that CLI as a Tauri sidecar (`bundle.externalBin`, staged by `packages/desktop/scripts/stage-sidecar.ts`). Three screens: call runner, config viewer, opencode panel with a 5 s session watch.
+- MCP imports the core API in-process, streams `jyz_watch`/`jyz_cancel`, and ships as `@jyz/mcp` with a `jyz-mcp` bin plus one compiled binary per platform.
+- opencode integration drives sessions over the server's HTTP API (`resolveServer`, `listSessions`, `sendPrompt`) and can spawn a server it owns; the desktop panel reads it through `jyz oc --json`. The SDK was never adopted: the HTTP surface is three calls and pinning an SDK version buys nothing.
 
 ## Non-goals for v1
 
