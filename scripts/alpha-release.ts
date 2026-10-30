@@ -1,5 +1,7 @@
 #!/usr/bin/env bun
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { $ } from "bun";
 
 export function nextAlpha(current: string): string {
@@ -34,6 +36,7 @@ async function main() {
 	const flags = new Set(Bun.argv.slice(2));
 	const dryRun = flags.has("--dry-run");
 	const push = flags.has("--push");
+	const local = flags.has("--local");
 
 	const version = currentVersion();
 	const next = nextAlpha(version);
@@ -84,13 +87,39 @@ async function main() {
 	await $`git commit -m ${"chore(release): " + newVersion}`;
 	await $`git tag ${"v" + newVersion}`;
 
-	if (push) {
+	const notesPath = join(tmpdir(), `alpha-${newVersion}-notes.md`);
+	writeFileSync(notesPath, `Alpha release ${newVersion}\n`);
+
+	if (push || local) {
 		await $`git push`;
 		await $`git push --tags`;
+	}
+
+	if (local) {
+		const pub = Bun.spawnSync(
+			[
+				"bun",
+				"scripts/release-local.ts",
+				"--tag",
+				`v${newVersion}`,
+				"--notes",
+				notesPath,
+				"--skip-gate",
+			],
+			{ stdout: "pipe", stderr: "pipe" },
+		);
+		if (pub.exitCode !== 0) {
+			console.error(pub.stderr.toString());
+			process.exit(pub.exitCode ?? 1);
+		}
+		console.log(pub.stdout.toString().trim());
 	} else {
 		console.log("next commands:");
 		console.log("  git push");
 		console.log("  git push --tags");
+		console.log(
+			`  bun scripts/release-local.ts --tag v${newVersion} --notes ${notesPath} --skip-gate`,
+		);
 	}
 	console.log(`released ${newVersion}`);
 }

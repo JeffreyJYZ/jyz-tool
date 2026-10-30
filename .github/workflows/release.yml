@@ -5,8 +5,10 @@ on:
         tags: ["v*"]
     workflow_dispatch:
 
+# Alphas ship from scripts/release-local.ts on the Mac; this matrix serves betas and stable.
 jobs:
     cli:
+        if: ${{ !contains(github.ref_name, '-alpha') }}
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v4
@@ -24,6 +26,7 @@ jobs:
                   path: dist/release/*
 
     desktop:
+        if: ${{ !contains(github.ref_name, '-alpha') }}
         needs: cli
         strategy:
             fail-fast: false
@@ -57,6 +60,7 @@ jobs:
                   path: dist/release/*
 
     publish:
+        if: ${{ !contains(github.ref_name, '-alpha') }}
         needs: [cli, desktop]
         runs-on: ubuntu-latest
         permissions:

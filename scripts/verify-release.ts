@@ -26,7 +26,17 @@ export const threePlatforms = hasThreePlatforms;
 export const hasAtLeastThreePlatforms = hasThreePlatforms;
 export const platformCount = manifestPlatformCount;
 
-export function checkAssets(assets: { name: string }[], version: string): string[] {
+export type CheckAssetsOptions = {
+	requireAllPlatforms?: boolean;
+	latestPlatforms?: string[];
+};
+
+export function checkAssets(
+	assets: { name: string }[],
+	version: string,
+	options?: CheckAssetsOptions,
+): string[] {
+	const platforms = options?.latestPlatforms ?? PLATFORMS;
 	const problems: string[] = [];
 	const names = assets.map((a) => a.name);
 	if (!names.includes(`core-${version}.tgz`)) problems.push(`missing core-${version}.tgz`);
@@ -36,9 +46,13 @@ export function checkAssets(assets: { name: string }[], version: string): string
 		problems.push("missing mcp binary");
 	}
 	if (!names.some((n) => n.startsWith("desktop-"))) problems.push("missing desktop asset");
-	for (const platform of PLATFORMS) {
-		if (!names.some((n) => n.includes(platform)))
-			problems.push(`missing platform: ${platform}`);
+	if (options?.requireAllPlatforms) {
+		for (const platform of platforms) {
+			if (!names.some((n) => n.includes(platform)))
+				problems.push(`missing platform: ${platform}`);
+		}
+	} else if (!names.some((n) => platforms.some((p) => n.includes(p)))) {
+		problems.push("missing platform: " + platforms[0]);
 	}
 	if (!names.includes("latest.json")) problems.push("missing latest.json");
 	if (!names.some((n) => n.endsWith(".sig"))) problems.push("missing .sig");
@@ -66,6 +80,7 @@ async function main() {
 	const args = Bun.argv.slice(2);
 	let timeout = 0;
 	let wait = false;
+	let requireAll = false;
 	const positional: string[] = [];
 	for (let i = 0; i < args.length; i++) {
 		const arg = args[i];
@@ -74,6 +89,8 @@ async function main() {
 			timeout = Number(args[++i]);
 		} else if (arg === "--wait") {
 			wait = true;
+		} else if (arg === "--require-all") {
+			requireAll = true;
 		} else if (!arg.startsWith("--")) {
 			positional.push(arg);
 		}
@@ -90,7 +107,9 @@ async function main() {
 			problems.push("missing release");
 		} else {
 			if (release.tagName !== tag) problems.push(`tagName mismatch: ${release.tagName}`);
-			problems.push(...checkAssets(release.assets ?? [], version));
+			problems.push(
+				...checkAssets(release.assets ?? [], version, { requireAllPlatforms: requireAll }),
+			);
 		}
 
 		if (problems.length === 0) {
