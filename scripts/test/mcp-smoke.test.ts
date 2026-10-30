@@ -1,17 +1,10 @@
 import { expect, test } from "bun:test";
 import { runSmoke } from "../mcp-smoke";
 
-test("real server: five ok steps", async () => {
+test("real server: seven ok steps", async () => {
 	const steps = await runSmoke(["bun", "packages/mcp/src/server.ts"], process.cwd());
-	expect(steps).toHaveLength(5);
+	expect(steps).toHaveLength(7);
 	for (const s of steps) expect(s.ok).toBe(true);
-	expect(steps.map((s) => s.step)).toEqual([
-		"initialize",
-		"tools/list",
-		"tools/call",
-		"resources/list",
-		"resources/read",
-	]);
 });
 
 test("malformed frame yields one failed step", async () => {

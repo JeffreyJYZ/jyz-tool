@@ -44,6 +44,27 @@ fn jyz_call(method: String, params: String) -> Result<String, String> {
 	round_trip(&serve_argv(), &request_frame(name, &params))
 }
 
+/// The capability manifest: runs `jyz capabilities --json` and returns the parsed array.
+///
+/// A non-zero exit or unparseable output yields an empty array instead of an error, so the page
+/// can always render a method list even when the CLI is missing or misbehaving.
+#[tauri::command]
+fn jyz_capabilities() -> Vec<serde_json::Value> {
+	let output = Command::new(program())
+		.arg("capabilities")
+		.arg("--json")
+		.stdin(Stdio::null())
+		.output();
+	let Ok(output) = output else {
+		return Vec::new();
+	};
+	if !output.status.success() {
+		return Vec::new();
+	}
+	let text = String::from_utf8_lossy(&output.stdout);
+	serde_json::from_str::<Vec<serde_json::Value>>(text.trim()).unwrap_or_default()
+}
+
 /// The `--version` line the window footer prints.
 #[tauri::command]
 fn jyz_version() -> Result<String, String> {
@@ -198,7 +219,11 @@ fn json_string(text: &str) -> String {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
 	tauri::Builder::default()
-		.invoke_handler(tauri::generate_handler![jyz_call, jyz_version])
+		.invoke_handler(tauri::generate_handler![
+			jyz_call,
+			jyz_version,
+			jyz_capabilities
+		])
 		.run(tauri::generate_context!())
 		.expect("error while running the jyz desktop shell");
 }

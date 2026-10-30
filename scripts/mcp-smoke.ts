@@ -209,6 +209,51 @@ export async function runSmoke(cmd: string[], cwd: string): Promise<SmokeStep[]>
 			return steps;
 		}
 
+		// 6. tools/call jyz_watch (streaming)
+		let watchHandle = "";
+		try {
+			const result = (await send(
+				"tools/call",
+				{ name: "jyz_watch", arguments: { script: "lint" } },
+				6,
+			)) as Record<string, unknown> | null;
+			const content = (result?.content ?? []) as { text?: string }[];
+			if (!Array.isArray(content) || content.length === 0) throw new Error("missing content");
+			const parsed = JSON.parse(content[0]?.text ?? "{}") as { handle?: string };
+			if (typeof parsed.handle !== "string" || parsed.handle === "")
+				throw new Error("missing handle");
+			watchHandle = parsed.handle;
+			steps.push({ step: "tools/call", ok: true, detail: `handle ${watchHandle}` });
+		} catch (err) {
+			steps.push({
+				step: "tools/call",
+				ok: false,
+				detail: err instanceof Error ? err.message : String(err),
+			});
+			return steps;
+		}
+
+		// 7. tools/call jyz_cancel
+		try {
+			const result = (await send(
+				"tools/call",
+				{ name: "jyz_cancel", arguments: { handle: watchHandle } },
+				7,
+			)) as Record<string, unknown> | null;
+			const content = (result?.content ?? []) as { text?: string }[];
+			if (!Array.isArray(content) || content.length === 0) throw new Error("missing content");
+			const parsed = JSON.parse(content[0]?.text ?? "{}") as { cancelled?: boolean };
+			if (parsed.cancelled !== true) throw new Error("cancel did not succeed");
+			steps.push({ step: "tools/call", ok: true, detail: "cancelled" });
+		} catch (err) {
+			steps.push({
+				step: "tools/call",
+				ok: false,
+				detail: err instanceof Error ? err.message : String(err),
+			});
+			return steps;
+		}
+
 		return steps;
 	} finally {
 		finalize();
@@ -234,7 +279,7 @@ async function main(): Promise<void> {
 			console.log(`${s.ok ? "ok" : "FAIL"} ${s.step} ${s.detail}`);
 		}
 	}
-	const allOk = steps.length === 5 && steps.every((s) => s.ok);
+	const allOk = steps.length === 7 && steps.every((s) => s.ok);
 	process.exit(allOk ? 0 : 1);
 }
 

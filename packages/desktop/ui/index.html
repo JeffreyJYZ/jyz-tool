@@ -153,28 +153,6 @@
 		<script>
 			// No framework and no bundler: this page talks straight to the two commands in
 			// src-tauri/src/lib.rs. The same shaping lives, tested, in src/bridge.ts.
-			const FALLBACK_METHODS = [
-				"config",
-				"create",
-				"install",
-				"add",
-				"remove",
-				"run",
-				"exec",
-				"update",
-				"outdated",
-				"lint",
-				"typecheck",
-				"check",
-				"fmt",
-			];
-			const manifest = Array.isArray(globalThis.__JYZ_MANIFEST__)
-				? globalThis.__JYZ_MANIFEST__
-				: [];
-			const entries =
-				manifest.length > 0
-					? manifest
-					: FALLBACK_METHODS.map((name) => ({ name, kind: "capability" }));
 			const invoke = globalThis.__TAURI_INTERNALS__?.invoke;
 			const form = document.getElementById("call");
 			const picker = document.getElementById("method");
@@ -183,23 +161,36 @@
 			const button = document.getElementById("run");
 			const footer = document.getElementById("version");
 
-			const groups = {};
-			for (const entry of entries) {
-				if (groups[entry.kind] === undefined) groups[entry.kind] = [];
-				groups[entry.kind].push(entry.name);
-			}
-			for (const [kind, names] of Object.entries(groups)) {
-				const optgroup = document.createElement("optgroup");
-				optgroup.label = kind;
-				for (const name of names) {
-					const option = document.createElement("option");
-					option.value = name;
-					option.textContent = name;
-					optgroup.append(option);
+			// The method list comes only from the CLI's capability manifest, fetched on load.
+			// No hardcoded fallback: an empty manifest leaves the picker empty.
+			async function loadMethods() {
+				if (!invoke) return;
+				let manifest = [];
+				try {
+					manifest = await invoke("jyz_capabilities");
+				} catch (error) {
+					manifest = [];
 				}
-				picker.append(optgroup);
+				if (!Array.isArray(manifest)) manifest = [];
+				const groups = {};
+				for (const entry of manifest) {
+					if (groups[entry.kind] === undefined) groups[entry.kind] = [];
+					groups[entry.kind].push(entry.name);
+				}
+				for (const [kind, names] of Object.entries(groups)) {
+					const optgroup = document.createElement("optgroup");
+					optgroup.label = kind;
+					for (const name of names) {
+						const option = document.createElement("option");
+						option.value = name;
+						option.textContent = name;
+						optgroup.append(option);
+					}
+					picker.append(optgroup);
+				}
+				if (manifest.length > 0) picker.value = manifest[0].name;
 			}
-			picker.value = entries[0]?.name ?? "config";
+			loadMethods();
 
 			function show(state, text) {
 				pane.dataset.state = state;

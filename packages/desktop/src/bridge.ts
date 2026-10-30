@@ -31,6 +31,18 @@ export function methodsFromManifest(manifest: { name: string; kind: string }[]):
 	return manifest.map((entry) => entry.name);
 }
 
+/** Selectable method names from a manifest: manifest order, duplicates removed. */
+export function selectableMethods(manifest: { name: string; kind: string }[]): string[] {
+	const seen = new Set<string>();
+	const result: string[] = [];
+	for (const entry of manifest) {
+		if (seen.has(entry.name)) continue;
+		seen.add(entry.name);
+		result.push(entry.name);
+	}
+	return result;
+}
+
 /** Group manifest entries by kind, preserving first-seen kind order. */
 export function groupByKind(manifest: { name: string; kind: string }[]): Record<string, string[]> {
 	const groups: Record<string, string[]> = {};
