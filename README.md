@@ -8,7 +8,7 @@ Status: scaffolding only. The CLI runs and prints help, the desktop package is a
 
 ```sh
 bun install
-bun run jyz --version    # jyz/0.0.0 darwin-arm64 bun-v...
+bun run jyz --version    # jyz/0.1.0-alpha.1 darwin-arm64 bun-v...
 bun run jyz              # help
 bun run typecheck        # bun check
 bun run lint             # biome check .

@@ -11,7 +11,7 @@
     },
     "packages/cli": {
       "name": "jyz",
-      "version": "0.0.0",
+      "version": "0.1.0-alpha.1",
       "bin": {
         "jyz": "./src/bin.ts",
       },
@@ -22,11 +22,11 @@
     },
     "packages/core": {
       "name": "@jyz/core",
-      "version": "0.0.0",
+      "version": "0.1.0-alpha.1",
     },
     "packages/desktop": {
       "name": "@jyz/desktop",
-      "version": "0.0.0",
+      "version": "0.1.0-alpha.1",
     },
   },
   "packages": {
