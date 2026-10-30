@@ -47,6 +47,7 @@
 - Release: `bun run scripts/alpha-release.ts --push` runs the four gates, bumps every manifest, commits, tags and pushes; `--dry-run` shows the version without touching anything. `bun scripts/verify-release.ts` checks the published assets.
 - Machine surfaces: `jyz capabilities [--json]` prints the capability manifest; `jyz serve` speaks JSON-RPC over stdio; `bun scripts/mcp-smoke.ts` walks initialize, tools, resources, watch and cancel against the real MCP server.
 - Perf: `bun scripts/bench.ts --runs 5` prints p50/p95 for `--version`, `config path` and `run`.
+- Desktop walkthrough: `bun scripts/ui-walkthrough.ts` serves `packages/desktop/ui` and drives all three screens in a real browser with the Tauri IPC stubbed; needs `agent-browser` on PATH and exits 2 without it.
 - CI: `.github/workflows/ci.yml` gates every push; `.github/workflows/release.yml` runs on `v*` tags across macOS, Linux and Windows.
 
 ## Traps
