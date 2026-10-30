@@ -8,6 +8,7 @@
 /** Every name cac resolves on its own, including the dispatch aliases. */
 export const CORE_VERBS = [
 	"add",
+	"capabilities",
 	"check",
 	"config",
 	"create",

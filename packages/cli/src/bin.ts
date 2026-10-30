@@ -1,6 +1,7 @@
 #!/usr/bin/env bun
 import { VERSION } from "@jyz/core";
 import { cac } from "cac";
+import { registerCapabilities } from "./commands/capabilities.ts";
 import { registerConfig } from "./commands/config.ts";
 import { registerCreate } from "./commands/create.ts";
 import { registerDispatch } from "./commands/dispatch.ts";
@@ -30,6 +31,7 @@ const cli = cac("jyz");
 cli.version(VERSION);
 cli.option("--verbose", "print the resolved command before running it");
 registerConfig(cli);
+registerCapabilities(cli);
 registerCreate(cli);
 registerDispatch(cli);
 registerToolchain(cli);
