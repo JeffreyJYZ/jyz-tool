@@ -153,7 +153,7 @@
 		<script>
 			// No framework and no bundler: this page talks straight to the two commands in
 			// src-tauri/src/lib.rs. The same shaping lives, tested, in src/bridge.ts.
-			const METHODS = [
+			const FALLBACK_METHODS = [
 				"config",
 				"create",
 				"install",
@@ -168,6 +168,13 @@
 				"check",
 				"fmt",
 			];
+			const manifest = Array.isArray(globalThis.__JYZ_MANIFEST__)
+				? globalThis.__JYZ_MANIFEST__
+				: [];
+			const entries =
+				manifest.length > 0
+					? manifest
+					: FALLBACK_METHODS.map((name) => ({ name, kind: "capability" }));
 			const invoke = globalThis.__TAURI_INTERNALS__?.invoke;
 			const form = document.getElementById("call");
 			const picker = document.getElementById("method");
@@ -176,13 +183,23 @@
 			const button = document.getElementById("run");
 			const footer = document.getElementById("version");
 
-			for (const name of METHODS) {
-				const option = document.createElement("option");
-				option.value = name;
-				option.textContent = name;
-				picker.append(option);
+			const groups = {};
+			for (const entry of entries) {
+				if (groups[entry.kind] === undefined) groups[entry.kind] = [];
+				groups[entry.kind].push(entry.name);
 			}
-			picker.value = "config";
+			for (const [kind, names] of Object.entries(groups)) {
+				const optgroup = document.createElement("optgroup");
+				optgroup.label = kind;
+				for (const name of names) {
+					const option = document.createElement("option");
+					option.value = name;
+					option.textContent = name;
+					optgroup.append(option);
+				}
+				picker.append(optgroup);
+			}
+			picker.value = entries[0]?.name ?? "config";
 
 			function show(state, text) {
 				pane.dataset.state = state;

@@ -20,30 +20,33 @@ export class BridgeError extends Error {
 	}
 }
 
-/**
- * The capabilities the window offers, in manifest order.
- *
- * The list is hardcoded because the page has no bundler and no build step; `capabilities.ts` in
- * core stays the source of truth and a parity test keeps the two honest.
- */
-export const METHODS = [
-	"config",
-	"create",
-	"install",
-	"add",
-	"remove",
-	"run",
-	"exec",
-	"update",
-	"outdated",
-	"lint",
-	"typecheck",
-	"check",
-	"fmt",
-] as const;
+/** One capability entry as it arrives from the manifest. */
+export interface ManifestEntry {
+	name: string;
+	kind: string;
+}
+
+/** Names from a manifest, in manifest order. */
+export function methodsFromManifest(manifest: { name: string; kind: string }[]): string[] {
+	return manifest.map((entry) => entry.name);
+}
+
+/** Group manifest entries by kind, preserving first-seen kind order. */
+export function groupByKind(manifest: { name: string; kind: string }[]): Record<string, string[]> {
+	const groups: Record<string, string[]> = {};
+	for (const entry of manifest) {
+		const names = groups[entry.kind];
+		if (names === undefined) {
+			groups[entry.kind] = [entry.name];
+		} else {
+			names.push(entry.name);
+		}
+	}
+	return groups;
+}
 
 /** One capability name the window can call. */
-export type Method = (typeof METHODS)[number];
+export type Method = string;
 
 /** What `jyz_call` receives: a method name and its params as JSON text. */
 export interface CallRequest {

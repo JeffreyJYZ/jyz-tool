@@ -9,6 +9,7 @@
 
 import { VERSION } from "@jyz/core";
 import { callTool } from "./handler.ts";
+import { listResources, readResource, UnknownResourceError } from "./resources.ts";
 import { listTools } from "./tools.ts";
 
 export type JsonRpcId = number | string | null;
@@ -109,7 +110,7 @@ function initialize(params: unknown): Record<string, unknown> {
 			: PROTOCOL_VERSION;
 	return {
 		protocolVersion,
-		capabilities: { tools: { listChanged: false } },
+		capabilities: { tools: { listChanged: false }, resources: { listChanged: false } },
 		serverInfo: { name: SERVER_NAME, version: VERSION },
 	};
 }
@@ -142,6 +143,36 @@ async function callToolResult(params: unknown, cwd: string): Promise<CallToolRes
 	}
 }
 
+function listResourcesResult(): Record<string, unknown> {
+	return {
+		resources: listResources().map((resource) => ({
+			uri: resource.uri,
+			name: resource.name,
+			description: resource.description,
+			mimeType: resource.mimeType,
+		})),
+	};
+}
+
+async function readResourceResult(params: unknown, cwd: string): Promise<Record<string, unknown>> {
+	const p = asRecord(params);
+	const uri = p.uri;
+	if (typeof uri !== "string" || uri === "") {
+		throw new RpcError(INVALID_PARAMS, "invalid params: missing uri");
+	}
+	try {
+		const contents = readResource(uri, cwd);
+		return {
+			contents: [{ uri: contents.uri, mimeType: contents.mimeType, text: contents.text }],
+		};
+	} catch (err) {
+		if (err instanceof UnknownResourceError) {
+			throw new RpcError(INVALID_PARAMS, err.message);
+		}
+		throw err;
+	}
+}
+
 async function dispatch(method: string, params: unknown, cwd: string): Promise<unknown> {
 	switch (method) {
 		case "initialize":
@@ -152,6 +183,10 @@ async function dispatch(method: string, params: unknown, cwd: string): Promise<u
 			return listToolsResult();
 		case "tools/call":
 			return await callToolResult(params, cwd);
+		case "resources/list":
+			return listResourcesResult();
+		case "resources/read":
+			return await readResourceResult(params, cwd);
 		default:
 			throw new RpcError(METHOD_NOT_FOUND, `method not found: ${method}`);
 	}

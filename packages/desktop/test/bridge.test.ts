@@ -4,8 +4,9 @@ import {
 	BridgeError,
 	buildCall,
 	formatResult,
-	METHODS,
+	groupByKind,
 	mapError,
+	methodsFromManifest,
 	normalizeParams,
 	readResponse,
 	readResult,
@@ -41,8 +42,39 @@ describe("request shaping", () => {
 	});
 
 	test("the offered methods cover every capability in the manifest", () => {
-		const names = listCapabilities().map((capability) => capability.name);
-		expect([...(METHODS as readonly string[])].sort()).toEqual(names.sort());
+		const capabilities = listCapabilities();
+		const names = capabilities.map((capability) => capability.name);
+		expect(methodsFromManifest(capabilities)).toEqual(names);
+	});
+
+	test("methodsFromManifest preserves manifest order", () => {
+		const manifest = [
+			{ name: "z", kind: "dispatch" },
+			{ name: "a", kind: "config" },
+		];
+		expect(methodsFromManifest(manifest)).toEqual(["z", "a"]);
+	});
+
+	test("methodsFromManifest returns an empty list for an empty manifest", () => {
+		expect(methodsFromManifest([])).toEqual([]);
+	});
+
+	test("groupByKind groups names by kind", () => {
+		const manifest = [
+			{ name: "config", kind: "config" },
+			{ name: "install", kind: "dispatch" },
+			{ name: "add", kind: "dispatch" },
+			{ name: "lint", kind: "toolchain" },
+		];
+		expect(groupByKind(manifest)).toEqual({
+			config: ["config"],
+			dispatch: ["install", "add"],
+			toolchain: ["lint"],
+		});
+	});
+
+	test("groupByKind returns an empty object for an empty manifest", () => {
+		expect(groupByKind([])).toEqual({});
 	});
 });
 

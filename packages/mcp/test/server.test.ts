@@ -68,7 +68,10 @@ test("initialize handshake reports protocol, tools capability and server info", 
 	expect(res?.error).toBeUndefined();
 	const result = res?.result ?? {};
 	expect(result.protocolVersion).toBe("2025-06-18");
-	expect(result.capabilities).toEqual({ tools: { listChanged: false } });
+	expect(result.capabilities).toEqual({
+		tools: { listChanged: false },
+		resources: { listChanged: false },
+	});
 	expect(result.serverInfo).toMatchObject({ name: "jyz" });
 	expect(typeof (result.serverInfo as Record<string, unknown>).version).toBe("string");
 });
@@ -152,7 +155,7 @@ test("a non-object frame gets an invalid request error", async () => {
 });
 
 test("unknown method returns -32601", async () => {
-	const [res] = await run([call(6, "resources/list")]);
+	const [res] = await run([call(6, "nope/not-a-method")]);
 	expect(res?.id).toBe(6);
 	expect(res?.error?.code).toBe(-32601);
 });
