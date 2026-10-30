@@ -1,7 +1,0 @@
-# Task 15 report
-
-status: done
-files: scripts/release-notes.ts, scripts/test/release-notes.test.ts
-tests: 5 pass
-concerns: none
-EOF
