@@ -102,7 +102,15 @@ if (!publishOnly) {
 		try {
 			for (const entry of await readdir(BUNDLE_ROOT, { recursive: true })) {
 				const file = basename(String(entry));
-				if (file !== "latest.json" && !file.endsWith(".sig")) continue;
+				// The archive and its signature travel together: a host cannot install from a signature
+				// alone, and `latest.json` (when a bundler writes one) must not collide across platforms.
+				const isUpdater =
+					file === "latest.json" ||
+					file.endsWith(".sig") ||
+					file.endsWith(".app.tar.gz") ||
+					file.endsWith(".AppImage.tar.gz") ||
+					file.endsWith(".nsis.zip");
+				if (!isUpdater) continue;
 				const targetName = file === "latest.json" ? `latest-${platform}.json` : file;
 				await copyFile(join(BUNDLE_ROOT, String(entry)), join(OUT, targetName));
 				updaterFound++;

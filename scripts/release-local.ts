@@ -156,11 +156,16 @@ async function main(): Promise<void> {
 		if (r.exitCode !== 0) {
 			fail("build failed");
 		}
-		const app = join(BUNDLE, "jyz.app");
-		if (!existsSync(app)) {
-			fail(`missing app bundle: ${app}`);
-		}
-		Bun.spawnSync(["mkdir", "-p", DMG_DIR], { stdio: ["ignore", "ignore", "ignore"] });
+	}
+
+	// The dmg is ours, not Tauri's, and it survives `--skip-build`: build the app once, then publish
+	// as many times as needed without paying for another compile.
+	const app = join(BUNDLE, "jyz.app");
+	if (!existsSync(app)) {
+		fail(`missing app bundle: ${app}`);
+	}
+	Bun.spawnSync(["mkdir", "-p", DMG_DIR], { stdio: ["ignore", "ignore", "ignore"] });
+	{
 		const arch = process.arch === "arm64" ? "aarch64" : "x86_64";
 		const dmgTarget = join(DMG_DIR, `jyz_${version}_${arch}.dmg`);
 		const hr = Bun.spawnSync(

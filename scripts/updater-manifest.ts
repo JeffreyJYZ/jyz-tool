@@ -158,7 +158,14 @@ function main(): void {
 		merge(dir);
 		return;
 	}
+	if (args.includes("--partial")) {
+		writePartial(dir);
+		return;
+	}
+	// No flag is the local path: this machine built exactly one platform, so write its entry and fuse
+	// it into the manifest the release needs. CI passes `--partial` per job and `--merge` once.
 	writePartial(dir);
+	merge(dir);
 }
 
 if (import.meta.main) main();
