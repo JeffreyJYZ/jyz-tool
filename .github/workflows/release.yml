@@ -52,8 +52,8 @@ jobs:
                   TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
               run: bun run build -- --config '{"version":"0.1.0"}'
             - run: bun run scripts/release.ts --no-cli
-            - name: Stamp the updater manifest with the real version
-              run: bun run scripts/updater-manifest.ts
+            - name: Write this platform's updater partial
+              run: bun run scripts/updater-manifest.ts --partial
             - uses: actions/upload-artifact@v4
               with:
                   name: desktop-${{ matrix.os }}
@@ -80,6 +80,8 @@ jobs:
               with:
                   path: dist/release
                   merge-multiple: true
+            - name: Merge the per-platform updater partials
+              run: bun run scripts/updater-manifest.ts --merge
             - run: bun run scripts/release.ts --publish-only --publish
               env:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
