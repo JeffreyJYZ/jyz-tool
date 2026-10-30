@@ -9,7 +9,9 @@ const realExitCode = process.exitCode;
 
 afterEach(() => {
 	globalThis.fetch = realFetch;
-	process.exitCode = realExitCode;
+	// Never restore a non-zero exit code: bun exits 1 when process.exitCode stays set, even with
+	// every test passing, so the capture above cannot be trusted as the baseline.
+	process.exitCode = 0;
 });
 
 function captureLogs(): { lines: string[]; restore: () => void } {
