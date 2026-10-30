@@ -20,7 +20,7 @@ Hard rule: no external scaffolding tool. No `create-next-app`, no `cargo init`, 
 | `--template <t>` | `next`, `vite-tauri`, `cli`, `rust-bin`, `rust-lib`, `c`, `monorepo` |
 | `--pm <pm>` | `bun`, `pnpm` |
 | `--typechecker <c>` | `bun-check`, `tsc`, `tsgo`, `tsrs` |
-| `--linter <l>` | `biome`, `bun-lint`, `none` |
+| `--linter <l>` | `biome`, `eslint`, `bun-lint`, `none` |
 | `--formatter <f>` | `biome`, `bun-fmt`, `prettier`, `none` |
 | `--docs[=bool]` | include the `docs/` scaffold |
 | `--git <mode>` | `skip`, `init`, `commit`, `github` |
@@ -54,6 +54,7 @@ The two choices stay coherent, so a project never carries two tools doing one jo
 - `--formatter prettier` writes `.prettierrc` (`useTabs: true`, `tabWidth: 4`, `printWidth: 100`) plus `.prettierignore`, and no `biome.json`.
 - `--formatter none` writes neither.
 - `--linter biome` reuses the same `biome.json`; choosing `biome` as both formatter and linter still yields one file, but with `--formatter prettier` the shared `biome.json` disables Biome's own formatter so the two never fight over the same lines.
+- `--linter eslint` writes an `eslint.config.js` flat config (TypeScript rules via `typescript-eslint`) and declares the dev dependencies, without installing them unless `--install` is set. With `--formatter biome`, the shared `biome.json` disables Biome's linter so linting has one owner.
 - `--linter bun-lint` depends on `--formatter bun-fmt`, because both live in the Bun toolchain; an incompatible pair fails before any file is written.
 
 `bun fmt` and `prettier` are first-class formatters, not fallbacks: each has a write mode and a read-only check mode (`bun fmt --check`, `prettier --check <paths>`), and the chosen one is what `jyz fmt` resolves to.

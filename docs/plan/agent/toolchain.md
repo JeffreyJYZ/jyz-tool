@@ -34,6 +34,7 @@ Four verbs, one job each:
 | Linter | Command |
 | --- | --- |
 | `biome` | `biome check <paths>` (read-only; formatting rules included) |
+| `eslint` | `eslint <paths>` |
 | `bun-lint` | `bun lint` |
 | `cargo-clippy` | `cargo clippy -- -D warnings` |
 | `none` | no-op that prints the configured reason and exits 0 |
@@ -66,7 +67,7 @@ Formatter files, never two at once:
 - `bun-fmt` → `[fmt]` in `bunfig.toml`
 - `prettier` → `.prettierrc` plus `.prettierignore`, with `useTabs: true`, `tabWidth: 4`, `printWidth: 100`
 
-A `prettier` formatter beside a `biome` linter means the shared `biome.json` disables Biome's formatter, so the two tools never rewrite the same lines.
+A `prettier` formatter beside a `biome` linter means the shared `biome.json` disables Biome's formatter, so the two tools never rewrite the same lines. The mirror case holds too: an `eslint` linter beside a `biome` formatter means that `biome.json` disables Biome's linter, so exactly one tool owns each job.
 
 ## Resolution rules
 
