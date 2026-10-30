@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import { listSessions, OpencodeError, sendPrompt } from "../src/funcs/opencode.ts";
+import { headersFor, listSessions, OpencodeError, sendPrompt } from "../src/funcs/opencode.ts";
 
 describe("opencode sdk seam", () => {
 	test("maps time.updated epoch milliseconds to an ISO string", async () => {
@@ -114,5 +114,28 @@ describe("opencode sdk seam", () => {
 
 		expect(result).toEqual({ ok: true });
 		expect(JSON.parse(body)).toEqual({ text: "hello" });
+	});
+
+	test("a service password rides as HTTP Basic on the SDK request", async () => {
+		const baseUrl = "http://example.test";
+		let captured: { headers?: RequestInit["headers"] } | undefined;
+		const fetcher = (async (_input: unknown, init?: RequestInit) => {
+			captured = { headers: init?.headers };
+			return new Response(JSON.stringify({ data: [] }), {
+				status: 200,
+				headers: { "content-type": "application/json" },
+			});
+		}) as unknown as typeof fetch;
+
+		await listSessions(baseUrl, fetcher, { password: "secret" });
+
+		const headers = new Headers(captured?.headers as RequestInit["headers"]);
+		expect(headers.get("authorization")).toBe(`Basic ${btoa("opencode:secret")}`);
+	});
+
+	test("headersFor prefers a bearer token over a password", () => {
+		expect(headersFor({ token: "tok", password: "secret" })).toEqual({
+			authorization: "Bearer tok",
+		});
 	});
 });

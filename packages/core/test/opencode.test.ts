@@ -1,7 +1,12 @@
 import { afterEach, describe, expect, test } from "bun:test";
 
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+
 import {
 	DEFAULT_OPENCODE_URL,
+	headersFor,
 	listSessions,
 	OpencodeError,
 	resolveServer,
@@ -71,6 +76,67 @@ describe("resolveServer", () => {
 		expect(resolveServer({ url: "http://127.0.0.1:4096/" }).baseUrl).toBe(
 			"http://127.0.0.1:4096",
 		);
+	});
+
+	test("reads url and password from the opencode service file", () => {
+		const dir = mkdtempSync(join(tmpdir(), "jyz-oc-"));
+		mkdirSync(join(dir, "opencode"), { recursive: true });
+		writeFileSync(
+			join(dir, "opencode", "service.json"),
+			JSON.stringify({ url: "http://127.0.0.1:49374", password: "secret" }),
+		);
+		try {
+			expect(resolveServer({ env: { XDG_STATE_HOME: dir } })).toEqual({
+				baseUrl: "http://127.0.0.1:49374",
+				password: "secret",
+				source: "service",
+			});
+		} finally {
+			rmSync(dir, { recursive: true, force: true });
+		}
+	});
+
+	test("a missing service file falls through to the default", () => {
+		const dir = mkdtempSync(join(tmpdir(), "jyz-oc-"));
+		try {
+			expect(resolveServer({ env: { XDG_STATE_HOME: dir } })).toEqual({
+				baseUrl: DEFAULT_OPENCODE_URL,
+				source: "default",
+			});
+		} finally {
+			rmSync(dir, { recursive: true, force: true });
+		}
+	});
+
+	test("a malformed service file falls through to the default", () => {
+		const dir = mkdtempSync(join(tmpdir(), "jyz-oc-"));
+		mkdirSync(join(dir, "opencode"), { recursive: true });
+		writeFileSync(join(dir, "opencode", "service.json"), "{not json");
+		try {
+			expect(resolveServer({ env: { XDG_STATE_HOME: dir } })).toEqual({
+				baseUrl: DEFAULT_OPENCODE_URL,
+				source: "default",
+			});
+		} finally {
+			rmSync(dir, { recursive: true, force: true });
+		}
+	});
+
+	test("an empty url in the service file falls through to the default", () => {
+		const dir = mkdtempSync(join(tmpdir(), "jyz-oc-"));
+		mkdirSync(join(dir, "opencode"), { recursive: true });
+		writeFileSync(
+			join(dir, "opencode", "service.json"),
+			JSON.stringify({ url: "  ", password: "secret" }),
+		);
+		try {
+			expect(resolveServer({ env: { XDG_STATE_HOME: dir } })).toEqual({
+				baseUrl: DEFAULT_OPENCODE_URL,
+				source: "default",
+			});
+		} finally {
+			rmSync(dir, { recursive: true, force: true });
+		}
 	});
 });
 

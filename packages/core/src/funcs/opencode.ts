@@ -2,6 +2,8 @@
  * The opencode client seam: where a running opencode server is, what it holds, and how a prompt
  * reaches it.
  */
+import { readFileSync } from "node:fs";
+
 import { OpenCode } from "@opencode/client";
 
 export const DEFAULT_OPENCODE_URL = "http://127.0.0.1:4096";
@@ -9,7 +11,8 @@ export const DEFAULT_OPENCODE_URL = "http://127.0.0.1:4096";
 export interface ResolvedServer {
 	baseUrl: string;
 	token?: string;
-	source: "flag" | "env" | "default";
+	password?: string;
+	source: "flag" | "env" | "service" | "default";
 }
 
 export interface OpencodeSession {
@@ -25,6 +28,7 @@ export interface ResolveServerOptions {
 
 export interface OpencodeRequestOptions {
 	token?: string;
+	password?: string;
 }
 
 export class OpencodeError extends Error {
@@ -75,20 +79,50 @@ function statusFromError(error: unknown): number | undefined {
 	return undefined;
 }
 
+function readServiceFile(env: Record<string, string | undefined>): {
+	url?: string;
+	password?: string;
+} {
+	try {
+		const stateHome =
+			trimToNil(env.XDG_STATE_HOME) ?? `${trimToNil(env.HOME) ?? ""}/.local/state`;
+		const raw = readFileSync(`${stateHome}/opencode/service.json`, "utf8");
+		const parsed = JSON.parse(raw) as unknown;
+		if (typeof parsed !== "object" || parsed === null) return {};
+		const record = parsed as Record<string, unknown>;
+		const url = trimToNil(typeof record.url === "string" ? record.url : undefined);
+		const password = trimToNil(
+			typeof record.password === "string" ? record.password : undefined,
+		);
+		const out: { url?: string; password?: string } = {};
+		if (url !== undefined) out.url = url;
+		if (password !== undefined) out.password = password;
+		return out;
+	} catch {
+		return {};
+	}
+}
+
 export function resolveServer(opts: ResolveServerOptions = {}): ResolvedServer {
 	const env = opts.env ?? process.env;
 	const flag = trimToNil(opts.url);
 	const envUrl = trimToNil(env.JYZ_OPENCODE_URL);
 	const token = trimToNil(env.JYZ_OPENCODE_TOKEN);
+	const service = readServiceFile(env);
 
 	let baseUrl: string;
 	let source: ResolvedServer["source"];
+	let password: string | undefined;
 	if (flag !== undefined) {
 		baseUrl = flag;
 		source = "flag";
 	} else if (envUrl !== undefined) {
 		baseUrl = envUrl;
 		source = "env";
+	} else if (service.url !== undefined) {
+		baseUrl = service.url;
+		source = "service";
+		password = service.password;
 	} else {
 		baseUrl = DEFAULT_OPENCODE_URL;
 		source = "default";
@@ -98,12 +132,17 @@ export function resolveServer(opts: ResolveServerOptions = {}): ResolvedServer {
 
 	const resolved: ResolvedServer = { baseUrl, source };
 	if (token !== undefined) resolved.token = token;
+	if (password !== undefined) resolved.password = password;
 	return resolved;
 }
 
-function headers(token: string | undefined): Record<string, string> {
+export function headersFor(input: { token?: string; password?: string }): Record<string, string> {
 	const out: Record<string, string> = {};
-	if (token !== undefined) out.authorization = `Bearer ${token}`;
+	if (input.token !== undefined) {
+		out.authorization = `Bearer ${input.token}`;
+	} else if (input.password !== undefined) {
+		out.authorization = `Basic ${btoa(`opencode:${input.password}`)}`;
+	}
 	return out;
 }
 
@@ -153,7 +192,7 @@ export async function listSessions(
 	const client = OpenCode.make({
 		baseUrl: stripTrailingSlash(baseUrl),
 		fetch: wrappedFetch,
-		headers: headers(options.token),
+		headers: headersFor(options),
 	});
 	let response: unknown;
 	try {
@@ -200,7 +239,7 @@ export async function sendPrompt(
 	const client = OpenCode.make({
 		baseUrl: stripTrailingSlash(baseUrl),
 		fetch: wrappedFetch,
-		headers: headers(options.token),
+		headers: headersFor(options),
 	});
 	try {
 		// The generated SessionPromptInput is a codegen artifact (nested readonly fields), so cast at this seam.
@@ -221,6 +260,7 @@ export async function sendPrompt(
 export async function* subscribeEvents(options: {
 	baseUrl: string;
 	token?: string;
+	password?: string;
 	fetch?: typeof fetch;
 	sessionID?: string;
 	signal?: AbortSignal;
@@ -229,7 +269,7 @@ export async function* subscribeEvents(options: {
 	const client = OpenCode.make({
 		baseUrl,
 		fetch: options.fetch ?? fetch,
-		headers: headers(options.token),
+		headers: headersFor(options),
 	});
 	const stream = client.event.subscribe({ signal: options.signal } as unknown as {
 		signal?: AbortSignal;

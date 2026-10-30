@@ -17,17 +17,6 @@ import {
 import { guard } from "../lib/errors.ts";
 import { isJson } from "../lib/output.ts";
 
-/** A fetcher that carries the resolved bearer token, for a server started with one. */
-function fetcherFor(token: string | undefined): typeof fetch {
-	if (token === undefined) return fetch;
-	const wrapped = (input: string | URL | Request, init?: RequestInit) => {
-		const headers = new Headers(init?.headers);
-		headers.set("authorization", `Bearer ${token}`);
-		return fetch(input, { ...init, headers });
-	};
-	return Object.assign(wrapped, { preconnect: fetch.preconnect });
-}
-
 function formatSession(session: OpencodeSession): string {
 	const parts = [session.id, session.title];
 	if (session.updatedAt !== "") parts.push(session.updatedAt);
@@ -78,10 +67,10 @@ export function registerOc(cli: CAC): void {
 						: resolveServer({ url: options?.url });
 				switch (action ?? "") {
 					case "sessions": {
-						const sessions = await listSessions(
-							server.baseUrl,
-							fetcherFor(server.token),
-						);
+						const sessions = await listSessions(server.baseUrl, fetch, {
+							token: server.token,
+							password: server.password,
+						});
 						if (json) {
 							console.log(JSON.stringify(sessions));
 							return;
@@ -96,7 +85,10 @@ export function registerOc(cli: CAC): void {
 						}
 						const body = (text ?? []).join(" ").trim();
 						if (body === "") throw new Error("a prompt is required");
-						await sendPrompt(server.baseUrl, sessionId, body, fetcherFor(server.token));
+						await sendPrompt(server.baseUrl, sessionId, body, fetch, {
+							token: server.token,
+							password: server.password,
+						});
 						if (json) {
 							console.log(JSON.stringify({ session: sessionId, sent: true }));
 							return;
@@ -117,6 +109,7 @@ export function registerOc(cli: CAC): void {
 							const stream = subscribeEvents({
 								baseUrl: server.baseUrl,
 								token: server.token,
+								password: server.password,
 								fetch: globalThis.fetch,
 								sessionID: sessionId === "" ? undefined : sessionId,
 								signal: controller.signal,
