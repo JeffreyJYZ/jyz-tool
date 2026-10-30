@@ -20,7 +20,7 @@ Scope correction (2026-10-30): `jyz.config.toml` holds **jyz's own settings only
 package_manager = "auto"   # auto | bun | pnpm
 typechecker = "auto"       # auto | bun-check | tsc | tsgo | tsrs | cargo
 linter = "biome"           # biome | bun-lint | cargo-clippy | none
-formatter = "biome"        # biome | bun-fmt | none
+formatter = "biome"        # biome | bun-fmt | prettier | none
 
 [aliases]
 a = "add"
@@ -73,6 +73,8 @@ Discovery walks up from cwd to the filesystem root or a directory containing `.g
 | no signal in a JS project | configured default, else `bun` |
 
 Typechecker and linter detection follow the same shape: `bunfig.toml` plus a Bun workspace means `bun-check` is available, `tsconfig.json` means `tsc`, `biome.json` means `biome`, `Cargo.toml` means `cargo`, and `tsgo`/`tsrs` are only selected when the binary resolves in `node_modules/.bin` or `PATH`.
+
+Formatter detection is the same idea: `biome.json` means `biome`, a `[fmt]` block in `bunfig.toml` means `bun-fmt`, and any Prettier config (`.prettierrc`, `prettier.config.*` or a `prettier` key in `package.json`) means `prettier`. Two formatter signals at once is an error naming both, matching the lockfile rule.
 
 ## Commands
 

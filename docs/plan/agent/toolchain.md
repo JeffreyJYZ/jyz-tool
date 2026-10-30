@@ -55,9 +55,18 @@ The aggregate, with these rules:
 | --- | --- |
 | `biome` | `biome check --write` on tracked paths |
 | `bun-fmt` | `bun fmt` |
+| `prettier` | `prettier --write <paths>` |
 | `none` | no-op that prints the configured reason and exits 0 |
 
-`jyz fmt --check` must run the read-only form (`biome check`, `bun fmt --check`), because a writing formatter can never be a gate.
+`jyz fmt --check` must run the read-only form (`biome check`, `bun fmt --check`, `prettier --check <paths>`), because a writing formatter can never be a gate.
+
+Formatter files, never two at once:
+
+- `biome` → `biome.json`, with its formatter rules at tabs 4 / width 100
+- `bun-fmt` → `[fmt]` in `bunfig.toml`
+- `prettier` → `.prettierrc` plus `.prettierignore`, with `useTabs: true`, `tabWidth: 4`, `printWidth: 100`
+
+A `prettier` formatter beside a `biome` linter means the shared `biome.json` disables Biome's formatter, so the two tools never rewrite the same lines.
 
 ## Resolution rules
 

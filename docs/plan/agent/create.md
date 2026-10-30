@@ -21,6 +21,7 @@ Hard rule: no external scaffolding tool. No `create-next-app`, no `cargo init`, 
 | `--pm <pm>` | `bun`, `pnpm` |
 | `--typechecker <c>` | `bun-check`, `tsc`, `tsgo`, `tsrs` |
 | `--linter <l>` | `biome`, `bun-lint`, `none` |
+| `--formatter <f>` | `biome`, `bun-fmt`, `prettier`, `none` |
 | `--docs[=bool]` | include the `docs/` scaffold |
 | `--git <mode>` | `skip`, `init`, `commit`, `github` |
 | `--install[=bool]` | run the package manager after writing |
@@ -43,6 +44,19 @@ Non-TTY without `--yes` or the required flags: exit non-zero with the missing fl
 | Meta | `monorepo` | per member | assembles `website/`, `cli/`, `desktop/` and so on from the templates above |
 
 Every template must scaffold correctly on macOS, Linux and Windows, including path separators and line endings in generated files.
+
+## Formatter and linter files
+
+The two choices stay coherent, so a project never carries two tools doing one job:
+
+- `--formatter biome` writes `biome.json` with `indentStyle: tab`, `indentWidth: 4`, `lineWidth: 100`.
+- `--formatter bun-fmt` writes a `[fmt]` block in `bunfig.toml` with the same three values, and no `biome.json`.
+- `--formatter prettier` writes `.prettierrc` (`useTabs: true`, `tabWidth: 4`, `printWidth: 100`) plus `.prettierignore`, and no `biome.json`.
+- `--formatter none` writes neither.
+- `--linter biome` reuses the same `biome.json`; choosing `biome` as both formatter and linter still yields one file, but with `--formatter prettier` the shared `biome.json` disables Biome's own formatter so the two never fight over the same lines.
+- `--linter bun-lint` depends on `--formatter bun-fmt`, because both live in the Bun toolchain; an incompatible pair fails before any file is written.
+
+`bun fmt` and `prettier` are first-class formatters, not fallbacks: each has a write mode and a read-only check mode (`bun fmt --check`, `prettier --check <paths>`), and the chosen one is what `jyz fmt` resolves to.
 
 ## C/C++ detail
 
