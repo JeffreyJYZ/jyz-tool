@@ -3,7 +3,8 @@
 ## Where things are
 
 - Plan of record: `docs/plan/agent/main.md` — overview, decisions, milestones, feature index. One file per feature sits beside it.
-- Work logs to `docs/progress/log/`, decisions and gotchas to `docs/progress/notes/`, subagent and review reports verbatim to `docs/progress/reports/`.
+- Work logs to `docs/progress/log/`, decisions and gotchas to `docs/progress/notes/`.
+- `docs/progress/reports/` holds subagent reports verbatim, one report per milestone, and one per released version.
 - No source yet. `packages/core` and `packages/cli` arrive at M0; until then this repo is docs only.
 
 ## Status

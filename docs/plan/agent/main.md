@@ -86,7 +86,7 @@ The `docs/` tree exists already and is planned, not incidental:
 - `docs/plan/agent/` holds this plan, one file per feature.
 - `docs/progress/log/` holds dated work logs, one file per session.
 - `docs/progress/notes/` holds decisions, gotchas and corrections worth keeping.
-- `docs/progress/reports/` holds subagent and review reports, verbatim.
+- `docs/progress/reports/` holds subagent and review reports verbatim, plus one report per milestone and one per released version.
 
 ## Feature index
 
