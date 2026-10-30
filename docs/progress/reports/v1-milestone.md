@@ -1,6 +1,6 @@
 # jyz v1 — milestone report
 
-Date: 2026-10-30. Version line: `0.1.0-alpha.x`, currently `0.1.0-alpha.7`.
+Date: 2026-10-30. Version line: `0.1.0-alpha.x`, currently `0.1.0-alpha.8`.
 
 ## What v1 delivers
 
@@ -30,6 +30,7 @@ Date: 2026-10-30. Version line: `0.1.0-alpha.x`, currently `0.1.0-alpha.7`.
 | `v0.1.0-alpha.5` | published, 12 assets, `ok v0.1.0-alpha.5 12 assets` |
 | `v0.1.0-alpha.6` | published, 18 assets, `ok v0.1.0-alpha.6 18 assets` — first release with MCP binaries |
 | `v0.1.0-alpha.7` | published, 18 assets — desktop click-through script and the Windows-safe sidecar stage |
+| `v0.1.0-alpha.8` | published, 18 assets — opencode seam on `@opencode/client` 2.0.29 plus `jyz oc watch` |
 
 ## Failures worth remembering
 

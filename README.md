@@ -2,7 +2,7 @@
 
 Personal hub for projects: a scaffolder, one config file, and a CLI that behaves as whatever package manager a project already uses. One core powers the CLI, a desktop shell and an MCP server, so the surfaces cannot drift apart.
 
-Version line: `0.1.0-alpha.x`. Latest release: [v0.1.0-alpha.7](https://github.com/JeffreyJYZ/jyz-tool/releases).
+Version line: `0.1.0-alpha.x`. Latest release: [v0.1.0-alpha.8](https://github.com/JeffreyJYZ/jyz-tool/releases).
 
 ## Install
 
@@ -26,6 +26,7 @@ jyz outdated
 jyz lint / typecheck / check / fmt
 jyz config show | get <key> | set <key> <value> | path | check --strict
 jyz serve                        # JSON-RPC stdio, the desktop's machine surface
+jyz oc sessions|prompt|watch [--json]   # drive the opencode server jyz talks to
 ```
 
 Every dispatch verb takes `-F/--filter <name>` in a monorepo and `--verbose` to print the exact argv.
