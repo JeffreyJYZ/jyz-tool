@@ -3,6 +3,10 @@ export interface ToolDefinition {
 	description: string;
 	inputSchema: Record<string, unknown>;
 	destructive: boolean;
+	/** True when the call returns a handle at once and reports progress through `onProgress`. */
+	streaming?: boolean;
+	/** Name of the input property that carries the streaming handle, when `streaming` is set. */
+	handle?: string;
 }
 
 const stringArray = {
@@ -168,5 +172,47 @@ export function listTools(): ToolDefinition[] {
 			},
 			destructive: true,
 		},
+		{
+			name: "jyz_watch",
+			description:
+				"Run a package script and stream its stdout and stderr as progress frames.",
+			inputSchema: {
+				type: "object",
+				properties: {
+					script: { type: "string" },
+					args: stringArray,
+					filter: { type: "string" },
+					handle: { type: "string" },
+				},
+				required: ["script"],
+				additionalProperties: false,
+			},
+			destructive: true,
+			streaming: true,
+			handle: "handle",
+		},
+		{
+			name: "jyz_cancel",
+			description: "Stop a streaming tool by its handle.",
+			inputSchema: {
+				type: "object",
+				properties: { handle: { type: "string" } },
+				required: ["handle"],
+				additionalProperties: false,
+			},
+			destructive: false,
+			streaming: true,
+			handle: "handle",
+		},
 	];
+}
+
+/** Every tool that returns a handle and reports progress instead of a final result. */
+export function listStreamingTools(): ToolDefinition[] {
+	return listTools().filter((tool) => tool.streaming === true);
+}
+
+/** The input property carrying a streaming handle, or `null` for a non-streaming tool. */
+export function handleFieldOf(tool: ToolDefinition): string | null {
+	return tool.streaming === true ? (tool.handle ?? null) : null;
 }

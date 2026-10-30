@@ -82,7 +82,7 @@ test("tools/list returns every tool with name, description, schema and annotatio
 	const [res] = await run([call(1, "tools/list")]);
 	const tools = (res?.result?.tools ?? []) as Record<string, unknown>[];
 	expect(tools).toHaveLength(listTools().length);
-	expect(tools).toHaveLength(13);
+	expect(tools).toHaveLength(15);
 	for (const tool of tools) {
 		expect(typeof tool.name).toBe("string");
 		expect(typeof tool.description).toBe("string");
