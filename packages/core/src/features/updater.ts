@@ -1,10 +1,9 @@
 import type { FeatureContext } from "./context.ts";
-import { FeatureError } from "./errors.ts";
 
 const MARKER = "// jyz:updater";
 
 export async function applyUpdater(
-	dir: string,
+	_dir: string,
 	ctx: FeatureContext,
 ): Promise<"applied" | "already applied"> {
 	const cargoPath = "src-tauri/Cargo.toml";

@@ -5,10 +5,8 @@ packages/core/test/config.test.ts
 packages/core/test/create-git.test.ts
 packages/core/test/create.test.ts
 packages/core/test/opencode.test.ts
-packages/desktop/src-tauri/src/lib.rs
 packages/desktop/src/main.ts
 packages/mcp/src/stdio.ts
 packages/mcp/src/tools.ts
 scripts/mcp-smoke.ts
-scripts/release-local.ts
 scripts/ui-walkthrough.ts
