@@ -9,4 +9,3 @@ packages/desktop/src/main.ts
 packages/mcp/src/stdio.ts
 packages/mcp/src/tools.ts
 scripts/mcp-smoke.ts
-scripts/ui-walkthrough.ts
