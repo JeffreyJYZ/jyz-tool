@@ -11,7 +11,7 @@
     },
     "packages/cli": {
       "name": "jyz-tool",
-      "version": "0.1.0-alpha.36",
+      "version": "0.1.0-alpha.37",
       "bin": {
         "jyz": "./bin/jyz.mjs",
       },
@@ -22,7 +22,7 @@
     },
     "packages/core": {
       "name": "@jyz/core",
-      "version": "0.1.0-alpha.36",
+      "version": "0.1.0-alpha.37",
       "dependencies": {
         "@opencode/client": "2.2.3",
         "smol-toml": "^1.9.1",
@@ -30,7 +30,7 @@
     },
     "packages/desktop": {
       "name": "@jyz/desktop",
-      "version": "0.1.0-alpha.36",
+      "version": "0.1.0-alpha.37",
       "devDependencies": {
         "@tauri-apps/cli": "^2.12.4",
         "happy-dom": "^21.0.4",
@@ -40,7 +40,7 @@
     },
     "packages/mcp": {
       "name": "@jeffreyjyz/mcp",
-      "version": "0.1.0-alpha.36",
+      "version": "0.1.0-alpha.37",
       "bin": {
         "jyz-mcp": "./bin/jyz-mcp.mjs",
       },

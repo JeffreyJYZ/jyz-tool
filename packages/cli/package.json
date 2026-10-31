@@ -1,6 +1,6 @@
 {
 	"name": "jyz-tool",
-	"version": "0.1.0-alpha.36",
+	"version": "0.1.0-alpha.37",
 	"description": "Personal project hub: one config file, and a CLI that behaves as whatever package manager a project already uses.",
 	"license": "MIT",
 	"type": "module",

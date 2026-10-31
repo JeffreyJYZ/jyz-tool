@@ -1,6 +1,6 @@
 {
 	"name": "@jeffreyjyz/mcp",
-	"version": "0.1.0-alpha.36",
+	"version": "0.1.0-alpha.37",
 	"description": "stdio MCP server exposing jyz project tools to AI hosts",
 	"license": "MIT",
 	"type": "module",
