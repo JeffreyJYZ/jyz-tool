@@ -15,6 +15,35 @@ export function checkUpdaterRs(text: string): CheckResult {
 	return { ok: false, detail: `missing: ${missing.join(", ")}` };
 }
 
+export function checkCliManifest(manifest: unknown): CheckResult {
+	if (typeof manifest !== "object" || manifest === null) {
+		return { ok: false, detail: "manifest is not an object" };
+	}
+	const m = manifest as Record<string, unknown>;
+	const bin = m.bin as Record<string, unknown> | undefined;
+	if (!bin) {
+		return { ok: false, detail: "bin missing" };
+	}
+	const values = Object.values(bin);
+	const points = values.some((v) => typeof v === "string" && v.includes("src/bin.ts"));
+	if (!points) {
+		return { ok: false, detail: "bin does not point at src/bin.ts" };
+	}
+	return { ok: true, detail: "bin points at src/bin.ts" };
+}
+
+export function checkCliBin(text: string): CheckResult {
+	const hasImport = /import\s*\{\s*cac\s*\}\s*from\s*["']cac["']/.test(text);
+	const hasCall = /\bcac\s*\(/.test(text);
+	if (hasImport && hasCall) {
+		return { ok: true, detail: "imports and calls cac" };
+	}
+	const missing: string[] = [];
+	if (!hasImport) missing.push("cac import");
+	if (!hasCall) missing.push("cac call");
+	return { ok: false, detail: `missing: ${missing.join(", ")}` };
+}
+
 export function checkConfig(conf: unknown): CheckResult {
 	if (typeof conf !== "object" || conf === null) {
 		return { ok: false, detail: "config is not an object" };

@@ -1,4 +1,4 @@
-import { afterEach, expect, spyOn, test } from "bun:test";
+import { afterEach, expect, test } from "bun:test";
 import { existsSync, realpathSync } from "node:fs";
 import { chmod, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -43,14 +43,14 @@ const GIT_STUB = recorder("git", "exit 0");
 const BUN_STUB = recorder("bun", "exit 0");
 const PNPM_STUB = recorder("pnpm", "exit 0");
 
-const GH_OK = recorder(
+const _GH_OK = recorder(
 	"gh",
 	`if [ "$1" = "auth" ]; then exit 0; fi
 if [ "$1" = "repo" ]; then printf 'https://github.com/tester/%s\\n' "$3"; exit 0; fi
 exit 1`,
 );
 
-const GH_UNAUTHENTICATED = recorder(
+const _GH_UNAUTHENTICATED = recorder(
 	"gh",
 	`if [ "$1" = "auth" ]; then
 	printf 'You are not logged into any GitHub hosts. Run gh auth login to authenticate.\\n' >&2

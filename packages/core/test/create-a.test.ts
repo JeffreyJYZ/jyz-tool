@@ -1,11 +1,11 @@
 import { afterEach, expect, test } from "bun:test";
 import { existsSync } from "node:fs";
-import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { CreateError } from "../src/create/errors.ts";
 import { createProject } from "../src/create/index.ts";
-import type { CreateOptions, Template } from "../src/types/create.ts";
+import type { CreateOptions } from "../src/types/create.ts";
 
 const roots: string[] = [];
 

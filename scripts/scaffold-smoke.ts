@@ -3,6 +3,7 @@
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { runCacCliScenario } from "./smoke/cac-cli-scenario";
 import type { CheckResult } from "./smoke/scaffold-checks";
 import { checkConfig, checkUpdaterRs } from "./smoke/scaffold-checks";
 
@@ -22,7 +23,7 @@ async function runCmd(
 	cmd: string[],
 	cwd: string,
 	timeoutMs: number,
-): Promise<{ ok: boolean; detail: string }> {
+): Promise<{ ok: boolean; detail: string; stdout?: string }> {
 	const proc = Bun.spawn({ cmd, cwd, stdout: "pipe", stderr: "pipe" });
 	let killed = false;
 	const timer = setTimeout(() => {
@@ -46,86 +47,92 @@ async function runCmd(
 		const tail = (stderr || stdout).trim().split("\n").slice(-5).join(" | ");
 		return { ok: false, detail: `exit ${code}: ${tail}` };
 	}
-	return { ok: true, detail: "ok" };
+	return { ok: true, detail: "ok", stdout };
+}
+
+async function scaffold(
+	dir: string,
+	template: string,
+	feature: string,
+): Promise<{ ok: boolean; detail: string; projectDir: string }> {
+	const r = await runCmd(
+		["jyz", "create", "smokeapp", "--template", template, "--feature", feature, "--yes"],
+		dir,
+		120_000,
+	);
+	const fs = await import("node:fs");
+	let projectDir = path.join(dir, "smokeapp");
+	if (r.ok) {
+		const entries = fs.readdirSync(dir);
+		const found = entries.find((e) => e.startsWith("smokeapp"));
+		projectDir = found ? path.join(dir, found) : projectDir;
+	}
+	return { ok: r.ok, detail: r.detail, projectDir };
+}
+
+async function runUpdater(dir: string, skipCargo: boolean): Promise<void> {
+	const s = await scaffold(dir, "vite-tauri", "updater");
+	record("updater:scaffold", s);
+	if (!s.ok) return;
+	const projectDir = s.projectDir;
+
+	if (!skipCargo) {
+		const cargo = await runCmd(["cargo", "check"], path.join(projectDir, "src-tauri"), 300_000);
+		record("updater:cargo-check", cargo);
+		if (!cargo.ok) return;
+	} else {
+		record("updater:cargo-check", { ok: true, detail: "skipped" });
+	}
+
+	const fs = await import("node:fs");
+	const updaterPath = path.join(projectDir, "src-tauri", "src", "updater.rs");
+	let updaterText = "";
+	try {
+		updaterText = fs.readFileSync(updaterPath, "utf8");
+	} catch (e) {
+		record("updater:updater-rs", { ok: false, detail: String(e) });
+		return;
+	}
+	record("updater:updater-rs", checkUpdaterRs(updaterText));
+
+	const confPath = path.join(projectDir, "src-tauri", "tauri.conf.json");
+	let conf: unknown = null;
+	try {
+		conf = JSON.parse(fs.readFileSync(confPath, "utf8"));
+	} catch (e) {
+		record("updater:config", { ok: false, detail: String(e) });
+		return;
+	}
+	record("updater:config", checkConfig(conf));
 }
 
 async function main(): Promise<void> {
 	const args = Bun.argv.slice(2);
 	const json = args.includes("--json");
 	const skipCargo = args.includes("--skip-cargo");
+	const scenarioArg =
+		args.find((a) => a.startsWith("--scenario="))?.split("=")[1] ||
+		(args.includes("--scenario") ? args[args.indexOf("--scenario") + 1] : "all");
+	const scenario = scenarioArg ?? "all";
 
 	const dir = mkdtempSync(path.join(tmpdir(), "jyz-scaffold-"));
-	let projectDir = "";
 	try {
-		// Step 1: scaffold
-		const scaffold = await runCmd(
-			[
-				"jyz",
-				"create",
-				"smokeapp",
-				"--template",
-				"vite-tauri",
-				"--feature",
-				"updater",
-				"--yes",
-			],
-			dir,
-			120_000,
-		);
-		if (scaffold.ok) {
-			// find created dir
-			const fs = await import("node:fs");
-			const entries = fs.readdirSync(dir);
-			const found = entries.find((e) => e.startsWith("smokeapp"));
-			projectDir = found ? path.join(dir, found) : path.join(dir, "smokeapp");
+		if (scenario === "updater" || scenario === "all") {
+			await runUpdater(dir, skipCargo);
 		}
-		record("scaffold", scaffold);
-
-		if (!scaffold.ok) {
-			finish(json);
-			return;
-		}
-
-		// Step 2: cargo check
-		if (!skipCargo) {
-			const cargo = await runCmd(
-				["cargo", "check"],
-				path.join(projectDir, "src-tauri"),
-				300_000,
-			);
-			record("cargo-check", cargo);
-			if (!cargo.ok) {
-				finish(json);
-				return;
+		if (scenario === "cac-cli" || scenario === "all") {
+			// separate temp dir for cac-cli to avoid collisions
+			const dir2 = mkdtempSync(path.join(tmpdir(), "jyz-scaffold-"));
+			try {
+				await runCacCliScenario(dir2, record);
+			} finally {
+				try {
+					rmSync(dir2, { recursive: true, force: true });
+				} catch {
+					// ignore
+				}
 			}
-		} else {
-			record("cargo-check", { ok: true, detail: "skipped" });
 		}
-
-		// Step 3: updater.rs
-		const fs = await import("node:fs");
-		const updaterPath = path.join(projectDir, "src-tauri", "src", "updater.rs");
-		let updaterText = "";
-		try {
-			updaterText = fs.readFileSync(updaterPath, "utf8");
-		} catch (e) {
-			record("updater-rs", { ok: false, detail: String(e) });
-			finish(json);
-			return;
-		}
-		record("updater-rs", checkUpdaterRs(updaterText));
-
-		// Step 4: config
-		const confPath = path.join(projectDir, "src-tauri", "tauri.conf.json");
-		let conf: unknown = null;
-		try {
-			conf = JSON.parse(fs.readFileSync(confPath, "utf8"));
-		} catch (e) {
-			record("config", { ok: false, detail: String(e) });
-			finish(json);
-			return;
-		}
-		record("config", checkConfig(conf));
 	} finally {
 		try {
 			rmSync(dir, { recursive: true, force: true });

@@ -1,9 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test";
 
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
-
 import { listSessions, OpencodeError } from "../src/funcs/opencode/index.ts";
 
 type FakeServer = ReturnType<typeof Bun.serve>;

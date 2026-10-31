@@ -4,7 +4,6 @@ import { chmod, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createProject } from "../src/create/index.ts";
-import type { CreateOptions } from "../src/types/create.ts";
 
 const roots: string[] = [];
 const realPath = process.env.PATH;
@@ -40,8 +39,8 @@ ${tail}
 }
 
 const GIT_STUB = recorder("git", "exit 0");
-const BUN_STUB = recorder("bun", "exit 0");
-const PNPM_STUB = recorder("pnpm", "exit 0");
+const _BUN_STUB = recorder("bun", "exit 0");
+const _PNPM_STUB = recorder("pnpm", "exit 0");
 
 const GH_OK = recorder(
 	"gh",
@@ -59,7 +58,7 @@ fi
 exit 0`,
 );
 
-const GH_REJECTS = recorder(
+const _GH_REJECTS = recorder(
 	"gh",
 	`if [ "$1" = "auth" ]; then exit 0; fi
 printf 'HTTP 422: repository already exists.\\n' >&2

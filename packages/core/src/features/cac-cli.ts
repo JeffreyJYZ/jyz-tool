@@ -15,13 +15,31 @@ export async function applyCacCli(
 		if (existing.includes(MARKER)) return "already applied";
 	}
 
-	const binSource = `#!/usr/bin/env bun\n${MARKER}\nimport { cac } from "cac";\n\nconst cli = cac("jyz");\ncli.command("smoke", "smoke test").action(() => {\n\tconsole.log("ok");\n});\ncli.help();\ncli.parse();\n`;
+	let name = "app";
+	let version = "0.0.0";
+	if (await ctx.exists(manifestPath)) {
+		try {
+			const m = JSON.parse(await ctx.read(manifestPath)) as {
+				name?: string;
+				version?: string;
+			};
+			if (m.name) name = m.name;
+			if (m.version) version = m.version;
+		} catch {
+			// ignore
+		}
+	}
+	const binSource = `#!/usr/bin/env bun\n${MARKER}\nimport { cac } from "cac";\n\nconst cli = cac("${name}");\ncli.version("${name} ${version}");\ncli.command("smoke", "smoke test").action(() => {\n\tconsole.log("ok");\n});\ncli.help();\ncli.parse();\n`;
 	await ctx.write(binPath, binSource);
 
 	if (await ctx.exists(manifestPath)) {
 		const raw = await ctx.read(manifestPath);
-		const manifest = JSON.parse(raw) as { bin?: Record<string, string> };
+		const manifest = JSON.parse(raw) as {
+			bin?: Record<string, string>;
+			dependencies?: Record<string, string>;
+		};
 		manifest.bin = { ...manifest.bin, jyz: "./src/bin.ts" };
+		manifest.dependencies = { ...manifest.dependencies, cac: "^7.0.0" };
 		await ctx.write(manifestPath, `${JSON.stringify(manifest, null, "\t")}\n`);
 	}
 
