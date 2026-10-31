@@ -51,3 +51,49 @@ export function checkFailure(error: unknown): string {
 	if (error instanceof Error) return error.message;
 	return String(error);
 }
+
+interface Refs {
+	banner: HTMLElement;
+}
+
+export function initUpdate(
+	invoke: ((c: string, a?: Record<string, unknown>) => Promise<unknown>) | undefined,
+	refs: Refs,
+): void {
+	const { banner } = refs;
+	function renderUpdate(offer: { current: string; version: string; notes: string | null }): void {
+		const desc = describeUpdate(offer);
+		if (!desc) return;
+		banner.hidden = false;
+		banner.textContent = "";
+		const span = document.createElement("span");
+		span.textContent = `update available: ${offer.version}`;
+		banner.append(span);
+		if (typeof offer.notes === "string" && offer.notes !== "") {
+			const detail = document.createElement("span");
+			detail.textContent = offer.notes;
+			banner.append(detail);
+		}
+		const btn = document.createElement("button");
+		btn.type = "button";
+		btn.textContent = "Install";
+		btn.addEventListener("click", async () => {
+			if (!invoke) return;
+			btn.disabled = true;
+			btn.textContent = "installing… the app will restart";
+			try {
+				await invoke("jyz_update_install");
+			} catch (error) {
+				btn.disabled = false;
+				btn.textContent = "Install";
+				banner.append(
+					Object.assign(document.createElement("span"), {
+						textContent: error instanceof Error ? error.message : String(error),
+					}),
+				);
+			}
+		});
+		banner.append(btn);
+	}
+	(window as any).__renderUpdate = renderUpdate;
+}

@@ -2,7 +2,7 @@
 /**
  * A repeatable click-through of the desktop window's three screens, in a real browser.
  *
- * A Tauri window cannot be driven from CI, so this runs the same `ui/index.html` over HTTP and
+ * A Tauri window cannot be driven from CI, so this runs the built `dist/index.html` over HTTP and
  * stubs the only thing the page asks of the shell: `__TAURI_INTERNALS__.invoke`. Every screen then
  * behaves as it does inside the app, because the page's logic is the app's logic.
  *
@@ -70,20 +70,44 @@ export function stubSource(): string {
 })();`;
 }
 
-/** Serve `ui/` on an ephemeral port. One request per file, no caching, no bundler. */
+/** Serve the built `dist/` on an ephemeral port. The content type matters: a module script served as
+ * text/html is refused by the browser, which is exactly how a Vite build breaks a naive file server. */
 export function serveUi(root: string): { url: string; stop(): void } {
+	const types: Record<string, string> = {
+		".html": "text/html; charset=utf-8",
+		".js": "text/javascript; charset=utf-8",
+		".css": "text/css; charset=utf-8",
+		".json": "application/json; charset=utf-8",
+		".svg": "image/svg+xml",
+		".woff2": "font/woff2",
+	};
 	const server = Bun.serve({
 		port: 0,
 		async fetch(request) {
 			const path = new URL(request.url).pathname;
-			const file = Bun.file(`${root}${path === "/" ? "/index.html" : path}`);
+			const name = path === "/" ? "/index.html" : path;
+			const file = Bun.file(`${root}${name}`);
 			if (!(await file.exists())) return new Response("not found", { status: 404 });
+			// The type comes from the file actually served: taking it from the request path turns "/"
+			// into octet-stream, and the browser then downloads the page instead of rendering it.
+			const ext = name.slice(name.lastIndexOf("."));
 			return new Response(file, {
-				headers: { "content-type": "text/html; charset=utf-8" },
+				headers: { "content-type": types[ext] ?? "application/octet-stream" },
 			});
 		},
 	});
 	return { url: `http://127.0.0.1:${server.port}/`, stop: () => server.stop(true) };
+}
+
+/** Poll one expression until it is truthy, so a deferred module script has time to run. */
+async function waitUntil(session: string, expression: string, timeoutMs = 10_000): Promise<void> {
+	const deadline = Date.now() + timeoutMs;
+	while (Date.now() < deadline) {
+		const value = await browser(session, ["eval", expression]);
+		if (value.trim() === "true") return;
+		await Bun.sleep(150);
+	}
+	throw new Error(`timed out waiting for: ${expression}`);
 }
 
 /** Run one `agent-browser` subcommand and return its stdout. */
@@ -110,7 +134,7 @@ function evalJson(text: string): unknown {
 async function main(): Promise<void> {
 	const flags = new Set(Bun.argv.slice(2));
 	const json = flags.has("--json");
-	const root = join(import.meta.dir, "..", "packages", "desktop", "ui");
+	const root = join(import.meta.dir, "..", "packages", "desktop", "dist");
 	const dir = await mkdtemp(join(tmpdir(), "jyz-ui-"));
 	const stub = join(dir, "tauri-stub.js");
 	await writeFile(stub, stubSource(), "utf8");
@@ -131,6 +155,9 @@ async function main(): Promise<void> {
 	};
 	try {
 		await browser(session, ["open", site.url, "--init-script", stub]);
+		// The bundle is a deferred module script, so nothing exists until it has run: wait for the
+		// page to finish booting instead of racing it.
+		await waitUntil(session, 'document.querySelectorAll("#method option").length > 0');
 		const options = evalJson(
 			await browser(session, [
 				"eval",

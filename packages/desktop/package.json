@@ -5,11 +5,14 @@
 	"type": "module",
 	"description": "Tauri desktop shell for jyz.",
 	"scripts": {
-		"dev": "tauri dev",
+		"dev": "vite dev",
+		"build:web": "vite build",
 		"icon": "tauri icon app-icon.svg -o src-tauri/icons",
 		"build": "bun scripts/stage-sidecar.ts && tauri build"
 	},
 	"devDependencies": {
-		"@tauri-apps/cli": "^2.12.4"
+		"@tauri-apps/cli": "^2.12.4",
+		"typescript": "^7.0.2",
+		"vite": "^8.3.5"
 	}
 }

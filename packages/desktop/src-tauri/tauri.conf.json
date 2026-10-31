@@ -4,7 +4,9 @@
 	"version": "0.1.0-alpha.13",
 	"identifier": "land.jyz.desktop",
 	"build": {
-		"frontendDist": "../ui"
+		"frontendDist": "../dist",
+		"beforeBuildCommand": "bun run build:web",
+		"devUrl": "http://localhost:1420"
 	},
 	"app": {
 		"windows": [
