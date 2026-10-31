@@ -1,5 +1,5 @@
 {
-	"name": "@jyz/mcp",
+	"name": "@jeffreyjyz/mcp",
 	"version": "0.1.0-alpha.36",
 	"description": "stdio MCP server exposing jyz project tools to AI hosts",
 	"license": "MIT",

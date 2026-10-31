@@ -7,7 +7,7 @@ Version line: `0.1.0-alpha.x`. Latest release: [v0.1.0-alpha.27](https://github.
 ## Install
 
 ```sh
-bun add -g jyz                  # once published on npm; today, from a checkout:
+bun add -g jyz-tool             # once published on npm; today, from a checkout:
 cd packages/cli && bun link     # links bin/jyz.mjs, so edits need no build
 ```
 

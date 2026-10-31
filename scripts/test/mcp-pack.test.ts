@@ -9,7 +9,7 @@ test("mcp manifest is publishable", () => {
 		readFileSync(join(ROOT, "packages", "mcp", "package.json"), "utf8"),
 	) as Record<string, unknown>;
 	expect(pkg.private).toBeUndefined();
-	expect(pkg.name).toBe("@jyz/mcp");
+	expect(pkg.name).toBe("@jeffreyjyz/mcp");
 	expect(typeof pkg.description).toBe("string");
 	expect(pkg.license).toBe("MIT");
 	expect((pkg.engines as Record<string, string>).bun).toBeTruthy();
