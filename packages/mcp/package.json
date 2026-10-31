@@ -1,6 +1,6 @@
 {
 	"name": "@jyz/mcp",
-	"version": "0.1.0-alpha.22",
+	"version": "0.1.0-alpha.23",
 	"description": "stdio MCP server exposing jyz project tools to AI hosts",
 	"license": "MIT",
 	"type": "module",
@@ -22,7 +22,7 @@
 		"access": "public"
 	},
 	"dependencies": {
-		"@jyz/core": "^0.1.0-alpha.22"
+		"@jyz/core": "^0.1.0-alpha.23"
 	},
 	"scripts": {
 		"build": "bun build ./src/bin.ts --outdir dist --target bun"
