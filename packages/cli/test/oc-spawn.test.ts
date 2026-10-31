@@ -1,9 +1,10 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { chmodSync, mkdtempSync, writeFileSync } from "node:fs";
+import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 import { cac } from "cac";
+import { writeStub } from "../../core/test/helpers/stub.ts";
 import { registerOc } from "../src/commands/oc.ts";
 
 const realPath = process.env.PATH;
@@ -19,9 +20,7 @@ afterEach(() => {
 
 function makeFailingStub(): void {
 	const dir = mkdtempSync(join(tmpdir(), "jyz-stub-"));
-	const path = join(dir, "opencode");
-	writeFileSync(path, "#!/usr/bin/env bash\nexit 1\n");
-	chmodSync(path, 0o755);
+	writeStub(dir, "opencode", { exitCode: 1 });
 	process.env.PATH = `${dir}:${process.env.PATH ?? ""}`;
 }
 

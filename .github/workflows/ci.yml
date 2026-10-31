@@ -42,7 +42,9 @@ jobs:
                   components: rustfmt
             # `externalBin` names a staged sidecar; without it `tauri-build` refuses to configure.
             - name: Stage the CLI sidecar
-              run: bun packages/desktop/scripts/stage-sidecar.ts
+              run: |
+                  bun install --frozen-lockfile
+                  bun packages/desktop/scripts/stage-sidecar.ts
             - name: Format
               working-directory: packages/desktop/src-tauri
               run: cargo fmt --check

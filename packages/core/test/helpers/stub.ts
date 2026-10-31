@@ -77,11 +77,9 @@ export function writeStub(dir: string, name: string, options: StubOptions = {}):
 
 	if (process.platform === "win32") {
 		const shim = join(dir, `${name}.cmd`);
-		const body = [
-			"@echo off",
-			`"${process.execPath}" "${script}" %*`,
-			`exit /b ${options.exitCode ?? 0}`,
-		];
+		// %ERRORLEVEL% passes the script's own exit code through; a fixed number would swallow it,
+		// which hid every failing-stub test on Windows.
+		const body = ["@echo off", `"${process.execPath}" "${script}" %*`, "exit /b %ERRORLEVEL%"];
 		writeFileSync(shim, `${body.join("\r\n")}\r\n`, "utf8");
 		return shim;
 	}
