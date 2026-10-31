@@ -44,7 +44,7 @@
         "jyz-mcp": "./src/bin.ts",
       },
       "dependencies": {
-        "@jyz/core": "workspace:*",
+        "@jyz/core": "^0.1.0-alpha.21",
       },
     },
   },

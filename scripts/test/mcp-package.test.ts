@@ -7,7 +7,6 @@ const PKG = join(ROOT, "packages", "mcp", "package.json");
 
 test("mcp manifest ships", () => {
 	const pkg = JSON.parse(readFileSync(PKG, "utf8")) as Record<string, unknown>;
-	expect(pkg.private).toBe(true);
 	const bin = pkg.bin as Record<string, string>;
 	expect(bin["jyz-mcp"]).toBe("./src/bin.ts");
 	const binPath = join(ROOT, "packages", "mcp", "src", "bin.ts");
