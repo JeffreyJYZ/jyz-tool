@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { delimiter, join } from "node:path";
 import { spawnedServers, spawnServer } from "../src/funcs/opencode/index.ts";
 import { writeStub } from "./helpers/stub.ts";
 
@@ -17,7 +17,7 @@ afterEach(() => {
 function stubDir(name: string, options: Parameters<typeof writeStub>[2] = {}): string {
 	const dir = mkdtempSync(join(tmpdir(), "jyz-stub-"));
 	writeStub(dir, name, options);
-	process.env.PATH = `${dir}:${process.env.PATH ?? ""}`;
+	process.env.PATH = `${dir}${delimiter}${process.env.PATH ?? ""}`;
 	return dir;
 }
 

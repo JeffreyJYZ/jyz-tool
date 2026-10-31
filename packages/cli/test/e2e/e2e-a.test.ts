@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { delimiter, join } from "node:path";
 import { writeStub } from "../../../core/test/helpers/stub.ts";
 
 const BIN = join(import.meta.dir, "..", "..", "src", "bin.ts");
@@ -69,7 +69,7 @@ test("dispatch bun records transformed argv", async () => {
 		const record = join(dir, "record.txt");
 		const binDir = stubPm(dir, "bun", record);
 		const res = await runJyz(dir, ["add", "-D", "x"], {
-			PATH: `${binDir}:${process.env.PATH}`,
+			PATH: `${binDir}${delimiter}${process.env.PATH}`,
 		});
 		expect(res.code).toBe(0);
 		const rec = readFileSync(record, "utf8").trim();
@@ -87,7 +87,7 @@ test("dispatch pnpm records argv verbatim", async () => {
 		const record = join(dir, "record.txt");
 		const binDir = stubPm(dir, "pnpm", record);
 		const res = await runJyz(dir, ["add", "-D", "x"], {
-			PATH: `${binDir}:${process.env.PATH}`,
+			PATH: `${binDir}${delimiter}${process.env.PATH}`,
 		});
 		expect(res.code).toBe(0);
 		const rec = readFileSync(record, "utf8").trim();
@@ -105,7 +105,7 @@ test("update --latest records --latest", async () => {
 		const record = join(dir, "record.txt");
 		const binDir = stubPm(dir, "bun", record);
 		const res = await runJyz(dir, ["update", "--latest"], {
-			PATH: `${binDir}:${process.env.PATH}`,
+			PATH: `${binDir}${delimiter}${process.env.PATH}`,
 		});
 		expect(res.code).toBe(0);
 		const rec = readFileSync(record, "utf8").trim();

@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { delimiter, join } from "node:path";
 
 import { cac } from "cac";
 import { writeStub } from "../../core/test/helpers/stub.ts";
@@ -21,7 +21,7 @@ afterEach(() => {
 function makeFailingStub(): void {
 	const dir = mkdtempSync(join(tmpdir(), "jyz-stub-"));
 	writeStub(dir, "opencode", { exitCode: 1 });
-	process.env.PATH = `${dir}:${process.env.PATH ?? ""}`;
+	process.env.PATH = `${dir}${delimiter}${process.env.PATH ?? ""}`;
 }
 
 function captureLogs(): { lines: string[]; restore: () => void } {

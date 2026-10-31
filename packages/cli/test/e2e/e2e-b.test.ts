@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { delimiter, join } from "node:path";
 import { writeStub } from "../../../core/test/helpers/stub.ts";
 
 const BIN = join(import.meta.dir, "..", "..", "src", "bin.ts");
@@ -49,7 +49,9 @@ test("exit code passes through from stub", async () => {
 		writeFileSync(join(dir, "bun.lock"), "", "utf8");
 		const record = join(dir, "record.txt");
 		const binDir = stubPm(dir, "bun", record, 3);
-		const res = await runJyz(dir, ["add", "x"], { PATH: `${binDir}:${process.env.PATH}` });
+		const res = await runJyz(dir, ["add", "x"], {
+			PATH: `${binDir}${delimiter}${process.env.PATH}`,
+		});
 		expect(res.code).toBe(3);
 	} finally {
 		cleanup(dir);
@@ -76,7 +78,7 @@ test("-F acts on named member", async () => {
 		const record = join(dir, "record.txt");
 		const binDir = stubPm(dir, "bun", record);
 		const res = await runJyz(dir, ["add", "x", "-F", "b"], {
-			PATH: `${binDir}:${process.env.PATH}`,
+			PATH: `${binDir}${delimiter}${process.env.PATH}`,
 		});
 		expect(res.code).toBe(0);
 		expect(readFileSync(record, "utf8").trim()).toBe("add x");
@@ -93,7 +95,9 @@ test("alias expansion makes jyz a x behave as add x", async () => {
 		writeFileSync(join(dir, "jyz.config.toml"), '[aliases]\na = "add"\n', "utf8");
 		const record = join(dir, "record.txt");
 		const binDir = stubPm(dir, "bun", record);
-		const res = await runJyz(dir, ["a", "x"], { PATH: `${binDir}:${process.env.PATH}` });
+		const res = await runJyz(dir, ["a", "x"], {
+			PATH: `${binDir}${delimiter}${process.env.PATH}`,
+		});
 		expect(res.code).toBe(0);
 		expect(readFileSync(record, "utf8").trim()).toBe("add x");
 	} finally {
@@ -124,7 +128,9 @@ test("bare script runs package.json script", async () => {
 		writeFileSync(join(dir, "bun.lock"), "", "utf8");
 		const record = join(dir, "record.txt");
 		const binDir = stubPm(dir, "bun", record);
-		const res = await runJyz(dir, ["dev"], { PATH: `${binDir}:${process.env.PATH}` });
+		const res = await runJyz(dir, ["dev"], {
+			PATH: `${binDir}${delimiter}${process.env.PATH}`,
+		});
 		expect(res.code).toBe(0);
 		expect(readFileSync(record, "utf8").trim()).toBe("run dev");
 	} finally {
