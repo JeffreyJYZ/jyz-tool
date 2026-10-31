@@ -142,6 +142,10 @@ export async function main(): Promise<void> {
 		await publishPhase(tag, arg("--notes"), dmgName);
 	}
 
+	// The desktop plan asks for a size per release; record it where the artefacts already are.
+	const { recordSizes } = await import("../bundle-size");
+	log(`sizes    ${recordSizes(version.replace(/^v/, ""))}`);
+
 	log(`published ${tag}`);
 	log(`  version  ${version}`);
 	log(`  dmg      ${dmgName}`);
