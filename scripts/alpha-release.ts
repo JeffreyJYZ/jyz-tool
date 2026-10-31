@@ -24,6 +24,10 @@ export function manifestFiles(): string[] {
 		"packages/mcp/package.json",
 		"packages/desktop/src-tauri/tauri.conf.json",
 		"packages/desktop/src-tauri/Cargo.toml",
+		// The lockfiles repeat the workspace version; leaving them out of the release commit leaves
+		// the tree dirty, and the next release then refuses to run.
+		"bun.lock",
+		"packages/desktop/src-tauri/Cargo.lock",
 	];
 }
 

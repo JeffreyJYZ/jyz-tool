@@ -16,8 +16,10 @@ test("nextAlpha alpha.9 -> alpha.10", () => {
 
 test("manifestFiles returns every version-bearing path", () => {
 	const files = manifestFiles();
-	expect(files).toHaveLength(7);
 	expect(files).toContain("packages/desktop/src-tauri/Cargo.toml");
+	// The lockfiles carry the workspace version too; leaving them out dirty the tree after a release.
+	expect(files).toContain("bun.lock");
+	expect(files).toContain("packages/desktop/src-tauri/Cargo.lock");
 	for (const f of files) expect(existsSync(f)).toBe(true);
 });
 
