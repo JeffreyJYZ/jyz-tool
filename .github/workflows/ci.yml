@@ -24,6 +24,11 @@ jobs:
             - run: bun run format:check
             - run: bun run test
             - run: bun run jyz --version
+            # The C template ships a Makefile; prove it builds with the host compiler, and skip
+            # Windows, where `make` and `cc` are not part of the runner image.
+            - name: Scaffold and build the C template
+              if: runner.os != 'Windows'
+              run: bun scripts/scaffold-smoke.ts --scenario=c
 
     rust:
         runs-on: ubuntu-latest
