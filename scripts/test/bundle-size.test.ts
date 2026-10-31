@@ -12,6 +12,8 @@ function fixture(): { dir: string; table: string; release: string } {
 	writeFileSync(join(release, "jyz.app.tar.gz"), Buffer.alloc(1_000_000));
 	writeFileSync(join(release, "cli-0.1.0-alpha.1-darwin-arm64"), Buffer.alloc(500_000));
 	writeFileSync(join(release, "mcp-0.1.0-alpha.1-darwin-arm64"), Buffer.alloc(400_000));
+	// The package must not shadow the binary column.
+	writeFileSync(join(release, "mcp-0.1.0-alpha.1.tgz"), Buffer.alloc(10_000));
 	return { dir, table: join(dir, "sizes.md"), release };
 }
 

@@ -40,10 +40,12 @@ function mb(path: string | null): string {
 	return (statSync(path).size / 1_000_000).toFixed(1);
 }
 
-function pick(pattern: RegExp, dir: string): string | null {
+/** The first artefact matching `pattern`; `kind` filters packages out of a binary column. */
+function pick(pattern: RegExp, dir: string, kind: "any" | "binary" = "any"): string | null {
 	if (!existsSync(dir)) return null;
-	const match = readdirSync(dir).find((name) => pattern.test(name));
-	return match ? join(dir, match) : null;
+	const names = readdirSync(dir).filter((name) => pattern.test(name));
+	const match = kind === "binary" ? names.find((name) => !name.endsWith(".tgz")) : names[0];
+	return match === undefined ? null : join(dir, match);
 }
 
 /** Append one row for `version`, once: re-running a release must not duplicate the line. */
@@ -53,7 +55,7 @@ export function recordSizes(
 ): string {
 	const dir = opts.releaseDir ?? RELEASE_DIR;
 	const table = opts.table ?? TABLE;
-	const row = `| ${version} | ${mb(pick(/^desktop-.*\.dmg$/, dir))} | ${mb(pick(/^jyz\.app\.tar\.gz$/, dir))} | ${mb(pick(/^cli-/, dir))} | ${mb(pick(/^mcp-\d/, dir))} |`;
+	const row = `| ${version} | ${mb(pick(/^desktop-.*\.dmg$/, dir))} | ${mb(pick(/^jyz\.app\.tar\.gz$/, dir))} | ${mb(pick(/^cli-/, dir))} | ${mb(pick(/^mcp-\d/, dir, "binary"))} |`;
 	mkdirSync(join(table, ".."), { recursive: true });
 	const existing = existsSync(table) ? readFileSync(table, "utf8") : HEADER;
 	if (!existsSync(table)) writeFileSync(table, HEADER, "utf8");
