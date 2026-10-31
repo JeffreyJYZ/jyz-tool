@@ -1,5 +1,6 @@
 import { readdirSync } from "node:fs";
 import path from "node:path";
+import { jyzArgv } from "./jyz-bin";
 import type { CheckResult } from "./scaffold-checks";
 
 type Recorder = (step: string, r: CheckResult | { ok: boolean; detail: string }) => void;
@@ -11,7 +12,7 @@ type Recorder = (step: string, r: CheckResult | { ok: boolean; detail: string })
  */
 export async function runCScenario(dir: string, record: Recorder): Promise<void> {
 	const scaffold = await runCmd(
-		["jyz", "create", "capp", "--template", "c", "--yes"],
+		jyzArgv(["create", "capp", "--template", "c", "--yes"]),
 		dir,
 		120_000,
 	);

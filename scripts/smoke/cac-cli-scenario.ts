@@ -1,4 +1,5 @@
 import path from "node:path";
+import { jyzArgv } from "./jyz-bin";
 import type { CheckResult } from "./scaffold-checks";
 import { checkCliBin, checkCliManifest } from "./scaffold-checks";
 
@@ -31,7 +32,7 @@ async function runCmd(cmd: string[], cwd: string, timeoutMs: number) {
 
 export async function runCacCliScenario(dir: string, record: Recorder): Promise<void> {
 	const scaffold = await runCmd(
-		["jyz", "create", "smokeapp", "--template", "cli", "--feature", "cac-cli", "--yes"],
+		jyzArgv(["create", "smokeapp", "--template", "cli", "--feature", "cac-cli", "--yes"]),
 		dir,
 		120_000,
 	);
