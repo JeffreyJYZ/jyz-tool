@@ -45,7 +45,7 @@
 - `jyz oc sessions|prompt|watch` finds the live opencode server from `~/.local/state/opencode/service.json` (HTTP Basic), so the desktop panel can list sessions, send a prompt into one, and stream its events — the panel is a chat ingress, not a reader.
 - `bun run jyz` prints help; `jyz --version` prints `jyz/<version> <os>-<arch> bun-<bun version>` (answered by the CLI itself: cac appends the Node compatibility version under Bun).
 - Gates: `bun run typecheck` (`bun check`), `bun run lint` (`biome check .`), `bun run format:check` (`bun fmt --check`), `bun run test`.
-- Desktop: `bun run --cwd packages/desktop build`; it stages the CLI sidecar (`scripts/stage-sidecar.ts`, output `src-tauri/binaries/jyz-<triple>`, gitignored) then runs `tauri build`. Needs Rust plus Xcode CLT on macOS.
+- Desktop: `bun run --cwd packages/desktop build` stages the CLI sidecar (`scripts/stage-sidecar.ts`, output `src-tauri/binaries/jyz-<triple>`, gitignored) then runs `tauri build`. That **also bundles a dmg**, and Tauri's `bundle_dmg.sh` mounts a `jyz` volume and asks Finder to lay out the drag window — one pop-up per build, which the user notices. For local checks use `build:web` or `build:app` (`tauri build --bundles app`); the dmg path is for releases only.
 - Release: `bun run scripts/alpha-release.ts --push` runs the four gates, bumps every manifest, commits, tags and pushes; `--dry-run` shows the version without touching anything. `bun scripts/verify-release.ts` checks the published assets.
 - Updates: the app checks `latest.json` on start and installs on a button press; bundles are signed with `~/.config/jyz/updater.key`, and `bun scripts/updater-manifest.ts` merges the per-platform partials and restamps the version before upload.
 - Machine surfaces: `jyz capabilities [--json]` prints the capability manifest; `jyz serve` speaks JSON-RPC over stdio; `bun scripts/mcp-smoke.ts` walks initialize, tools, resources, watch and cancel against the real MCP server.
@@ -55,6 +55,9 @@
 
 ## Traps
 
+- A Tauri window on macOS exposes **no accessibility element**: `agent-desktop snapshot --app jyz` answers `WINDOW_NOT_FOUND`, and by window id `ACTION_NOT_SUPPORTED: window_without_accessibility_element`, so the accessibility tree cannot drive the app — only `screenshot` plus coordinate input (`--headed --xy`) can, and the Vite page in a browser with the IPC stubbed stays the automatable path.
+- `agent-desktop screenshot --window-id <id>` writes a 2x PNG; read it directly to see the real UI, and remember a stale install shows exactly what that build had (alpha.11 has no Settings tab).
+
 - `bun fmt` does NOT wrap Markdown by default (`proseWrap` is `preserve`); `[[fmt.overrides]]` with `proseWrap = "never"` pins that for `**/*.md`. What it does change is table column alignment and `*emphasis*` style. `.prettierignore` now excludes only `local/`.
 - Never hard-wrap markdown by hand even though the formatter allows it: one line per bullet, no soft wraps.
 - Never name a package script `fmt` or `check`: both shadow Bun builtins, so `bun fmt --check` would write and `bun check` would stop typechecking.
@@ -63,6 +66,7 @@
 - The CLI bin is `packages/cli/src/bin.ts` with a bun shebang, so `bun link` gives a working `jyz` with no build step; compiled binaries come from `bun build --compile`.
 - Tauri icons are generated from `packages/desktop/app-icon.svg` by `bun run --cwd packages/desktop icon`; never hand-edit the derived files, and never call `bunx tauri`, which resolves the wrong npm package.
 - Tauri builds only on the matching OS, so desktop installers come from the CI matrix, never from one machine.
+- `enable_webview_accessibility` (an Accessibility override pushed onto the WKWebView in `lib.rs`) segfaulted at launch inside `NSAccessibilitySetOverriddenAttributesForUIElement`, `KERN_INVALID_ADDRESS at 0x1`, killing the app before its window painted — so every later launch looked like a broken build or a crash loop. Never re-add it; the safe accessible surface is the native menu in `src/menu.rs`.
 - `.deb` rejects a hyphen in the version and `.msi` requires a numeric pre-release, so bundles are built with `--config '{"version":"0.1.0"}'` while the artefact names and the git tag keep `0.1.0-alpha.1`.
 - The updater's `latest.json` inherits that `0.1.0` and `0.1.0` sorts _above_ every `0.1.0-alpha.N`, so `scripts/updater-manifest.ts` restamps its `version` from `package.json` after every bundle; without that step each installed alpha is offered an update to itself in a loop.
 - Updater signing: private key `~/.config/jyz/updater.key` (never commit, never print), public half in `tauri.conf.json` `plugins.updater.pubkey`, CI secret `TAURI_SIGNING_PRIVATE_KEY`. Losing the private key means no installer can ever update again.
