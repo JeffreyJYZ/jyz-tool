@@ -108,7 +108,7 @@ jobs:
             # The registry serves the packument before the tarball, so a published version can 404
             # for a few minutes; poll rather than trust the 202.
             - name: Verify the version is served
-              if: ${{ inputs.dry_run != 'true' }}
+              if: ${{ github.event_name != 'workflow_dispatch' || inputs.dry_run == false }}
               run: |
                   set -euo pipefail
                   dir="${{ steps.pkg.outputs.dir }}"
