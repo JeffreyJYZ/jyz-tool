@@ -144,7 +144,7 @@ export async function main(): Promise<void> {
 
 	// Prove the built bundle carries a working CLI before it is published.
 	const { installSmoke } = await import("../install-smoke");
-	const installed = await installSmoke(join(BUNDLE, "macos", "jyz.app"));
+	const installed = await installSmoke(join(BUNDLE, "jyz.app"));
 	log(`install  ${installed.ok ? "ok" : "FAIL"} ${installed.detail}`);
 	if (!installed.ok) fail("the bundled CLI does not run");
 
