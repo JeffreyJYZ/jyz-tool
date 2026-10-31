@@ -104,7 +104,7 @@ The `docs/` tree exists already and is planned, not incidental:
 
 Each milestone ends at a gate. A gate is a command that fails loudly; prose acceptance does not count.
 
-Status 2026-10-30: M0–M4 shipped, release line `0.1.0-alpha.4`. Gate results live in [../progress/reports/v1-milestone.md](../../progress/reports/v1-milestone.md); what landed after v1 is in [../progress/notes/2026-10-30-post-v1.md](../../progress/notes/2026-10-30-post-v1.md).
+Status 2026-10-31: M0–M4 and v2 shipped, release line `0.1.0-alpha.21`. Gate results live in [../progress/reports/v1-milestone.md](../../progress/reports/v1-milestone.md); what landed after v1 is in [../progress/notes/2026-10-30-post-v1.md](../../progress/notes/2026-10-30-post-v1.md) and [../progress/notes/2026-10-31-scaffold-and-window.md](../../progress/notes/2026-10-31-scaffold-and-window.md).
 
 ### M0 — Bootstrap
 
@@ -143,11 +143,13 @@ Gate: resolver tests per typechecker (`bun check`, `tsc`, `tsgo`, `tsrs`) and pe
 
 ## v2 — shipped
 
-All three seams closed at `0.1.0-alpha.6`; task plan [../progress/subagent/tasks/v2-tasks.md](../progress/subagent/tasks/v2-tasks.md), reports under [../progress/subagent/reports/v2/](../progress/subagent/reports/v2/).
+All three seams closed at `0.1.0-alpha.6`; task plan [../progress/subagent/tasks/v2-tasks.md](../progress/subagent/tasks/v2-tasks.md), reports under [../progress/subagent/reports/v2/](../progress/subagent/reports/v2/). Current release line `0.1.0-alpha.21`.
 
-- Desktop consumes the installed CLI over its JSON-RPC surface, and the installer carries that CLI as a Tauri sidecar (`bundle.externalBin`, staged by `packages/desktop/scripts/stage-sidecar.ts`). Three screens: call runner, config viewer, opencode panel with a 5 s session watch.
+- Desktop consumes the installed CLI over its JSON-RPC surface, and the installer carries that CLI as a Tauri sidecar (`bundle.externalBin`, staged by `packages/desktop/scripts/stage-sidecar.ts`). Three screens: call runner, config viewer, opencode panel with a 5 s session watch. The shell is Vite + TypeScript with no framework: `packages/desktop/index.html` is boilerplate, `src/main.ts` imports the tested modules, and the old `ui/` directory is gone. The window can run a resolved command through `jyz serve --execute`, answered by a **Run it** checkbox on the Call screen (off by default).
 - MCP imports the core API in-process, streams `jyz_watch`/`jyz_cancel`, and ships as `@jyz/mcp` with a `jyz-mcp` bin plus one compiled binary per platform.
 - opencode integration drives sessions through `@opencode/client` **2.2.3**, pinned exact: `session.list({ parentID: null })` for the root list, the flat `session.prompt` for sending, and `event.subscribe` behind `subscribeEvents` / `jyz oc watch`. The client surface and every payload trap came from the live `opencode-tauri-client` reference (`docs/opencode-api.md`), not from guesswork. The desktop panel still polls `oc sessions` on a timer; the event stream is what a terminal or a host drives.
+- Self-update ships signed releases with `latest.json`, a Settings screen with a manual check, and in-place install, measured end to end on this machine.
+- The repo enforces a 200-line limit via `bun run size`; `docs/refactor/oversized.txt` is currently empty. `bun scripts/scaffold-smoke.ts` scaffolds a `vite-tauri` app with the updater and runs `cargo check` on it.
 
 ## Non-goals for v1
 
