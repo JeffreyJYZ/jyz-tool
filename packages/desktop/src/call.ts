@@ -68,6 +68,7 @@ export function initCall(
 			}
 		}
 		run.disabled = true;
+		result.setAttribute("aria-busy", "true");
 		show("idle", "running…");
 		try {
 			const call = buildCall(method.value, text);
@@ -94,6 +95,7 @@ export function initCall(
 		} catch (error) {
 			show("error", mapError(error));
 		} finally {
+			result.setAttribute("aria-busy", "false");
 			run.disabled = false;
 		}
 	});

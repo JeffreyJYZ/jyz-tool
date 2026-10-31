@@ -1,3 +1,6 @@
+import { makeScreen, markLive } from "./a11y.ts";
+import { makeBanner, makeFooter } from "./chrome.ts";
+
 export interface Shell {
 	app: HTMLElement;
 	banner: HTMLDivElement;
@@ -33,13 +36,12 @@ export interface Shell {
 }
 export function buildShell(): Shell {
 	const app = document.getElementById("app") as HTMLElement;
-	const banner = document.createElement("div");
-	banner.id = "update-banner";
-	banner.hidden = true;
+	const banner = makeBanner();
 	app.append(banner);
 	const nav = document.createElement("nav");
 	nav.className = "tabs";
 	nav.id = "tabs";
+	nav.setAttribute("aria-label", "Screens");
 	for (const name of ["call", "config", "opencode", "settings"]) {
 		const btn = document.createElement("button");
 		btn.type = "button";
@@ -52,14 +54,9 @@ export function buildShell(): Shell {
 	app.append(nav);
 	const main = document.createElement("main");
 	app.append(main);
-	function makeScreen(id: string, active: boolean): HTMLElement {
-		const sec = document.createElement("section");
-		sec.className = `screen${active ? " active" : ""}`;
-		sec.id = id;
-		return sec;
-	}
+
 	// Call screen
-	const callScreen = makeScreen("screen-call", true);
+	const callScreen = makeScreen("screen-call", true, "Call");
 	const form = document.createElement("form");
 	form.id = "call";
 	const methodLabel = document.createElement("label");
@@ -91,10 +88,11 @@ export function buildShell(): Shell {
 	result.id = "result";
 	result.dataset.state = "idle";
 	result.textContent = "no call yet";
+	markLive(result);
 	callScreen.append(form, result);
 	main.append(callScreen);
 	// Config screen
-	const configScreen = makeScreen("screen-config", false);
+	const configScreen = makeScreen("screen-config", false, "Config");
 	const configRefresh = document.createElement("button");
 	configRefresh.id = "config-refresh";
 	configRefresh.type = "button";
@@ -109,7 +107,7 @@ export function buildShell(): Shell {
 	configScreen.append(configRefresh, configTable, configRaw);
 	main.append(configScreen);
 	// Opencode screen
-	const ocScreen = makeScreen("screen-opencode", false);
+	const ocScreen = makeScreen("screen-opencode", false, "opencode");
 	const sessionLabel = document.createElement("label");
 	sessionLabel.textContent = "session";
 	const session = document.createElement("select");
@@ -134,6 +132,7 @@ export function buildShell(): Shell {
 	ocStatus.id = "oc-status";
 	ocStatus.dataset.state = "idle";
 	ocStatus.textContent = "no sessions yet";
+	markLive(ocStatus);
 	const ocTable = document.createElement("table");
 	ocTable.id = "oc-table";
 	const ocTbody = document.createElement("tbody");
@@ -143,7 +142,7 @@ export function buildShell(): Shell {
 	ocScreen.append(sessionLabel, promptLabel, sendPrompt, ocRefresh, ocStatus, ocTable, ocEvents);
 	main.append(ocScreen);
 	// Settings screen
-	const settingsScreen = makeScreen("screen-settings", false);
+	const settingsScreen = makeScreen("screen-settings", false, "Settings");
 	const settingsVersion = document.createElement("div");
 	settingsVersion.id = "settings-version";
 	settingsVersion.textContent = "checking…";
@@ -155,14 +154,13 @@ export function buildShell(): Shell {
 	settingsStatus.id = "settings-status";
 	settingsStatus.dataset.state = "idle";
 	settingsStatus.textContent = "idle";
+	markLive(settingsStatus);
 	const settingsOffer = document.createElement("div");
 	settingsOffer.id = "settings-offer";
 	settingsOffer.hidden = true;
 	settingsScreen.append(settingsVersion, settingsCheck, settingsStatus, settingsOffer);
 	main.append(settingsScreen);
-	const footer = document.createElement("footer");
-	footer.id = "version";
-	footer.textContent = "jyz · checking";
+	const footer = makeFooter();
 	app.append(footer);
 	return {
 		app,

@@ -56,10 +56,10 @@ if (typeof document !== "undefined") {
 	// tabs
 	function showScreen(name: string): void {
 		for (const btn of document.querySelectorAll("nav.tabs button")) {
-			(btn as HTMLElement).classList.toggle(
-				"active",
-				(btn as HTMLElement).dataset.screen === name,
-			);
+			const active = (btn as HTMLElement).dataset.screen === name;
+			(btn as HTMLElement).classList.toggle("active", active);
+			if (active) (btn as HTMLElement).setAttribute("aria-current", "page");
+			else (btn as HTMLElement).removeAttribute("aria-current");
 		}
 		for (const sec of document.querySelectorAll(".screen")) {
 			(sec as HTMLElement).classList.toggle("active", sec.id === `screen-${name}`);
