@@ -8,7 +8,9 @@ const PKG = join(import.meta.dir, "..", "package.json");
 
 test("manifest invariants", () => {
 	const pkg = JSON.parse(readFileSync(PKG, "utf8")) as Record<string, unknown>;
-	expect(pkg.private).toBe(true);
+	// The package is installable from the registry, so `private` must stay absent; a `true` here
+	// silently blocks every publish.
+	expect(pkg.private).toBeUndefined();
 	expect((pkg.bin as Record<string, string>)["jyz-mcp"]).toBe("./src/bin.ts");
 	expect(typeof pkg.description).toBe("string");
 	expect(pkg.license).toBe("MIT");
