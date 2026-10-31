@@ -1,12 +1,13 @@
 /* extracted from former ui/index.html */
 :root {
 	color-scheme: dark;
-	--canvas: #0b0b0d;
-	--panel: #111114;
-	--line: #26262c;
-	--ink: #e5e5e5;
-	--muted: #8b8b93;
-	--accent: #6ea8fe;
+	--canvas: #0c0c0d;
+	--panel: #141416;
+	--panel-raised: #1b1b1e;
+	--line: #2a2a2e;
+	--line-strong: #45454c;
+	--ink: #ececed;
+	--muted: #8f8f96;
 }
 * {
 	box-sizing: border-box;
@@ -21,13 +22,21 @@ body {
 	font-family: ui-sans-serif, system-ui, sans-serif;
 	font-size: 0.875rem;
 }
+#app {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	gap: 0.875rem;
+	width: 100%;
+	/* One padded column for the tab strip, the screens and the footer, so nothing sits flush
+	   against the window edge. */
+	padding: 1.25rem 1.5rem 0.875rem;
+}
 main {
 	flex: 1;
 	width: 100%;
 	max-width: 62rem;
 	margin: 0 auto;
-	/* Breathing room on every edge: the tab strip used to sit flush under the title bar. */
-	padding: 1.5rem 1.5rem 1.25rem;
 	display: flex;
 	flex-direction: column;
 	gap: 1rem;
@@ -49,8 +58,9 @@ nav.tabs button {
 	cursor: pointer;
 }
 nav.tabs button.active {
-	border-color: var(--accent);
-	color: var(--accent);
+	border-color: var(--line-strong);
+	background: var(--panel-raised);
+	color: var(--ink);
 }
 .screen {
 	display: none;
@@ -96,7 +106,7 @@ select:focus-visible,
 textarea:focus-visible,
 input:focus-visible,
 button:focus-visible {
-	outline: 1px solid var(--accent);
+	outline: 1px solid var(--ink);
 	outline-offset: 2px;
 }
 /* biome-ignore lint/style/noDescendingSpecificity: focus-visible overrides base button */
@@ -151,9 +161,10 @@ th {
 	gap: 0.75rem;
 	align-items: center;
 	padding: 0.625rem 0.875rem;
-	border: 1px solid var(--accent);
+	border: 1px solid var(--line-strong);
 	border-radius: 6px;
-	background: rgba(110, 168, 254, 0.08);
+	background: var(--panel-raised);
+	color: var(--ink);
 }
 #update-banner[hidden] {
 	display: none;
@@ -162,7 +173,8 @@ th {
 	flex: 1;
 }
 footer {
-	padding: 0.75rem 1.25rem;
+	margin-top: auto;
+	padding-top: 0.75rem;
 	color: var(--muted);
 	font-size: 0.75rem;
 	border-top: 1px solid var(--line);

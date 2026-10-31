@@ -52,6 +52,8 @@ export function checkFailure(error: unknown): string {
 	return String(error);
 }
 
+import { listenUpdateCheck, listenUpdateProgress, unwrapResult } from "./events.ts";
+
 interface Refs {
 	banner: HTMLElement;
 }
@@ -77,15 +79,17 @@ export function initUpdate(
 		const btn = document.createElement("button");
 		btn.type = "button";
 		btn.textContent = "Install";
+		installButton = btn;
 		btn.addEventListener("click", async () => {
 			if (!invoke) return;
 			btn.disabled = true;
-			btn.textContent = "installing… the app will restart";
+			btn.textContent = "installing…";
 			try {
 				await invoke("jyz_update_install");
 			} catch (error) {
 				btn.disabled = false;
 				btn.textContent = "Install";
+				installButton = null;
 				banner.append(
 					Object.assign(document.createElement("span"), {
 						textContent: error instanceof Error ? error.message : String(error),
@@ -95,7 +99,42 @@ export function initUpdate(
 		});
 		banner.append(btn);
 	}
+
+	// A ~47 MB download with a still button reads as a hang, so the button carries the byte count.
+	let installButton: HTMLButtonElement | null = null;
+	listenUpdateProgress(({ downloaded, total }) => {
+		if (installButton === null) return;
+		const mb = (downloaded / 1_048_576).toFixed(1);
+		installButton.textContent =
+			total !== null && total > 0
+				? `installing… ${Math.min(100, Math.floor((downloaded / total) * 100))}% · ${mb} of ${(total / 1_048_576).toFixed(1)} MB`
+				: `installing… ${mb} MB`;
+	});
 	window.__renderUpdate = (offer) => {
 		if (offer !== null && offer !== undefined) renderUpdate(offer);
 	};
+	// "Check for Updates…" runs in Rust, so its answer arrives as an event. Show it either way:
+	// silence on "you are on the newest build" reads like the menu did nothing.
+	listenUpdateCheck((payload) => {
+		const result = unwrapResult(payload);
+		if ("error" in result) {
+			showStatus(`update check failed: ${result.error}`);
+			return;
+		}
+		const offer = result.offer as {
+			current: string;
+			version: string;
+			notes: string | null;
+		} | null;
+		if (offer !== null && offer.version !== offer.current) {
+			renderUpdate(offer);
+			return;
+		}
+		showStatus(checkStatus(offer).text);
+	});
+
+	function showStatus(text: string): void {
+		banner.hidden = false;
+		banner.textContent = text;
+	}
 }
