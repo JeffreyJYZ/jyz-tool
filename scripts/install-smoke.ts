@@ -40,13 +40,28 @@ export function bundledCli(appDir: string): string {
 	throw new Error(`no bundled CLI inside ${appDir}`);
 }
 
+/** Retries a run: a bundle can still be settling while the build that made it finishes. */
+async function runWithRetry(
+	cmd: string[],
+	cwd: string,
+	attempts = 3,
+): Promise<{ ok: boolean; out: string }> {
+	let last = { ok: false, out: "never ran" };
+	for (let i = 0; i < attempts; i += 1) {
+		last = run(cmd, cwd);
+		if (last.ok) return last;
+		await Bun.sleep(400);
+	}
+	return last;
+}
+
 function run(cmd: string[], cwd: string): { ok: boolean; out: string } {
 	const proc = Bun.spawnSync({ cmd, cwd, stdout: "pipe", stderr: "pipe" });
 	const out = `${proc.stdout.toString()}${proc.stderr.toString()}`.trim();
 	return { ok: proc.exitCode === 0, out: out.split("\n").slice(0, 3).join(" | ") };
 }
 
-export function installSmoke(appPath: string): { ok: boolean; detail: string } {
+export async function installSmoke(appPath: string): Promise<{ ok: boolean; detail: string }> {
 	if (!existsSync(appPath)) return { ok: false, detail: `no bundle at ${appPath}` };
 	const dir = mkdtempSync(join(tmpdir(), "jyz-install-"));
 	try {
@@ -55,14 +70,14 @@ export function installSmoke(appPath: string): { ok: boolean; detail: string } {
 		cpSync(appPath, installed, { recursive: true, dereference: true });
 		const cli = bundledCli(installed);
 		chmodSync(cli, 0o755);
-		const version = run([cli, "--version"], dir);
+		const version = await runWithRetry([cli, "--version"], dir);
 		if (!version.ok) return { ok: false, detail: `bundled CLI failed: ${version.out}` };
 		if (!version.out.includes(pkg.version)) {
 			return { ok: false, detail: `version mismatch: ${version.out} vs ${pkg.version}` };
 		}
 		const project = join(dir, "project");
 		Bun.spawnSync(["mkdir", "-p", project]);
-		const config = run([cli, "config", "path"], project);
+		const config = await runWithRetry([cli, "config", "path"], project);
 		if (!config.ok) return { ok: false, detail: `config path failed: ${config.out}` };
 		return { ok: true, detail: `${version.out} · ${config.out}` };
 	} finally {
@@ -72,7 +87,7 @@ export function installSmoke(appPath: string): { ok: boolean; detail: string } {
 
 if (import.meta.main) {
 	const app = Bun.argv[2] ?? DEFAULT_APP;
-	const result = installSmoke(app);
+	const result = await installSmoke(app);
 	console.log(`${result.ok ? "ok" : "FAIL"} install-smoke ${result.detail}`);
 	process.exit(result.ok ? 0 : 1);
 }
