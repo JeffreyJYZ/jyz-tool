@@ -144,9 +144,16 @@ export async function main(): Promise<void> {
 
 	// Prove the built bundle carries a working CLI before it is published.
 	const { installSmoke } = await import("../install-smoke");
+	const { releasedCli: pickReleasedCli } = await import("../cli-only-smoke");
 	const installed = await installSmoke(join(BUNDLE, "jyz.app"));
 	log(`install  ${installed.ok ? "ok" : "FAIL"} ${installed.detail}`);
 	if (!installed.ok) fail("the bundled CLI does not run");
+
+	// The other half of the plan's install promise: the CLI artefact installs alone.
+	const { cliOnlySmoke } = await import("../cli-only-smoke");
+	const cliOnly = cliOnlySmoke(pickReleasedCli());
+	log(`cli-only ${cliOnly.ok ? "ok" : "FAIL"} ${cliOnly.detail}`);
+	if (!cliOnly.ok) fail("the released CLI does not run on its own");
 
 	// The desktop plan asks for a size per release; record it where the artefacts already are.
 	const { recordSizes } = await import("../bundle-size");
