@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import { subscribeEvents } from "../src/funcs/opencode.ts";
+import { subscribeEvents } from "../src/funcs/opencode/index.ts";
 
 describe("opencode events", () => {
 	test("yields mapped frames and filters by sessionID", async () => {

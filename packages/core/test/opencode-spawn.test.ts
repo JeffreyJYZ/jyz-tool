@@ -3,7 +3,7 @@ import { chmodSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-import { spawnedServers, spawnServer } from "../src/funcs/opencode.ts";
+import { spawnedServers, spawnServer } from "../src/funcs/opencode/index.ts";
 
 const originalPath = process.env.PATH;
 const originalUrl = process.env.JYZ_OPENCODE_URL;

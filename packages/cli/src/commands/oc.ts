@@ -13,7 +13,7 @@ import {
 	sendPrompt,
 	spawnServer,
 	subscribeEvents,
-} from "../../../core/src/funcs/opencode.ts";
+} from "../../../core/src/funcs/opencode/index.ts";
 import { guard } from "../lib/errors.ts";
 import { isJson } from "../lib/output.ts";
 

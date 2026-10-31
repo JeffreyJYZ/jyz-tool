@@ -1,6 +1,11 @@
 import { describe, expect, test } from "bun:test";
 
-import { headersFor, listSessions, OpencodeError, sendPrompt } from "../src/funcs/opencode.ts";
+import {
+	headersFor,
+	listSessions,
+	OpencodeError,
+	sendPrompt,
+} from "../src/funcs/opencode/index.ts";
 
 describe("opencode sdk seam", () => {
 	test("maps time.updated epoch milliseconds to an ISO string", async () => {

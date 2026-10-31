@@ -23,7 +23,7 @@ export {
 	detectTypechecker,
 } from "./funcs/detect.ts";
 export { resolveExecutable, runCommand } from "./funcs/exec.ts";
-export type { OpencodeEvent, OpencodeSession, ResolvedServer } from "./funcs/opencode.ts";
+export type { OpencodeEvent, OpencodeSession, ResolvedServer } from "./funcs/opencode/index.ts";
 export {
 	killSpawned,
 	listSessions,
@@ -33,7 +33,7 @@ export {
 	spawnedServers,
 	spawnServer,
 	subscribeEvents,
-} from "./funcs/opencode.ts";
+} from "./funcs/opencode/index.ts";
 export { resolveProject } from "./funcs/project.ts";
 export {
 	buildCheckCommand,

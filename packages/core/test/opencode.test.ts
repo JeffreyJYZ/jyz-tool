@@ -10,7 +10,7 @@ import {
 	OpencodeError,
 	resolveServer,
 	sendPrompt,
-} from "../src/funcs/opencode.ts";
+} from "../src/funcs/opencode/index.ts";
 
 type FakeServer = ReturnType<typeof Bun.serve>;
 
