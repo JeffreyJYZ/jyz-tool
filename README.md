@@ -2,7 +2,7 @@
 
 Personal hub for projects: a scaffolder, one config file, and a CLI that behaves as whatever package manager a project already uses. One core powers the CLI, a desktop shell and an MCP server, so the surfaces cannot drift apart.
 
-Version line: `0.1.0-alpha.x`. Latest release: [v0.1.0-alpha.21](https://github.com/JeffreyJYZ/jyz-tool/releases).
+Version line: `0.1.0-alpha.x`. Latest release: [v0.1.0-alpha.27](https://github.com/JeffreyJYZ/jyz-tool/releases).
 
 ## Install
 
@@ -33,7 +33,7 @@ jyz serve --execute              # also run a resolved command
 jyz oc sessions|prompt|watch [--json]
 ```
 
-`jyz create` takes `--template`, `--feature` (repeatable), `--features a,b` and `--list-features`; with no feature flag on a TTY it asks interactively. Templates: `next`, `cli`, `rust-bin`, `c`, `monorepo`, `vite-tauri`. Features: `updater` (vite-tauri), `cac-cli` (cli, monorepo).
+`jyz create` takes `--template`, `--feature` (repeatable), `--features a,b` and `--list-features`; with no feature flag on a TTY it asks interactively. Templates: `next`, `cli`, `cargo-bin`, `c`, `monorepo`, `vite-tauri`. Every one is built by a scenario in `bun scripts/scaffold-smoke.ts`, the C template included (`make check`, `make build`, run). Features: `updater` (vite-tauri), `cac-cli` (cli, monorepo).
 
 Every dispatch verb takes `-F/--filter <name>` in a monorepo and `--verbose` to print the exact argv.
 
@@ -69,12 +69,13 @@ packages/desktop  Tauri 2 shell over `jyz serve`, Vite + TypeScript, no framewor
 ## Desktop and MCP
 
 ```sh
-bun run --cwd packages/desktop build   # stages the CLI sidecar, then `tauri build`
+bun run --cwd packages/desktop build:app   # stages the sidecar, then `tauri build --bundles app` (no dmg pop-up)
 bun run mcp                            # the MCP server from the checkout; hosts launch `jyz-mcp`
-bun scripts/ui-walkthrough.ts          # drives all three screens in a browser (needs agent-browser)
+bun scripts/ui-walkthrough.ts          # drives the screens in a browser (needs agent-browser)
+bun run a11y                           # reads the page like a screen reader: landmarks, names, live regions
 ```
 
-The installer carries its own `jyz`, so the desktop never depends on the shell's `PATH`. Each GitHub release attaches `cli-` and `mcp-` binaries for five targets, plus `mcp-<version>.tgz` for hosts that would rather install the package. The window can run a resolved command via the **Run it** checkbox on the Call screen (off by default). Self-update ships signed releases with `latest.json`, a Settings screen with a manual check, and installs in place.
+The installer carries its own `jyz`, so the desktop never depends on the shell's `PATH`. Each GitHub release attaches `cli-` and `mcp-` binaries for five targets, plus `mcp-<version>.tgz` for hosts that would rather install the package. The window can run a resolved command via the **Run it** checkbox on the Call screen (off by default). Self-update ships signed releases with `latest.json`, a native **Check for Updates…** menu item (Cmd+U), a Settings screen with a manual check, and installs in place with byte progress. The window reopens at the size and position it was left at.
 
 ## Development
 
@@ -85,7 +86,7 @@ bun run lint           # biome check .
 bun run format:check   # bun fmt --check
 bun run test           # bun test
 bun run size           # 200-line limit; docs/refactor/oversized.txt must stay empty
-bun scripts/scaffold-smoke.ts   # scaffold a vite-tauri app with the updater, run cargo check
+bun scripts/scaffold-smoke.ts   # scaffold vite-tauri + updater, cac-cli and C; build and run each
 cd packages/desktop && bun run build      # Tauri bundles
 bun run scripts/release.ts --all --publish   # build and publish artefacts
 bun run scripts/verify-release.ts             # check a published release
