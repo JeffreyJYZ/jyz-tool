@@ -2,6 +2,8 @@
 local/
 node_modules/
 dist/
+!packages/core/templates/*/dist/
+!packages/core/templates/*/dist/**
 target/
 packages/desktop/src-tauri/gen/
 packages/desktop/src-tauri/binaries/

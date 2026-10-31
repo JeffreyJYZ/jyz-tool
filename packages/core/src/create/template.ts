@@ -4,7 +4,7 @@ import { dirname, join, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
 /** Directories a template never ships into a project, even if a stray copy exists in the source. */
-const SKIP_DIRS = new Set(["node_modules", ".git", "dist", "target", ".next"]);
+const SKIP_DIRS = new Set(["node_modules", ".git", "target", ".next"]);
 
 const PLACEHOLDER = /__[A-Z][A-Z0-9_]*__/g;
 
