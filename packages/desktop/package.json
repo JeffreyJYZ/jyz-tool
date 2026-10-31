@@ -8,7 +8,8 @@
 		"dev": "vite dev",
 		"build:web": "vite build",
 		"icon": "tauri icon app-icon.svg -o src-tauri/icons",
-		"build": "bun scripts/stage-sidecar.ts && tauri build"
+		"build": "bun scripts/stage-sidecar.ts && tauri build",
+		"build:app": "bun scripts/stage-sidecar.ts && tauri build --bundles app"
 	},
 	"devDependencies": {
 		"@tauri-apps/cli": "^2.12.4",

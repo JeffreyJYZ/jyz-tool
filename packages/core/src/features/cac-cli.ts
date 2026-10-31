@@ -29,7 +29,7 @@ export async function applyCacCli(
 			// ignore
 		}
 	}
-	const binSource = `#!/usr/bin/env bun\n${MARKER}\nimport { cac } from "cac";\n\nconst cli = cac("${name}");\ncli.version("${name} ${version}");\ncli.command("smoke", "smoke test").action(() => {\n\tconsole.log("ok");\n});\ncli.help();\ncli.parse();\n`;
+	const binSource = `#!/usr/bin/env bun\n${MARKER}\nimport { cac } from "cac";\n\nconst cli = cac("${name}");\ncli.version("${version}");\nif (process.argv.includes("-v") || process.argv.includes("--version")) {\n\tconsole.log("${name}/${version} " + process.platform + "-" + process.arch + " bun-" + Bun.version);\n\tprocess.exit(0);\n}\ncli.command("smoke", "smoke test").action(() => {\n\tconsole.log("ok");\n});\ncli.help();\ncli.parse();\n`;
 	await ctx.write(binPath, binSource);
 
 	if (await ctx.exists(manifestPath)) {
