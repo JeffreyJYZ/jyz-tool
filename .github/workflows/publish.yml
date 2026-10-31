@@ -78,7 +78,7 @@ jobs:
                       *) echo "unexpected tag $ref" >&2; exit 1 ;;
                     esac
                   fi
-                  version="$(bun -e "console.log((await Bun.file('$${dir}/package.json').json()).version)")"
+                  version="$(bun -e "console.log((await Bun.file(process.argv[1]).json()).version)" "$dir/package.json")"
                   if [ -n "$tag" ] && [ "$tag" != "$version" ]; then
                     echo "tag $tag does not match $dir version $version" >&2
                     exit 1
@@ -113,7 +113,7 @@ jobs:
                   set -euo pipefail
                   dir="${{ steps.pkg.outputs.dir }}"
                   version="${{ steps.pkg.outputs.version }}"
-                  name="$(bun -e "console.log((await Bun.file('$${dir}/package.json').json()).name)")"
+                  name="$(bun -e "console.log((await Bun.file(process.argv[1]).json()).name)" "$dir/package.json")"
                   url="https://registry.npmjs.org/${name//\//%2f}/$version"
                   for i in $(seq 1 20); do
                     code="$(curl -s -o /dev/null -w '%{http_code}' "$url")"
