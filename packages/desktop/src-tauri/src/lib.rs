@@ -9,6 +9,7 @@
 mod capabilities;
 #[cfg(unix)]
 mod linux_process;
+mod menu;
 mod opencode;
 mod program;
 mod rpc;
@@ -35,6 +36,8 @@ fn jyz_call(method: String, params: String) -> Result<String, String> {
 pub fn run() {
 	tauri::Builder::default()
 		.plugin(tauri_plugin_updater::Builder::new().build())
+		.menu(|app| menu::build_menu(app))
+		.on_menu_event(|app, event| menu::handle_menu_event(app, event.id().as_ref()))
 		.invoke_handler(tauri::generate_handler![
 			jyz_call,
 			jyz_version,
