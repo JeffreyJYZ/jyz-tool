@@ -1,13 +1,8 @@
 import { readFileSync } from "node:fs";
 
-import { isDeepStrictEqual } from "node:util";
-
-import { parse } from "smol-toml";
-
 import { ConfigWriteError } from "./errors.ts";
-import { isNotFound, isRecord, messageOf } from "./helpers.ts";
-import { quoteTomlString, tomlValue } from "./toml-value.ts";
-import type { DottedKey, KeyLine, TextLine } from "./write-utils.ts";
+import { isNotFound, messageOf } from "./helpers.ts";
+import { tomlValue } from "./toml-value.ts";
 import {
 	appendSection,
 	formatKey,
@@ -19,7 +14,6 @@ import {
 	splitDottedKey,
 	splitLines,
 	splitValue,
-	unquoteKey,
 } from "./write-utils.ts";
 import { verifyRoundTrip } from "./write-verify.ts";
 

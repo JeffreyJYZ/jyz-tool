@@ -2,7 +2,6 @@ import { CONFIG_FILENAME, DEFAULT_CONFIG } from "../../const/defaults.ts";
 import type {
 	ConfigFile,
 	Formatter,
-	JyzConfig,
 	Linter,
 	PackageManager,
 	ResolvedConfig,
@@ -18,7 +17,7 @@ import {
 } from "./constants.ts";
 import { findConfigPaths } from "./find.ts";
 import type { LoadConfigOptions } from "./helpers.ts";
-import { includesString, messageOf } from "./helpers.ts";
+import { includesString } from "./helpers.ts";
 import { mergeConfigFile, readConfigFile } from "./read.ts";
 
 export function loadConfig(startDir: string, opts: LoadConfigOptions = {}): ResolvedConfig {

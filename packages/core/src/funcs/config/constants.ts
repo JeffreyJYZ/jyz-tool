@@ -1,4 +1,4 @@
-import { CONFIG_FILENAME, DEFAULT_CONFIG } from "../../const/defaults.ts";
+import { DEFAULT_CONFIG } from "../../const/defaults.ts";
 import {
 	FORMATTER_VALUES,
 	type Formatter,

@@ -1,9 +1,7 @@
 import { readFileSync } from "node:fs";
-import { dirname, join, resolve } from "node:path";
 
 import { parse } from "smol-toml";
 
-import { CONFIG_FILENAME } from "../../const/defaults.ts";
 import type { ConfigFile, JyzConfig } from "../../types/config.ts";
 import { PACKAGE_MANAGER_VALUES } from "../../types/config.ts";
 import {
@@ -20,9 +18,7 @@ import {
 } from "./constants.ts";
 import { ConfigError } from "./errors.ts";
 import {
-	existsAsFile,
 	includesString,
-	isRecord,
 	messageOf,
 	pickBoolean,
 	pickEnum,

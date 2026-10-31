@@ -1,9 +1,3 @@
-import { isDeepStrictEqual } from "node:util";
-
-import { parse } from "smol-toml";
-
-import { ConfigWriteError } from "./errors.ts";
-import { isNotFound, isRecord, messageOf } from "./helpers.ts";
 import { quoteTomlString } from "./toml-value.ts";
 
 export interface TextLine {
