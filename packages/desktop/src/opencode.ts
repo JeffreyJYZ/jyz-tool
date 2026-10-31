@@ -1,3 +1,4 @@
+import { eventLines } from "./run.ts";
 import { diffSessions, sessionRows as parseSessions, promptArgv } from "./screens.ts";
 
 interface Refs {
@@ -7,13 +8,14 @@ interface Refs {
 	ocRefresh: HTMLButtonElement;
 	ocStatus: HTMLElement;
 	ocBody: HTMLElement;
+	ocEvents: HTMLElement;
 }
 
 export function initOpencode(
 	invoke: ((c: string, a?: Record<string, unknown>) => Promise<unknown>) | undefined,
 	refs: Refs,
 ): void {
-	const { session, prompt, sendPrompt, ocRefresh, ocStatus, ocBody } = refs;
+	const { session, prompt, sendPrompt, ocRefresh, ocStatus, ocBody, ocEvents } = refs;
 	let previous: ReturnType<typeof parseSessions> = [];
 	let watchTimer: number | null = null;
 
@@ -88,9 +90,35 @@ export function initOpencode(
 		}
 	});
 
+	async function loadEvents(): Promise<void> {
+		if (!invoke) return;
+		try {
+			const out = await invoke("jyz_oc", {
+				args: ["watch", "--timeout", "4000", "--json"],
+			});
+			const lines = eventLines(String(out));
+			for (const entry of lines) {
+				const li = document.createElement("div");
+				li.textContent = `${entry.type}  ${entry.summary}`;
+				ocEvents.append(li);
+			}
+			if (lines.length === 0) {
+				const li = document.createElement("div");
+				li.textContent = "no events";
+				ocEvents.append(li);
+			}
+		} catch (error) {
+			const li = document.createElement("div");
+			li.textContent = `opencode server unavailable: ${error instanceof Error ? error.message : String(error)}`;
+			ocEvents.append(li);
+		}
+	}
 	function startWatch(): void {
 		stopWatch();
-		watchTimer = window.setInterval(loadSessions, 5000);
+		watchTimer = window.setInterval(() => {
+			void loadSessions();
+			void loadEvents();
+		}, 5000);
 	}
 	function stopWatch(): void {
 		if (watchTimer !== null) {

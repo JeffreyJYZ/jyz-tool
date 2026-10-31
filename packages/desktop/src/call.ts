@@ -1,10 +1,12 @@
 import { buildCall, formatResult, mapError, readResult, selectableMethods } from "./bridge.ts";
+import { runSummary } from "./run.ts";
 
 interface Refs {
 	method: HTMLSelectElement;
 	params: HTMLTextAreaElement;
 	result: HTMLElement;
 	run: HTMLButtonElement;
+	execute: HTMLInputElement;
 	form: HTMLFormElement;
 }
 
@@ -12,7 +14,7 @@ export function initCall(
 	invoke: ((c: string, a?: Record<string, unknown>) => Promise<unknown>) | undefined,
 	refs: Refs,
 ): void {
-	const { method, params, result, run, form } = refs;
+	const { method, params, result, run, execute, form } = refs;
 	async function loadMethods(): Promise<void> {
 		if (!invoke) return;
 		let manifest: { name: string; kind: string }[] = [];
@@ -69,9 +71,26 @@ export function initCall(
 		show("idle", "running…");
 		try {
 			const call = buildCall(method.value, text);
-			const line = await invoke("jyz_call", { method: call.method, params: call.params });
+			const executeFlag = execute.checked;
+			const line = await invoke("jyz_call", {
+				method: call.method,
+				params: call.params,
+				execute: executeFlag,
+			});
 			const value = readResult(String(line));
-			show("ok", formatResult(value));
+			if (executeFlag) {
+				const summary = runSummary(
+					value as {
+						exitCode: number;
+						stdout?: string;
+						stderr?: string;
+						argv?: string[];
+					},
+				);
+				show(summary.state, summary.text);
+			} else {
+				show("ok", formatResult(value));
+			}
 		} catch (error) {
 			show("error", mapError(error));
 		} finally {

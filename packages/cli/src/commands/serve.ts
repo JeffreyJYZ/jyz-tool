@@ -1,8 +1,5 @@
 /**
  * `jyz serve`: the JSON-RPC stdio server the desktop shell drives.
- *
- * The command is registered with cac but kept out of the command list a user reads, because it is a
- * machine surface: a person has no reason to type it, and a client wiring it up knows the name.
  */
 import type { CAC, Command } from "cac";
 import { reportError } from "../lib/errors.ts";
@@ -13,12 +10,14 @@ const HIDDEN = new WeakMap<CAC, Set<Command>>();
 export function registerServe(cli: CAC): void {
 	const command = cli
 		.command("serve", "run the JSON-RPC stdio server")
-		.option("--cwd <dir>", "project directory, defaults to the current one");
+		.option("--cwd <dir>", "project directory, defaults to the current one")
+		.option("--execute [value]", "execute resolved commands");
 
-	command.action(async (options: { cwd?: string }) => {
+	command.action(async (options: { cwd?: string; execute?: string | boolean }) => {
 		const cwd = options?.cwd ?? process.cwd();
+		const execute = parseExecute(options?.execute);
 		try {
-			await serveStdio(createRpcServer({ cwd }));
+			await serveStdio(createRpcServer({ cwd, execute }));
 		} catch (error) {
 			process.exitCode = reportError(error);
 		}
@@ -27,11 +26,18 @@ export function registerServe(cli: CAC): void {
 	hideInHelp(cli, command);
 }
 
-/**
- * cac renders every registered command in the help body, so hiding one means narrowing `commands`
- * for the duration of that render. The patch installs once per CLI and filters by identity, which
- * keeps a later hidden command additive.
- */
+function parseExecute(value: string | boolean | undefined): boolean {
+	if (value === undefined || value === true) return true;
+	if (value === false) return false;
+	if (typeof value === "string") {
+		const lower = value.toLowerCase();
+		if (lower === "true" || lower === "1" || lower === "yes" || lower === "on") return true;
+		if (lower === "false" || lower === "0" || lower === "no" || lower === "off") return false;
+		return false;
+	}
+	return false;
+}
+
 function hideInHelp(cli: CAC, hidden: Command): void {
 	const existing = HIDDEN.get(cli);
 	if (existing !== undefined) {

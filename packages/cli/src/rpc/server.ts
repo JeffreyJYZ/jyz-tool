@@ -33,6 +33,8 @@ export interface RpcResult {
 
 export interface RpcServerOptions {
 	cwd: string;
+	execute?: boolean;
+	timeoutMs?: number;
 }
 
 export interface RpcServer {
@@ -41,8 +43,12 @@ export interface RpcServer {
 	call(method: string, params?: unknown): Promise<RpcResult>;
 }
 
+const DEFAULT_TIMEOUT_MS = 60_000;
+
 export function createRpcServer(options: RpcServerOptions): RpcServer {
 	const cwd = options.cwd;
+	const execute = options.execute === true;
+	const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
 	return {
 		cwd,
 		capabilities: () => listCapabilities(),
@@ -53,16 +59,25 @@ export function createRpcServer(options: RpcServerOptions): RpcServer {
 			}
 			const input = readParams(params);
 			try {
+				let result: RpcResult;
 				switch (capability.kind) {
 					case "dispatch":
-						return dispatchCall(cwd, capability.name as Verb, input);
+						result = dispatchCall(cwd, capability.name as Verb, input);
+						break;
 					case "toolchain":
-						return toolchainCall(cwd, capability.name, input);
+						result = toolchainCall(cwd, capability.name, input);
+						break;
 					case "config":
-						return configCall(cwd, input);
+						result = configCall(cwd, input);
+						break;
 					case "create":
-						return createCall(input);
+						result = createCall(input);
+						break;
 				}
+				if (execute && result.argv !== undefined) {
+					return await runArgv(result.argv, timeoutMs);
+				}
+				return result;
 			} catch (error) {
 				if (error instanceof RpcError) throw error;
 				return failure(messageOf(error));
@@ -85,6 +100,39 @@ function failure(message: string): RpcResult {
 
 function messageOf(error: unknown): string {
 	return error instanceof Error ? error.message : String(error);
+}
+
+async function runArgv(argv: string[], timeoutMs: number): Promise<RpcResult> {
+	const [file, ...args] = argv;
+	try {
+		const proc = Bun.spawn([file ?? "", ...args], {
+			stdout: "pipe",
+			stderr: "pipe",
+			stdin: "ignore",
+		});
+		let timedOut = false;
+		const timer = setTimeout(() => {
+			timedOut = true;
+			try {
+				proc.kill();
+			} catch {
+				// ignore
+			}
+		}, timeoutMs);
+		const [stdout, stderr, exitCode] = await Promise.all([
+			new Response(proc.stdout).text(),
+			new Response(proc.stderr).text(),
+			proc.exited,
+		]);
+		clearTimeout(timer);
+		if (timedOut) {
+			return { exitCode: 124, stdout, stderr: stderr || "timeout", argv };
+		}
+		return { exitCode, stdout, stderr, argv };
+	} catch (error) {
+		const reason = error instanceof Error ? error.message : String(error);
+		return { exitCode: 127, stdout: "", stderr: reason, argv };
+	}
 }
 
 function dispatchCall(cwd: string, verb: Verb, input: CallParams): RpcResult {

@@ -8,6 +8,7 @@ export interface Shell {
 	params: HTMLTextAreaElement;
 	result: HTMLElement;
 	run: HTMLButtonElement;
+	execute: HTMLInputElement;
 	form: HTMLFormElement;
 	configScreen: HTMLElement;
 	configRefresh: HTMLButtonElement;
@@ -21,6 +22,7 @@ export interface Shell {
 	ocRefresh: HTMLButtonElement;
 	ocStatus: HTMLElement;
 	ocBody: HTMLElement;
+	ocEvents: HTMLElement;
 	ocTable: HTMLTableElement;
 	settingsScreen: HTMLElement;
 	settingsVersion: HTMLElement;
@@ -29,15 +31,12 @@ export interface Shell {
 	settingsOffer: HTMLElement;
 	footer: HTMLElement;
 }
-
 export function buildShell(): Shell {
 	const app = document.getElementById("app") as HTMLElement;
-
 	const banner = document.createElement("div");
 	banner.id = "update-banner";
 	banner.hidden = true;
 	app.append(banner);
-
 	const nav = document.createElement("nav");
 	nav.className = "tabs";
 	nav.id = "tabs";
@@ -51,17 +50,14 @@ export function buildShell(): Shell {
 		nav.append(btn);
 	}
 	app.append(nav);
-
 	const main = document.createElement("main");
 	app.append(main);
-
 	function makeScreen(id: string, active: boolean): HTMLElement {
 		const sec = document.createElement("section");
 		sec.className = `screen${active ? " active" : ""}`;
 		sec.id = id;
 		return sec;
 	}
-
 	// Call screen
 	const callScreen = makeScreen("screen-call", true);
 	const form = document.createElement("form");
@@ -84,14 +80,19 @@ export function buildShell(): Shell {
 	run.id = "run";
 	run.type = "submit";
 	run.textContent = "Run";
-	form.append(methodLabel, paramsLabel, run);
+	const execute = Object.assign(document.createElement("input"), {
+		id: "execute",
+		type: "checkbox",
+	});
+	const executeLabel = Object.assign(document.createElement("label"), { textContent: "Run it" });
+	executeLabel.append(execute);
+	form.append(methodLabel, paramsLabel, executeLabel, run);
 	const result = document.createElement("pre");
 	result.id = "result";
 	result.dataset.state = "idle";
 	result.textContent = "no call yet";
 	callScreen.append(form, result);
 	main.append(callScreen);
-
 	// Config screen
 	const configScreen = makeScreen("screen-config", false);
 	const configRefresh = document.createElement("button");
@@ -107,7 +108,6 @@ export function buildShell(): Shell {
 	configRaw.dataset.state = "idle";
 	configScreen.append(configRefresh, configTable, configRaw);
 	main.append(configScreen);
-
 	// Opencode screen
 	const ocScreen = makeScreen("screen-opencode", false);
 	const sessionLabel = document.createElement("label");
@@ -138,9 +138,10 @@ export function buildShell(): Shell {
 	ocTable.id = "oc-table";
 	const ocTbody = document.createElement("tbody");
 	ocTable.append(ocTbody);
-	ocScreen.append(sessionLabel, promptLabel, sendPrompt, ocRefresh, ocStatus, ocTable);
+	const ocEvents = Object.assign(document.createElement("pre"), { id: "oc-events" });
+	ocEvents.dataset.state = "idle";
+	ocScreen.append(sessionLabel, promptLabel, sendPrompt, ocRefresh, ocStatus, ocTable, ocEvents);
 	main.append(ocScreen);
-
 	// Settings screen
 	const settingsScreen = makeScreen("screen-settings", false);
 	const settingsVersion = document.createElement("div");
@@ -159,12 +160,10 @@ export function buildShell(): Shell {
 	settingsOffer.hidden = true;
 	settingsScreen.append(settingsVersion, settingsCheck, settingsStatus, settingsOffer);
 	main.append(settingsScreen);
-
 	const footer = document.createElement("footer");
 	footer.id = "version";
 	footer.textContent = "jyz · checking";
 	app.append(footer);
-
 	return {
 		app,
 		banner: banner as HTMLDivElement,
@@ -175,6 +174,7 @@ export function buildShell(): Shell {
 		params: params as HTMLTextAreaElement,
 		result,
 		run: run as HTMLButtonElement,
+		execute: execute as HTMLInputElement,
 		form: form as HTMLFormElement,
 		configScreen,
 		configRefresh: configRefresh as HTMLButtonElement,
@@ -188,6 +188,7 @@ export function buildShell(): Shell {
 		ocRefresh: ocRefresh as HTMLButtonElement,
 		ocStatus,
 		ocBody: ocTbody,
+		ocEvents,
 		ocTable,
 		settingsScreen,
 		settingsVersion,

@@ -27,6 +27,7 @@ if (typeof document !== "undefined") {
 		params: s.params,
 		result: s.result,
 		run: s.run,
+		execute: s.execute,
 		form: s.form,
 	});
 	initConfig(invoke, {
@@ -41,6 +42,7 @@ if (typeof document !== "undefined") {
 		ocRefresh: s.ocRefresh,
 		ocStatus: s.ocStatus,
 		ocBody: s.ocBody,
+		ocEvents: s.ocEvents,
 	});
 	initUpdate(invoke, { banner: s.banner });
 	initSettings(invoke, {
