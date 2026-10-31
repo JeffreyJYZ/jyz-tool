@@ -1,3 +1,4 @@
+import { resolveCommand } from "../which.ts";
 import type { SpawnedServer, SpawnServerOptions } from "./shared.ts";
 import { OpencodeSpawnError, resolveServer } from "./shared.ts";
 
@@ -45,7 +46,7 @@ async function waitForReady(baseUrl: string, proc: ReturnType<typeof Bun.spawn>)
 export async function spawnServer(opts: SpawnServerOptions): Promise<SpawnedServer> {
 	const command = opts.command ?? "opencode";
 	const baseUrl = resolveSpawnUrl();
-	const parts = command
+	const parts = resolveCommand(command)
 		.trim()
 		.split(/\s+/)
 		.filter((part) => part !== "");

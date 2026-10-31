@@ -1,5 +1,5 @@
 import type { CommandSpec } from "@jyz/core";
-import { runCommand } from "@jyz/core";
+import { resolveCommand, runCommand } from "@jyz/core";
 import { formatSpec } from "./dispatch.ts";
 
 export interface RunOptions {
@@ -41,7 +41,7 @@ export async function runSpecCaptured(
 ): Promise<CapturedRun> {
 	if (options.verbose === true) console.error(formatSpec(spec));
 	try {
-		const proc = Bun.spawn([spec.file, ...spec.argv], {
+		const proc = Bun.spawn([resolveCommand(spec.file), ...spec.argv], {
 			cwd: spec.cwd,
 			stdout: "pipe",
 			stderr: "pipe",
