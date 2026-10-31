@@ -8,7 +8,6 @@ import {
 	INVALID_PARAMS,
 	INVALID_REQUEST,
 	JSON_RPC_VERSION,
-	type JsonRpcId,
 	type JsonRpcResponse,
 	METHOD_NOT_FOUND,
 	PARSE_ERROR,

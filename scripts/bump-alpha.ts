@@ -8,6 +8,10 @@ const files = [
 	"packages/mcp/package.json",
 	"packages/desktop/src-tauri/tauri.conf.json",
 	"packages/desktop/src-tauri/Cargo.toml",
+	// The lockfiles repeat the workspace version. Bumping the manifests alone leaves them stale, and
+	// the next build rewrites them, so the release commit lands with a dirty tree.
+	"bun.lock",
+	"packages/desktop/src-tauri/Cargo.lock",
 ];
 
 let newVersion = "";

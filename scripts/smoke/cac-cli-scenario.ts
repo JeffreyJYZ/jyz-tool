@@ -1,9 +1,7 @@
-import { tmpdir } from "node:os";
 import path from "node:path";
 import type { CheckResult } from "./scaffold-checks";
 import { checkCliBin, checkCliManifest } from "./scaffold-checks";
 
-type Step = { step: string; ok: boolean; detail: string };
 type Recorder = (step: string, r: CheckResult | { ok: boolean; detail: string }) => void;
 
 async function runCmd(cmd: string[], cwd: string, timeoutMs: number) {

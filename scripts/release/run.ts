@@ -3,7 +3,7 @@ import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import pkg from "../../package.json";
-import { expectedTag, refusals, signatureVersion, uptodateDmgName } from "./helpers";
+import { expectedTag, refusals, uptodateDmgName } from "./helpers";
 
 const ROOT = join(import.meta.dir, "..", "..");
 const REPO = "JeffreyJYZ/jyz-tool";

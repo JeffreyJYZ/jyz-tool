@@ -56,7 +56,7 @@ step("install core tarball", i2.ok, i2.out);
 const pkgPath = join(temp, "package.json");
 const pkg = JSON.parse(require("node:fs").readFileSync(pkgPath, "utf8"));
 pkg.overrides = { "@jyz/core": coreTar };
-require("node:fs").writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + "\n");
+require("node:fs").writeFileSync(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`);
 const i3 = run(["bun", "add", mcpTar], temp);
 step("install mcp tarball", i3.ok, i3.out);
 
@@ -72,7 +72,7 @@ const frame = JSON.stringify({
 	method: "initialize",
 	params: { protocolVersion: "2024-11-05" },
 });
-proc.stdin.write(frame + "\n");
+proc.stdin.write(`${frame}\n`);
 proc.stdin.end();
 const out = await new Response(proc.stdout).text();
 await proc.exited;

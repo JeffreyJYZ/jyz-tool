@@ -1,10 +1,8 @@
-import { existsSync, readdirSync, rmSync, statSync } from "node:fs";
+import { existsSync, readdirSync, rmSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
-import pkg from "../../package.json";
 
 const ROOT = join(import.meta.dir, "..", "..");
-const VERSION: string = pkg.version;
 const BUNDLE = join(
 	ROOT,
 	"packages",
