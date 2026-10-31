@@ -1,5 +1,6 @@
 import { makeScreen, markLive } from "./a11y.ts";
 import { makeBanner, makeFooter, makeTabs } from "./chrome.ts";
+import { makeProjectsScreen } from "./projects.ts";
 
 export interface Shell {
 	app: HTMLElement;
@@ -18,6 +19,10 @@ export interface Shell {
 	configBody: HTMLElement;
 	configRaw: HTMLElement;
 	configTable: HTMLTableElement;
+	projectsScreen: HTMLElement;
+	projectsRefresh: HTMLButtonElement;
+	projectsBody: HTMLElement;
+	projectsStatus: HTMLElement;
 	ocScreen: HTMLElement;
 	session: HTMLSelectElement;
 	prompt: HTMLTextAreaElement;
@@ -95,6 +100,9 @@ export function buildShell(doc: Document = document): Shell {
 	configRaw.dataset.state = "idle";
 	configScreen.append(configRefresh, configTable, configRaw);
 	main.append(configScreen);
+	// Projects screen
+	const projects = makeProjectsScreen(doc);
+	main.append(projects.screen);
 	// Opencode screen
 	const ocScreen = makeScreen("screen-opencode", false, "opencode", doc);
 	const sessionLabel = doc.createElement("label");
@@ -168,6 +176,10 @@ export function buildShell(doc: Document = document): Shell {
 		configBody: configTbody,
 		configRaw,
 		configTable,
+		projectsScreen: projects.screen,
+		projectsRefresh: projects.refresh as HTMLButtonElement,
+		projectsBody: projects.body,
+		projectsStatus: projects.status,
 		ocScreen,
 		session: session as HTMLSelectElement,
 		prompt: prompt as HTMLTextAreaElement,

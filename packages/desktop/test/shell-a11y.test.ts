@@ -59,7 +59,7 @@ test("each screen is a region with a heading", () => {
 	const document = mount();
 	buildShell(document);
 	const screens = [...document.querySelectorAll(".screen")];
-	expect(screens).toHaveLength(4);
+	expect(screens).toHaveLength(5);
 	for (const screen of screens) {
 		expect(screen.getAttribute("role")).toBe("region");
 		const id = screen.getAttribute("aria-labelledby");

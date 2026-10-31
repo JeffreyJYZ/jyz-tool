@@ -5,13 +5,11 @@ import { $ } from "bun";
 import { browser, evalJson, waitUntil } from "./browser.ts";
 import { serveUi } from "./server.ts";
 import { stubSource } from "./stub.ts";
-
 export interface Step {
 	name: string;
 	ok: boolean;
 	detail: string;
 }
-
 /** The whole walkthrough: serve the build, drive each screen, print a verdict. Returns an exit code. */
 export async function runWalkthrough(json: boolean, root: string): Promise<number> {
 	const dir = await mkdtemp(join(tmpdir(), "jyz-ui-"));
@@ -46,7 +44,6 @@ export async function runWalkthrough(json: boolean, root: string): Promise<numbe
 			Array.isArray(options) && options.length === 3 && options[0] === "config",
 			JSON.stringify(options),
 		);
-
 		await browser(session, ["eval", 'document.getElementById("run").click()']);
 		const result = evalJson(
 			await browser(session, [
@@ -59,7 +56,6 @@ export async function runWalkthrough(json: boolean, root: string): Promise<numbe
 			typeof result === "string" && result.includes("bun"),
 			typeof result === "string" ? (result.split("\n")[0]?.slice(0, 40) ?? "") : "",
 		);
-
 		await browser(session, [
 			"eval",
 			"document.querySelector('[data-screen=\"config\"]').click()",
@@ -70,16 +66,30 @@ export async function runWalkthrough(json: boolean, root: string): Promise<numbe
 				'new Promise((done) => setTimeout(() => done(JSON.stringify({ rows: document.querySelectorAll("#config-table tbody tr").length, state: document.getElementById("config-raw").dataset.state })), 400))',
 			]),
 		);
-		const configRows =
+		const cr =
 			typeof config === "string" && config.startsWith("{")
 				? (JSON.parse(config) as { rows: number; state: string })
 				: { rows: 0, state: "?" };
-		record(
-			"config screen renders rows",
-			configRows.rows === 2 && configRows.state === "ok",
-			`rows=${configRows.rows}`,
+		record("config screen renders rows", cr.rows === 2 && cr.state === "ok", `rows=${cr.rows}`);
+		await browser(session, [
+			"eval",
+			"document.querySelector('[data-screen=\"projects\"]').click()",
+		]);
+		const projects = evalJson(
+			await browser(session, [
+				"eval",
+				"new Promise((d) => setTimeout(() => d(JSON.stringify({ r: document.querySelectorAll('#projects-body tr').length, s: document.getElementById('projects-status').textContent })), 400))",
+			]),
 		);
-
+		const ps =
+			typeof projects === "string" && projects.startsWith("{")
+				? (JSON.parse(projects) as { r: number; s: string })
+				: { r: 0, s: "" };
+		record(
+			"projects screen lists projects",
+			ps.r === 1 && ps.s.includes("1 project"),
+			`rows=${ps.r}`,
+		);
 		await browser(session, [
 			"eval",
 			"document.querySelector('[data-screen=\"opencode\"]').click()",
@@ -99,7 +109,6 @@ export async function runWalkthrough(json: boolean, root: string): Promise<numbe
 			sessionState.rows === 2 && sessionState.status.includes("2 session"),
 			sessionState.status,
 		);
-
 		await browser(session, [
 			"eval",
 			'document.getElementById("session").value = "ses_alpha"; document.getElementById("prompt").value = "hello"; document.getElementById("send-prompt").click();',
@@ -115,7 +124,6 @@ export async function runWalkthrough(json: boolean, root: string): Promise<numbe
 			typeof sent === "string" && sent.includes("ses_alpha"),
 			typeof sent === "string" ? sent : "",
 		);
-
 		const banner = evalJson(
 			await browser(session, [
 				"eval",
@@ -131,7 +139,6 @@ export async function runWalkthrough(json: boolean, root: string): Promise<numbe
 			!bannerState.hidden && bannerState.text.includes("9.9.9"),
 			bannerState.text,
 		);
-
 		await browser(session, [
 			"eval",
 			'document.getElementById("session").value = "ses_beta"; document.getElementById("prompt").focus();',
@@ -151,7 +158,6 @@ export async function runWalkthrough(json: boolean, root: string): Promise<numbe
 			heldState.value === "ses_beta" && heldState.focus === "prompt",
 			`value=${heldState.value} focus=${heldState.focus}`,
 		);
-
 		await browser(session, [
 			"eval",
 			"document.querySelector('[data-screen=\"settings\"]').click()",

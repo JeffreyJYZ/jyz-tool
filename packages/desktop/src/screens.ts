@@ -3,7 +3,7 @@
 // The page in ui/index.html drives the three screens through the bridge; the helpers here are
 // the pure parts (parsing, diffing, routing) that the page mirrors in plain JS.
 
-export type Screen = "call" | "config" | "opencode" | "settings";
+export type Screen = "call" | "config" | "projects" | "opencode" | "settings";
 
 export interface ConfigRow {
 	key: string;
@@ -78,7 +78,7 @@ export function promptArgv(session: string, text: string): string[] {
 	return ["prompt", text, "--session", session, "--json"];
 }
 
-const SCREENS: readonly Screen[] = ["call", "config", "opencode", "settings"];
+const SCREENS: readonly Screen[] = ["call", "config", "projects", "opencode", "settings"];
 
 /** Map a location hash to a screen; junk and empty map to "call". */
 export function screenFromHash(hash: string): Screen {

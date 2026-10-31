@@ -28,7 +28,7 @@ export function makeTabs(doc: Document = document): HTMLElement {
 	nav.className = "tabs";
 	nav.id = "tabs";
 	nav.setAttribute("aria-label", "Screens");
-	for (const name of ["call", "config", "opencode", "settings"]) {
+	for (const name of ["call", "config", "projects", "opencode", "settings"]) {
 		const btn = doc.createElement("button");
 		btn.type = "button";
 		btn.dataset.screen = name;

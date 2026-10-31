@@ -6,6 +6,7 @@ export { configRows } from "./screens.ts";
 import { initCall } from "./call.ts";
 import { initConfig } from "./config.ts";
 import { initOpencode } from "./opencode.ts";
+import { initProjects } from "./projects.ts";
 import { initSettings } from "./settings.ts";
 import { buildShell } from "./shell.ts";
 import { initUpdate } from "./updates.ts";
@@ -34,6 +35,11 @@ if (typeof document !== "undefined") {
 		configRefresh: s.configRefresh,
 		configBody: s.configBody,
 		configRaw: s.configRaw,
+	});
+	initProjects(invoke, {
+		projectsRefresh: s.projectsRefresh,
+		projectsBody: s.projectsBody,
+		projectsStatus: s.projectsStatus,
 	});
 	initOpencode(invoke, {
 		session: s.session,
@@ -65,6 +71,7 @@ if (typeof document !== "undefined") {
 			(sec as HTMLElement).classList.toggle("active", sec.id === `screen-${name}`);
 		}
 		if (name === "config") window.__configLoad?.();
+		if (name === "projects") window.__projectsLoad?.();
 		if (name === "settings") window.__settingsLoad?.();
 		if (name === "opencode") {
 			window.__ocLoad?.();

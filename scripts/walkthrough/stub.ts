@@ -32,6 +32,11 @@ export function stubSource(): string {
 		}
 		if (command === "jyz_call") {
 			if (args.method === "config") {
+				// The window sends "null" for a call with no params, so JSON.parse can hand back null.
+				const params = JSON.parse(args.params || "{}") ?? {};
+				if (params.json) {
+					return JSON.stringify({ jsonrpc: "2.0", id: 1, result: { exitCode: 0, stdout: JSON.stringify({ project: { package_manager: { value: "bun", source: "config" }, typechecker: { value: "bun-check", source: "config" }, linter: { value: "biome", source: "config" }, formatter: { value: "bun-fmt", source: "config" } }, path: "/tmp/walkthrough/jyz.config.toml", layers: ["/tmp/walkthrough/jyz.config.toml"] }) } });
+				}
 				return JSON.stringify({ jsonrpc: "2.0", id: 1, result: { exitCode: 0, stdout: [
 					"config: /tmp/walkthrough/jyz.config.toml",
 					"project.package_manager = bun (detected)",

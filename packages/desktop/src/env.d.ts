@@ -9,6 +9,7 @@ declare module "*.css" {
  */
 interface Window {
 	__configLoad?: () => void;
+	__projectsLoad?: () => void;
 	__settingsLoad?: () => void;
 	__ocLoad?: () => void;
 	__ocStart?: () => void;

@@ -20,7 +20,7 @@ import { browser, evalJson, waitUntil } from "./walkthrough/browser.ts";
 import { serveUi } from "./walkthrough/server.ts";
 import { stubSource } from "./walkthrough/stub.ts";
 
-const SCREENS = ["call", "config", "opencode", "settings"] as const;
+const SCREENS = ["call", "config", "projects", "opencode", "settings"] as const;
 
 export async function runA11yCheck(json: boolean, root: string): Promise<number> {
 	if (!existsSync(join(root, "index.html"))) {
