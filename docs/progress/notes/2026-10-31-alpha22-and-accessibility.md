@@ -15,7 +15,7 @@ An accessibility override pushed onto a freshly created WKWebView asks macOS to 
 
 ## What replaced it
 
-The native menu is the accessible surface (`packages/desktop/src-tauri/src/menu.rs`). Honest limit: `agent-desktop snapshot --app jyz` still returns `WINDOW_NOT_FOUND`, and by window id `ACTION_NOT_SUPPORTED: window_without_accessibility_element`, because a Tauri window on macOS exposes no accessibility element. Menu accessibility is therefore not proven by tree.
+The native menu is the accessible surface (`packages/desktop/src-tauri/src/menu.rs`). Proven by tree on alpha.23: `osascript -e 'tell application "System Events" to tell process "jyz-desktop" to get name of every menu item of menu 1 of menu bar item "jyz" of menu bar 1'` answers `Check for Updates…, Install Update, missing value, Close Window, Close All, Quit jyz, Quit and Keep Windows`, and the Edit menu answers `Undo, Redo, missing value, Cut, Copy, Paste, Select All, …`. The window itself still exposes no AX element (empty name/position/size, no children), so VoiceOver cannot read the page; `bun run a11y` proves the page semantics instead, in a browser. Reading the menu through System Events does not take focus, so the app can stay in the background.
 
 ## Traps worth keeping
 

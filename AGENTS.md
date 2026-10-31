@@ -57,6 +57,8 @@
 ## Traps
 
 - A Tauri window on macOS exposes **no accessibility element**: `agent-desktop snapshot --app jyz` answers `WINDOW_NOT_FOUND`, and by window id `ACTION_NOT_SUPPORTED: window_without_accessibility_element`, so the accessibility tree cannot drive the app — only `screenshot` plus coordinate input (`--headed --xy`) can, and the Vite page in a browser with the IPC stubbed stays the automatable path.
+- The native menu **is** in the accessibility tree, and `osascript` reads it without taking focus: `tell application "System Events" to tell process "jyz-desktop" to get name of every menu item of menu 1 of menu bar item "jyz" of menu bar 1` answers `Check for Updates…, Install Update, missing value, Close Window, …, Quit jyz`. That is the proof the menu is real; use it instead of a screenshot.
+- `open -g` starts the app without activating it, and while it is not front the window is absent from both the AX tree (`Can't get window 1 … Invalid index`) and `agent-desktop screenshot --window-id` (blank capture). Activate with `open -a /Applications/jyz.app` before concluding the UI is broken.
 - `agent-desktop screenshot --window-id <id>` writes a 2x PNG; read it directly to see the real UI, and remember a stale install shows exactly what that build had (alpha.11 has no Settings tab).
 
 - `bun fmt` does NOT wrap Markdown by default (`proseWrap` is `preserve`); `[[fmt.overrides]]` with `proseWrap = "never"` pins that for `**/*.md`. What it does change is table column alignment and `*emphasis*` style. `.prettierignore` now excludes only `local/`.
