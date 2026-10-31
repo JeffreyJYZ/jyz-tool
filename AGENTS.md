@@ -62,6 +62,8 @@
 - Padding lives on `#app`, never on `main` alone: the tab strip is a sibling of `main`, so padding on `main` leaves the tabs flush against the window edges (the alpha.23 window shipped exactly that).
 - The updater downloads a ~45–47 MB `jyz.app.tar.gz` (measured 9.99 s at 4.7 MB/s), so `jyz_update_install` emits `jyz:update-progress` per chunk and the Install button prints percent and MB; a still button reads as a hang.
 - A Windows `.cmd` stub must end `exit /b %ERRORLEVEL%`, never a fixed code: a fixed one reports success for every failing stub and hides the failure the test exists to catch.
+- Test `PATH` is joined with `delimiter` from `node:path`, never `":"` — a hardcoded colon makes the stub directory one bogus entry on Windows, and the CLI then answers `Executable not found in $PATH`, which reads as a resolver bug and is not.
+- Spawning a resolved `.cmd`/`.bat` goes through `cmd.exe /c`: `Bun.spawn` cannot execute a batch file directly. `which()` walks PATH with PATHEXT and `spawnArgv()` does the wrapping.
 - `agent-desktop screenshot --window-id <id>` writes a 2x PNG; read it directly to see the real UI, and remember a stale install shows exactly what that build had (alpha.11 has no Settings tab).
 
 - `bun fmt` does NOT wrap Markdown by default (`proseWrap` is `preserve`); `[[fmt.overrides]]` with `proseWrap = "never"` pins that for `**/*.md`. What it does change is table column alignment and `*emphasis*` style. `.prettierignore` now excludes only `local/`.
