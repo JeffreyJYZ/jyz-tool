@@ -15,11 +15,9 @@
       "bin": {
         "jyz": "./bin/jyz.mjs",
       },
-      "dependencies": {
-        "cac": "^7.1.0",
-      },
       "devDependencies": {
         "@jyz/core": "workspace:*",
+        "cac": "^7.1.0",
       },
     },
     "packages/core": {
