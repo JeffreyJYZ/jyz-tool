@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, test } from "bun:test";
+import { describe, expect, test } from "bun:test";
 
 import { subscribeEvents } from "../src/funcs/opencode.ts";
 
@@ -21,8 +21,8 @@ describe("opencode events", () => {
 			collected.push(ev);
 		}
 		expect(collected).toHaveLength(2);
-		expect(collected[0]!.summary).toBe("text delta: 5 chars");
-		expect(collected[1]!.summary).toBe("idle");
+		expect(collected[0]?.summary).toBe("text delta: 5 chars");
+		expect(collected[1]?.summary).toBe("idle");
 	});
 
 	test("stops on abort", async () => {

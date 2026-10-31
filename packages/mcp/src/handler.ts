@@ -74,7 +74,7 @@ export type CallTarget = string | CallOptions;
 
 export type ToolResponse = ToolResult | StreamStart | CancelResult;
 
-/** A call whose input cannot start anything: a missing script name, a handle already in use. */
+/** A call whose input cannot start unknownthing: a missing script name, a handle already in use. */
 export class ToolInputError extends Error {
 	readonly tool: string;
 	constructor(tool: string, message: string) {
@@ -399,19 +399,19 @@ export async function callTool(
 		case "jyz_create": {
 			const opts = {
 				name: String(i.name ?? ""),
-				template: i.template as any,
+				template: i.template as unknown,
 				dir: typeof i.dir === "string" ? i.dir : undefined,
-				packageManager: i.packageManager as any,
-				typechecker: i.typechecker as any,
-				linter: i.linter as any,
-				formatter: i.formatter as any,
+				packageManager: i.packageManager as unknown,
+				typechecker: i.typechecker as unknown,
+				linter: i.linter as unknown,
+				formatter: i.formatter as unknown,
 				docs: i.docs === true,
-				git: i.git as any,
+				git: i.git as unknown,
 				install: i.install === true,
 				publishable: i.publishable === true,
 				yes: i.yes === true,
 			};
-			const result = await createProject(opts as any, cwd);
+			const result = await createProject(opts as Parameters<typeof createProject>[0], cwd);
 			return {
 				exitCode: 0,
 				argv: [],

@@ -4,7 +4,7 @@ import { cac } from "cac";
 import { registerOc } from "../src/commands/oc.ts";
 
 const realFetch = globalThis.fetch;
-const realExitCode = process.exitCode;
+const _realExitCode = process.exitCode;
 
 afterEach(() => {
 	globalThis.fetch = realFetch;

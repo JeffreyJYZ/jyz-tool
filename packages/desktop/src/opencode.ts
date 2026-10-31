@@ -19,14 +19,13 @@ export function initOpencode(
 
 	function renderSessions(rows: ReturnType<typeof parseSessions>, changed: string[]): void {
 		const chosen = session.value;
-		const wanted = rows.map((row) => row.id + "|" + row.title).join("\n");
+		const wanted = rows.map((row) => `${row.id}|${row.title}`).join("\n");
 		if (session.dataset.signature !== wanted) {
 			session.innerHTML = "";
 			for (const row of rows) {
 				const option = document.createElement("option");
 				option.value = row.id;
-				option.textContent =
-					row.title + " (" + row.id + ")" + (changed.includes(row.id) ? " *" : "");
+				option.textContent = `${row.title} (${row.id})${changed.includes(row.id) ? " *" : ""}`;
 				session.append(option);
 			}
 			session.dataset.signature = wanted;
@@ -99,7 +98,7 @@ export function initOpencode(
 			watchTimer = null;
 		}
 	}
-	(window as any).__ocLoad = loadSessions;
-	(window as any).__ocStart = startWatch;
-	(window as any).__ocStop = stopWatch;
+	window.__ocLoad = loadSessions;
+	window.__ocStart = startWatch;
+	window.__ocStop = stopWatch;
 }

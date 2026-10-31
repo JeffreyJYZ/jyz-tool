@@ -1,6 +1,8 @@
 import { existsSync } from "node:fs";
 import { mkdir, readdir, readFile, stat, writeFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
+import { makeFsContext } from "../features/context.ts";
+import { applyFeatures, listFeatures } from "../features/index.ts";
 import type { CreateOptions, CreateResult, GitMode, Template } from "../types/create.ts";
 import {
 	DEFAULT_PROJECT_VERSION,
@@ -34,6 +36,7 @@ interface ResolvedOptions {
 	git: GitMode;
 	install: boolean;
 	publishable: boolean;
+	features: string[];
 }
 
 /**
@@ -43,6 +46,17 @@ interface ResolvedOptions {
 export async function createProject(options: CreateOptions, cwd: string): Promise<CreateResult> {
 	const opts = resolveOptions(options);
 	const profile = TEMPLATE_PROFILES[opts.template];
+	for (const id of opts.features) {
+		const feature = listFeatures().find((candidate) => candidate.id === id);
+		if (feature === undefined) {
+			throw new CreateError(`Unknown feature "${id}".`);
+		}
+		if (!feature.templates.includes(opts.template)) {
+			throw new CreateError(
+				`Feature "${id}" cannot be applied to template "${opts.template}".`,
+			);
+		}
+	}
 	const sourceRoot = join(templatesRoot(), profile.dir);
 	if (!existsSync(sourceRoot)) {
 		throw new CreateError(
@@ -71,6 +85,7 @@ export async function createProject(options: CreateOptions, cwd: string): Promis
 
 	const files = new Set(sources.map((source) => destinationPath(source)));
 	const warnings: string[] = [];
+	const appliedFeatures: string[] = [];
 
 	if (profile.js) {
 		const tooling = planTooling(
@@ -93,6 +108,11 @@ export async function createProject(options: CreateOptions, cwd: string): Promis
 		);
 	}
 
+	if (opts.features.length > 0) {
+		const result = await applyFeatures(target, opts.features, makeFsContext(target));
+		appliedFeatures.push(...result.applied, ...result.skipped);
+	}
+
 	// Install before the git steps so `git add -A` stages the lockfile it writes.
 	if (opts.install) {
 		const warning = await installDependencies(target, opts.packageManager);
@@ -100,7 +120,14 @@ export async function createProject(options: CreateOptions, cwd: string): Promis
 	}
 	await applyGitSteps(target, opts.name, opts.git);
 
-	return { dir: target, files: [...files].sort(), warnings };
+	return {
+		dir: target,
+		files: [...files].sort(),
+		warnings,
+		features: appliedFeatures,
+		applied: appliedFeatures,
+		appliedFeatures,
+	};
 }
 
 function resolveOptions(options: CreateOptions): ResolvedOptions {
@@ -154,6 +181,7 @@ function resolveOptions(options: CreateOptions): ResolvedOptions {
 		git,
 		install: options.install ?? false,
 		publishable: options.publishable ?? false,
+		features: options.features ?? [],
 	};
 }
 

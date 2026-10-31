@@ -4,7 +4,7 @@ import { cac } from "cac";
 import { registerOc } from "../src/commands/oc.ts";
 
 const realFetch = globalThis.fetch;
-const realExitCode = process.exitCode;
+const _realExitCode = process.exitCode;
 
 afterEach(() => {
 	globalThis.fetch = realFetch;
@@ -75,7 +75,7 @@ describe("registerOc watch", () => {
 		}
 		expect(process.exitCode).toBe(0);
 		expect(logs.lines).toHaveLength(1);
-		expect(() => JSON.parse(logs.lines[0]!)).not.toThrow();
+		expect(() => JSON.parse(logs.lines[0] ?? "")).not.toThrow();
 	});
 
 	test("--timeout exits 0 with no events on a silent stream", async () => {

@@ -3,6 +3,7 @@
 Status: complete (build green, tests green; walkthrough timing caveat below).
 
 Files:
+
 - packages/desktop/package.json
 - packages/desktop/index.html
 - packages/desktop/vite.config.ts
@@ -21,6 +22,7 @@ Files:
 Tests: 51 pass, 0 fail (69 expect).
 
 build:web emitted:
+
 - dist/index.html
 - dist/assets/index-*.css
 - dist/assets/index-*.js

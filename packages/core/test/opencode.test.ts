@@ -6,7 +6,6 @@ import { join } from "node:path";
 
 import {
 	DEFAULT_OPENCODE_URL,
-	headersFor,
 	listSessions,
 	OpencodeError,
 	resolveServer,

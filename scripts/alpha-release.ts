@@ -1,5 +1,5 @@
 #!/usr/bin/env bun
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { $ } from "bun";
@@ -84,8 +84,8 @@ async function main() {
 
 	// commit
 	await $`git add ${manifestFiles()}`;
-	await $`git commit -m ${"chore(release): " + newVersion}`;
-	await $`git tag ${"v" + newVersion}`;
+	await $`git commit -m ${`chore(release): ${newVersion}`}`;
+	await $`git tag ${`v${newVersion}`}`;
 
 	const notesPath = join(tmpdir(), `alpha-${newVersion}-notes.md`);
 	writeFileSync(notesPath, `Alpha release ${newVersion}\n`);

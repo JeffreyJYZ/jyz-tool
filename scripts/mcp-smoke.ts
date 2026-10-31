@@ -169,12 +169,12 @@ export async function runSmoke(cmd: string[], cwd: string): Promise<SmokeStep[]>
 		}
 
 		// 4. resources/list
-		let hasCapabilities = false;
+		let _hasCapabilities = false;
 		try {
 			const result = (await send("resources/list", {}, 4)) as Record<string, unknown> | null;
 			const resources = (result?.resources ?? []) as { uri?: string }[];
 			if (!Array.isArray(resources)) throw new Error("resources not an array");
-			hasCapabilities = resources.some((r) => r?.uri === "jyz://capabilities");
+			_hasCapabilities = resources.some((r) => r?.uri === "jyz://capabilities");
 			steps.push({
 				step: "resources/list",
 				ok: true,

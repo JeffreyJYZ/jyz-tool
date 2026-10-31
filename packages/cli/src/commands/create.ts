@@ -1,10 +1,10 @@
 import type { CreateOptions } from "@jyz/core";
-import { createProject } from "@jyz/core";
+import { createProject, listFeatures } from "@jyz/core";
 import type { CAC } from "cac";
 import { loadConfigAt } from "../lib/context.ts";
 import { guard } from "../lib/errors.ts";
 import { emit, isJson } from "../lib/output.ts";
-import { confirm } from "../lib/prompt.ts";
+import { confirm, selectFeatures } from "../lib/prompt.ts";
 
 interface CreateFlags {
 	template?: string;
@@ -20,10 +20,13 @@ interface CreateFlags {
 	yes?: boolean;
 	verbose?: boolean;
 	json?: boolean;
+	feature?: string[];
+	features?: string;
+	listFeatures?: boolean;
 }
 
 export function registerCreate(cli: CAC): void {
-	cli.command("create <name>", "scaffold a new project from a template")
+	cli.command("create [name]", "scaffold a new project from a template")
 		.option("--template <template>", "template to render")
 		.option("--pm <manager>", "bun or pnpm")
 		.option("--typechecker <name>", "typechecker to wire up")
@@ -36,10 +39,13 @@ export function registerCreate(cli: CAC): void {
 		.option("--dir <dir>", "target directory, defaults to the project name")
 		.option("--json", "emit machine-readable JSON")
 		.option("-y, --yes", "accept the resolved options without asking")
+		.option("--feature <name>", "feature to apply (repeatable)", { default: [] })
+		.option("--features <list>", "comma-separated features to apply")
+		.option("--list-features", "list available features and exit")
 		.example("  jyz create acme --template cli --publishable --install")
-		.action((name: string, flags: CreateFlags) => {
+		.action((name: string | undefined, flags: CreateFlags) => {
 			void guard(async () => {
-				await runCreate(name, flags ?? {});
+				await runCreate(name ?? "", flags ?? {});
 			});
 		});
 }
@@ -48,6 +54,18 @@ async function runCreate(name: string, flags: CreateFlags): Promise<void> {
 	const cwd = process.cwd();
 	const config = loadConfigAt(cwd);
 	const json = flags.json === true || isJson();
+
+	if (flags.listFeatures === true) {
+		const features = listFeatures();
+		if (json) {
+			emit({ features });
+		} else {
+			for (const feature of features) {
+				console.log(`${feature.id}  ${feature.templates.join(",")}  ${feature.summary}`);
+			}
+		}
+		return;
+	}
 
 	let template = flags.template;
 	if (template === undefined) {
@@ -61,7 +79,28 @@ async function runCreate(name: string, flags: CreateFlags): Promise<void> {
 		}
 	}
 
-	const options: CreateOptions = {
+	const rawFeature = flags.feature;
+	const featureList = Array.isArray(rawFeature)
+		? rawFeature
+		: rawFeature === undefined
+			? []
+			: [rawFeature];
+	const featureIds = [
+		...featureList,
+		...(flags.features === undefined ? [] : flags.features.split(",")),
+	]
+		.map((value) => value.trim())
+		.filter((value) => value !== "");
+	let resolvedFeatureIds = featureIds;
+	const interactiveFeatures =
+		featureIds.length === 0 && process.stdin.isTTY === true && flags.yes !== true && !json;
+	if (interactiveFeatures) {
+		const picked = await selectFeatures(template as string, listFeatures());
+		resolvedFeatureIds = picked;
+	}
+	const features = resolvedFeatureIds.length > 0 ? [...new Set(resolvedFeatureIds)] : undefined;
+
+	const options = {
 		name,
 		template: template as CreateOptions["template"],
 		dir: flags.dir,
@@ -74,7 +113,8 @@ async function runCreate(name: string, flags: CreateFlags): Promise<void> {
 		install: flags.install,
 		publishable: flags.publishable,
 		yes: flags.yes,
-	};
+		features,
+	} as CreateOptions;
 
 	if (flags.yes !== true && !json) {
 		const accepted = await confirm(
@@ -90,7 +130,12 @@ async function runCreate(name: string, flags: CreateFlags): Promise<void> {
 
 	const result = await createProject(options, cwd);
 	if (json) {
-		emit({ dir: result.dir, files: result.files, warnings: result.warnings });
+		emit({
+			dir: result.dir,
+			files: result.files,
+			warnings: result.warnings,
+			features: result.features ?? [],
+		});
 	} else {
 		console.log(`created ${result.dir}`);
 		for (const file of result.files) console.log(`  ${file}`);

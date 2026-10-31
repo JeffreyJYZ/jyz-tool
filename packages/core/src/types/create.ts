@@ -19,6 +19,7 @@ export interface CreateOptions {
 	install?: boolean;
 	publishable?: boolean;
 	yes?: boolean;
+	features?: string[];
 }
 
 export interface CreateResult {
@@ -27,4 +28,8 @@ export interface CreateResult {
 	/** Written files, relative to `dir`, with `/` separators on every platform. */
 	files: string[];
 	warnings: string[];
+	/** Features applied during creation. */
+	features: string[];
+	applied: string[];
+	appliedFeatures: string[];
 }

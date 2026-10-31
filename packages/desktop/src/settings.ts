@@ -102,5 +102,5 @@ export function initSettings(
 		}
 	}
 	settingsCheck.addEventListener("click", checkSettings);
-	(window as any).__settingsLoad = loadSettingsVersion;
+	window.__settingsLoad = loadSettingsVersion;
 }

@@ -8,7 +8,7 @@ import { registerOc } from "../src/commands/oc.ts";
 
 const realPath = process.env.PATH;
 const realUrl = process.env.JYZ_OPENCODE_URL;
-const realExitCode = process.exitCode;
+const _realExitCode = process.exitCode;
 
 afterEach(() => {
 	process.env.PATH = realPath ?? "";

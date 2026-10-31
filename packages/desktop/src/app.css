@@ -97,6 +97,7 @@ button:focus-visible {
 	outline: 1px solid var(--accent);
 	outline-offset: 2px;
 }
+/* biome-ignore lint/style/noDescendingSpecificity: focus-visible overrides base button */
 button {
 	padding: 0.5rem 0.875rem;
 	border: 1px solid var(--line);

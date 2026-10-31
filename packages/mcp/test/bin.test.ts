@@ -31,14 +31,14 @@ async function runBin(args: string[], env: Record<string, string> = {}): Promise
 	});
 	const writer = proc.stdin as { write: (chunk: string) => number; end: () => void };
 	writer.write(
-		JSON.stringify({
+		`${JSON.stringify({
 			jsonrpc: "2.0",
 			id: 1,
 			method: "initialize",
 			params: { protocolVersion: "2025-06-18" },
-		}) + "\n",
+		})}\n`,
 	);
-	writer.write(JSON.stringify({ jsonrpc: "2.0", id: 2, method: "tools/list" }) + "\n");
+	writer.write(`${JSON.stringify({ jsonrpc: "2.0", id: 2, method: "tools/list" })}\n`);
 	writer.end();
 	const out = await new Response(proc.stdout).text();
 	await proc.exited;
@@ -68,12 +68,12 @@ test("--cwd wins over JYZ_MCP_CWD", async () => {
 	});
 	const writer = proc.stdin as { write: (chunk: string) => number; end: () => void };
 	writer.write(
-		JSON.stringify({
+		`${JSON.stringify({
 			jsonrpc: "2.0",
 			id: 1,
 			method: "tools/call",
 			params: { name: "jyz_config", arguments: { action: "show" } },
-		}) + "\n",
+		})}\n`,
 	);
 	writer.end();
 	const out = await new Response(proc.stdout).text();

@@ -2,8 +2,9 @@ import { expect, test } from "bun:test";
 import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { findConfigPath, loadConfig } from "../src/funcs/config.ts";
+import { findConfigPath } from "../src/funcs/config.ts";
 import { resolveProject } from "../src/funcs/project.ts";
+import { asError } from "./support/error-record.ts";
 
 function makePkg(dir: string, name: string) {
 	mkdirSync(dir, { recursive: true });
@@ -64,11 +65,11 @@ test("filter zero-match lists candidates", () => {
 	const a = join(root, "packages", "alpha");
 	makePkg(a, "alpha");
 	writeFileSync(join(root, "package.json"), JSON.stringify({ name: "root" }));
-	let err: any;
+	let err: Record<string, unknown> = {};
 	try {
 		resolveProject(root, { filter: "nope" });
 	} catch (e) {
-		err = e;
+		err = asError(e);
 	}
 	expect(err?.code).toBe("filter_no_match");
 	expect(Array.isArray(err?.candidates)).toBe(true);
@@ -82,14 +83,14 @@ test("filter multi-match lists candidates", () => {
 	makePkg(a, "shared");
 	makePkg(b, "shared");
 	writeFileSync(join(root, "package.json"), JSON.stringify({ name: "root" }));
-	let err: any;
+	let err: Record<string, unknown> = {};
 	try {
 		resolveProject(root, { filter: "shared" });
 	} catch (e) {
-		err = e;
+		err = asError(e);
 	}
 	expect(err?.code).toBe("ambiguous");
-	expect(err?.candidates?.length).toBe(2);
+	expect(Array.isArray(err.candidates) ? err.candidates.length : 0).toBe(2);
 });
 
 test("three levels deep resolves to itself", () => {

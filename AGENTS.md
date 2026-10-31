@@ -36,6 +36,7 @@
 - `rg` never `grep`; `fd` never `find`; `sd` never `sed`.
 - Bun only, never npm. A writing formatter is never a gate: verify with `bun fmt --check` and `biome check`.
 - Never measure a gate by prose. A milestone ends when its named command fails loudly.
+- No source file over 200 lines; exceptions listed in `docs/refactor/oversized.txt` (list may only shrink).
 
 ## Commands
 

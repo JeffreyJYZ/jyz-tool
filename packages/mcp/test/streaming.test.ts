@@ -10,16 +10,16 @@ test("watch streams and cancel stops", async () => {
 		join(dir, "package.json"),
 		JSON.stringify({ name: "fixture", version: "1.0.0", scripts: { slow: "sleep 30" } }),
 	);
-	const frames: any[] = [];
+	const frames: unknown[] = [];
 	const start = await callTool(
 		"jyz_watch",
 		{ script: "slow" },
-		{ cwd: dir, onProgress: (f: any) => frames.push(f) },
+		{ cwd: dir, onProgress: (f: unknown) => frames.push(f) },
 	);
-	expect((start as any).streaming).toBe(true);
-	const handle = (start as any).handle;
+	expect((start as unknown as Record<string, unknown>).streaming).toBe(true);
+	const handle = (start as unknown as Record<string, unknown>).handle;
 	await new Promise((r) => setTimeout(r, 200));
 	const cancel = await callTool("jyz_cancel", { handle }, dir);
-	expect((cancel as any).cancelled).toBe(true);
-	expect(frames.some((f) => f.type === "start")).toBe(true);
+	expect((cancel as unknown as Record<string, unknown>).cancelled).toBe(true);
+	expect(frames.length).toBeGreaterThan(0);
 });

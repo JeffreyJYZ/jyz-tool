@@ -132,9 +132,9 @@ test("an unknown template throws and lists what is available", async () => {
 
 test("a template this build does not ship throws before writing", async () => {
 	const cwd = await tempRoot();
-	await expect(createProject({ name: "demo", template: "vite-tauri" }, cwd)).rejects.toThrow(
-		/not available/,
-	);
+	await expect(
+		createProject({ name: "demo", template: "rust-lib" as Template }, cwd),
+	).rejects.toThrow(/not available/);
 	expect(existsSync(join(cwd, "demo"))).toBe(false);
 });
 

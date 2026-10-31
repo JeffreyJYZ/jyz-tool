@@ -45,7 +45,7 @@ if (typeof document !== "undefined") {
 
 	function makeScreen(id: string, active: boolean): HTMLElement {
 		const sec = document.createElement("section");
-		sec.className = "screen" + (active ? " active" : "");
+		sec.className = `screen${active ? " active" : ""}`;
 		sec.id = id;
 		return sec;
 	}
@@ -168,19 +168,21 @@ if (typeof document !== "undefined") {
 			);
 		}
 		for (const sec of document.querySelectorAll(".screen")) {
-			(sec as HTMLElement).classList.toggle("active", sec.id === "screen-" + name);
+			(sec as HTMLElement).classList.toggle("active", sec.id === `screen-${name}`);
 		}
-		if (name === "config") (window as any).__configLoad?.();
-		if (name === "settings") (window as any).__settingsLoad?.();
+		if (name === "config") window.__configLoad?.();
+		if (name === "settings") window.__settingsLoad?.();
 		if (name === "opencode") {
-			(window as any).__ocLoad?.();
-			(window as any).__ocStart?.();
-		} else (window as any).__ocStop?.();
+			window.__ocLoad?.();
+			window.__ocStart?.();
+		} else window.__ocStop?.();
 	}
 	window.addEventListener("hashchange", () => showScreen(screenFromHash(location.hash)));
 	document.querySelectorAll("nav.tabs button").forEach((btn) => {
 		btn.addEventListener("click", () => {
-			location.hash = screenHref((btn as HTMLElement).dataset.screen as any);
+			location.hash = screenHref(
+				screenFromHash(`#${(btn as HTMLElement).dataset.screen ?? ""}`),
+			);
 		});
 	});
 	showScreen(screenFromHash(location.hash || "#call"));
@@ -197,7 +199,10 @@ if (typeof document !== "undefined") {
 			});
 		invoke("jyz_update_check")
 			.then((offer) => {
-				if (offer) (window as any).__renderUpdate?.(offer);
+				if (offer)
+					window.__renderUpdate?.(
+						offer as { current: string; version: string; notes: string | null },
+					);
 			})
 			.catch(() => {});
 	}

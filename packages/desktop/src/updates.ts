@@ -95,5 +95,7 @@ export function initUpdate(
 		});
 		banner.append(btn);
 	}
-	(window as any).__renderUpdate = renderUpdate;
+	window.__renderUpdate = (offer) => {
+		if (offer !== null && offer !== undefined) renderUpdate(offer);
+	};
 }

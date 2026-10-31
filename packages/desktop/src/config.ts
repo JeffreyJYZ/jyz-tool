@@ -45,5 +45,5 @@ export function initConfig(
 		}
 	}
 	configRefresh.addEventListener("click", loadConfig);
-	(window as any).__configLoad = loadConfig;
+	(window as Window & { __configLoad?: () => void }).__configLoad = loadConfig;
 }

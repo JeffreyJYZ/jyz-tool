@@ -52,7 +52,7 @@ export function checkAssets(
 				problems.push(`missing platform: ${platform}`);
 		}
 	} else if (!names.some((n) => platforms.some((p) => n.includes(p)))) {
-		problems.push("missing platform: " + platforms[0]);
+		problems.push(`missing platform: ${platforms[0]}`);
 	}
 	if (!names.includes("latest.json")) problems.push("missing latest.json");
 	if (!names.some((n) => n.endsWith(".sig"))) problems.push("missing .sig");

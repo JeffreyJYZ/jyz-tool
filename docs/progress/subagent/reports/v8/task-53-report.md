@@ -1,0 +1,1 @@
+Task 53 done. Added --feature/--features/--list-features to jyz create; merged+deduped; unknown/incompatible fail non-zero before writes; --json carries features array. Tests: 5 new, all pass (78 total). bun check, size green; lint has pre-existing repo-wide errors unrelated to this change.

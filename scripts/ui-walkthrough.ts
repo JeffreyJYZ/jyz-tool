@@ -277,7 +277,10 @@ async function main(): Promise<void> {
 			`value=${heldState.value} focus=${heldState.focus}`,
 		);
 
-		await browser(session, ["eval", 'document.querySelector(\'[data-screen="settings"]\').click()']);
+		await browser(session, [
+			"eval",
+			"document.querySelector('[data-screen=\"settings\"]').click()",
+		]);
 		await browser(session, ["eval", 'document.getElementById("settings-check").click()']);
 		const settings = evalJson(
 			await browser(session, [
@@ -287,7 +290,11 @@ async function main(): Promise<void> {
 		);
 		const settingsState =
 			typeof settings === "string" && settings.startsWith("{")
-				? (JSON.parse(settings) as { version: string; status: string; offerHidden: boolean })
+				? (JSON.parse(settings) as {
+						version: string;
+						status: string;
+						offerHidden: boolean;
+					})
 				: { version: "", status: "", offerHidden: true };
 		record(
 			"settings checks for updates on demand",

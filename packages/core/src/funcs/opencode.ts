@@ -69,16 +69,6 @@ function withUrl(message: string, url: string): string {
 	return message.includes(url) ? message : `${url}: ${message}`;
 }
 
-function statusFromError(error: unknown): number | undefined {
-	const message = error instanceof Error ? error.message : String(error);
-	const match = /UnexpectedStatus:\s*(\d{3})/.exec(message) ?? /(\d{3})/.exec(message);
-	if (match) {
-		const n = Number(match[1]);
-		if (Number.isFinite(n)) return n;
-	}
-	return undefined;
-}
-
 function readServiceFile(env: Record<string, string | undefined>): {
 	url?: string;
 	password?: string;
@@ -275,13 +265,14 @@ export async function* subscribeEvents(options: {
 		signal?: AbortSignal;
 	});
 	try {
-		for await (const event of stream as AsyncIterable<any>) {
-			const type = typeof event?.type === "string" ? event.type : String(event?.type ?? "");
-			const data = (event?.data ?? {}) as Record<string, unknown>;
+		for await (const frame of stream as AsyncIterable<Record<string, unknown>>) {
+			const event = (frame ?? {}) as Record<string, unknown>;
+			const type = typeof event.type === "string" ? event.type : "";
+			const data = (event.data ?? {}) as Record<string, unknown>;
 			const sessionID =
 				typeof data.sessionID === "string"
 					? data.sessionID
-					: typeof event?.sessionID === "string"
+					: typeof event.sessionID === "string"
 						? event.sessionID
 						: null;
 			if (options.sessionID !== undefined && sessionID !== options.sessionID) continue;
@@ -351,7 +342,7 @@ async function waitForReady(baseUrl: string, proc: ReturnType<typeof Bun.spawn>)
 				// ignore
 			}
 			throw new OpencodeSpawnError(
-				`opencode exited before ready: ${stderr.trim() || "exit " + proc.exitCode}`,
+				`opencode exited before ready: ${stderr.trim() || `exit ${proc.exitCode}`}`,
 				baseUrl,
 			);
 		}
