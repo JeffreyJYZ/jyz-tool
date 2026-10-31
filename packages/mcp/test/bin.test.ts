@@ -11,11 +11,12 @@ test("manifest invariants", () => {
 	// The package is installable from the registry, so `private` must stay absent; a `true` here
 	// silently blocks every publish.
 	expect(pkg.private).toBeUndefined();
-	expect((pkg.bin as Record<string, string>)["jyz-mcp"]).toBe("./src/bin.ts");
+	expect((pkg.bin as Record<string, string>)["jyz-mcp"]).toBe("./bin/jyz-mcp.mjs");
 	expect(typeof pkg.description).toBe("string");
 	expect(pkg.license).toBe("MIT");
 	expect((pkg.engines as Record<string, string>).bun).toBeTruthy();
-	expect(pkg.files).toContain("src/**");
+	// src/ is not shipped: the bundle carries core, the shim picks it in a packed install.
+	expect(pkg.files).toContain("dist");
 	expect((pkg.publishConfig as Record<string, string>).access).toBe("public");
 	expect(
 		readFileSync(join(import.meta.dir, "..", "src", "bin.ts"), "utf8").startsWith(

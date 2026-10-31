@@ -42,10 +42,10 @@
       "name": "@jyz/mcp",
       "version": "0.1.0-alpha.34",
       "bin": {
-        "jyz-mcp": "./src/bin.ts",
+        "jyz-mcp": "./bin/jyz-mcp.mjs",
       },
-      "dependencies": {
-        "@jyz/core": "^0.1.0-alpha.34",
+      "devDependencies": {
+        "@jyz/core": "workspace:*",
       },
     },
   },

@@ -13,8 +13,9 @@ test("mcp manifest is publishable", () => {
 	expect(typeof pkg.description).toBe("string");
 	expect(pkg.license).toBe("MIT");
 	expect((pkg.engines as Record<string, string>).bun).toBeTruthy();
-	expect(pkg.files).toContain("src/**");
-	expect((pkg.bin as Record<string, string>)["jyz-mcp"]).toBe("./src/bin.ts");
+	// src/ is not shipped: the bundle carries core, the shim picks it in a packed install.
+	expect(pkg.files).toContain("dist");
+	expect((pkg.bin as Record<string, string>)["jyz-mcp"]).toBe("./bin/jyz-mcp.mjs");
 	expect((pkg.publishConfig as Record<string, string>).access).toBe("public");
 	expect((pkg.dependencies as Record<string, string>)["@jyz/core"]).not.toBe("workspace:*");
 });

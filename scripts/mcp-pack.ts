@@ -10,6 +10,8 @@ import { join } from "node:path";
 const ROOT = join(import.meta.dir, "..");
 const KEEP = process.argv.includes("--keep");
 const dist = join(ROOT, "dist", "mcp");
+// A stale tarball from an earlier run would be installed instead of the fresh one.
+rmSync(dist, { recursive: true, force: true });
 mkdirSync(dist, { recursive: true });
 
 function run(cmd: string[], cwd?: string): { ok: boolean; out: string } {
@@ -25,13 +27,9 @@ function step(name: string, ok: boolean, detail = ""): void {
 	}
 }
 
-// 1. pack core (dependency) and mcp
-const corePack = run(
-	["bun", "pm", "pack", "--destination", join(ROOT, "dist", "core")],
-	join(ROOT, "packages", "core"),
-);
-mkdirSync(join(ROOT, "dist", "core"), { recursive: true });
-step("pack @jyz/core", corePack.ok, corePack.out);
+// 1. bundle and pack the MCP server; core is inlined, so the package installs alone
+const build = run(["bun", "run", "build"], join(ROOT, "packages", "mcp"));
+step("bundle @jyz/mcp", build.ok, build.out);
 const mcpPack = run(["bun", "pm", "pack", "--destination", dist], join(ROOT, "packages", "mcp"));
 step("pack @jyz/mcp", mcpPack.ok, mcpPack.out);
 
@@ -39,24 +37,13 @@ const temp = mkdtempSync(join(tmpdir(), "jyz-mcp-pack-"));
 step("create temp dir", true, temp);
 
 // 2. install tarballs
-let coreTar = "";
 let mcpTar = "";
-for (const f of readdirSync(join(ROOT, "dist", "core"))) {
-	if (f.endsWith(".tgz")) coreTar = join(ROOT, "dist", "core", f);
-}
 for (const f of readdirSync(dist)) {
 	if (f.endsWith(".tgz")) mcpTar = join(dist, f);
 }
 
 const i1 = run(["bun", "init", "-y"], temp);
 step("bun init", i1.ok, i1.out);
-const i2 = run(["bun", "add", coreTar], temp);
-step("install core tarball", i2.ok, i2.out);
-// Resolve @jyz/core locally instead of from the registry.
-const pkgPath = join(temp, "package.json");
-const pkg = JSON.parse(require("node:fs").readFileSync(pkgPath, "utf8"));
-pkg.overrides = { "@jyz/core": coreTar };
-require("node:fs").writeFileSync(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`);
 const i3 = run(["bun", "add", mcpTar], temp);
 step("install mcp tarball", i3.ok, i3.out);
 

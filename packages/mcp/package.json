@@ -5,14 +5,15 @@
 	"license": "MIT",
 	"type": "module",
 	"bin": {
-		"jyz-mcp": "./src/bin.ts"
+		"jyz-mcp": "./bin/jyz-mcp.mjs"
 	},
 	"engines": {
 		"node": ">=18",
 		"bun": ">=1.0.0"
 	},
 	"files": [
-		"src/**",
+		"bin",
+		"dist",
 		"README.md"
 	],
 	"exports": {
@@ -21,10 +22,11 @@
 	"publishConfig": {
 		"access": "public"
 	},
-	"dependencies": {
-		"@jyz/core": "^0.1.0-alpha.34"
-	},
 	"scripts": {
-		"build": "bun build ./src/bin.ts --outdir dist --target bun"
+		"build": "bun build src/bin.ts --target=bun --outfile dist/bin.js"
+	},
+	"dependencies": {},
+	"devDependencies": {
+		"@jyz/core": "workspace:*"
 	}
 }
