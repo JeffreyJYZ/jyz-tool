@@ -28,5 +28,11 @@
 	"dependencies": {},
 	"devDependencies": {
 		"@jyz/core": "workspace:*"
-	}
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/JeffreyJYZ/jyz-tool.git",
+		"directory": "packages/mcp"
+	},
+	"homepage": "https://github.com/JeffreyJYZ/jyz-tool"
 }
