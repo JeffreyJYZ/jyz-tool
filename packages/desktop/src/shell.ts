@@ -1,5 +1,5 @@
 import { makeScreen, markLive } from "./a11y.ts";
-import { makeBanner, makeFooter } from "./chrome.ts";
+import { makeBanner, makeFooter, makeTabs } from "./chrome.ts";
 
 export interface Shell {
 	app: HTMLElement;
@@ -34,57 +34,46 @@ export interface Shell {
 	settingsOffer: HTMLElement;
 	footer: HTMLElement;
 }
-export function buildShell(): Shell {
-	const app = document.getElementById("app") as HTMLElement;
-	const banner = makeBanner();
+/** Build the shell in `doc`; the parameter keeps tests off the global document. */
+export function buildShell(doc: Document = document): Shell {
+	const app = doc.getElementById("app") as HTMLElement;
+	const banner = makeBanner(doc);
 	app.append(banner);
-	const nav = document.createElement("nav");
-	nav.className = "tabs";
-	nav.id = "tabs";
-	nav.setAttribute("aria-label", "Screens");
-	for (const name of ["call", "config", "opencode", "settings"]) {
-		const btn = document.createElement("button");
-		btn.type = "button";
-		btn.dataset.screen = name;
-		btn.textContent =
-			name === "opencode" ? "opencode" : name.charAt(0).toUpperCase() + name.slice(1);
-		if (name === "call") btn.classList.add("active");
-		nav.append(btn);
-	}
+	const nav = makeTabs(doc);
 	app.append(nav);
-	const main = document.createElement("main");
+	const main = doc.createElement("main");
 	app.append(main);
 
 	// Call screen
-	const callScreen = makeScreen("screen-call", true, "Call");
-	const form = document.createElement("form");
+	const callScreen = makeScreen("screen-call", true, "Call", doc);
+	const form = doc.createElement("form");
 	form.id = "call";
-	const methodLabel = document.createElement("label");
+	const methodLabel = doc.createElement("label");
 	methodLabel.textContent = "method";
-	const method = document.createElement("select");
+	const method = doc.createElement("select");
 	method.id = "method";
 	method.name = "method";
 	methodLabel.append(method);
-	const paramsLabel = document.createElement("label");
+	const paramsLabel = doc.createElement("label");
 	paramsLabel.textContent = "params";
-	const params = document.createElement("textarea");
+	const params = doc.createElement("textarea");
 	params.id = "params";
 	params.name = "params";
 	params.spellcheck = false;
 	params.autocomplete = "off";
 	paramsLabel.append(params);
-	const run = document.createElement("button");
+	const run = doc.createElement("button");
 	run.id = "run";
 	run.type = "submit";
 	run.textContent = "Run";
-	const execute = Object.assign(document.createElement("input"), {
+	const execute = Object.assign(doc.createElement("input"), {
 		id: "execute",
 		type: "checkbox",
 	});
-	const executeLabel = Object.assign(document.createElement("label"), { textContent: "Run it" });
+	const executeLabel = Object.assign(doc.createElement("label"), { textContent: "Run it" });
 	executeLabel.append(execute);
 	form.append(methodLabel, paramsLabel, executeLabel, run);
-	const result = document.createElement("pre");
+	const result = doc.createElement("pre");
 	result.id = "result";
 	result.dataset.state = "idle";
 	result.textContent = "no call yet";
@@ -92,75 +81,75 @@ export function buildShell(): Shell {
 	callScreen.append(form, result);
 	main.append(callScreen);
 	// Config screen
-	const configScreen = makeScreen("screen-config", false, "Config");
-	const configRefresh = document.createElement("button");
+	const configScreen = makeScreen("screen-config", false, "Config", doc);
+	const configRefresh = doc.createElement("button");
 	configRefresh.id = "config-refresh";
 	configRefresh.type = "button";
 	configRefresh.textContent = "Refresh";
-	const configTable = document.createElement("table");
+	const configTable = doc.createElement("table");
 	configTable.id = "config-table";
-	const configTbody = document.createElement("tbody");
+	const configTbody = doc.createElement("tbody");
 	configTable.append(configTbody);
-	const configRaw = document.createElement("pre");
+	const configRaw = doc.createElement("pre");
 	configRaw.id = "config-raw";
 	configRaw.dataset.state = "idle";
 	configScreen.append(configRefresh, configTable, configRaw);
 	main.append(configScreen);
 	// Opencode screen
-	const ocScreen = makeScreen("screen-opencode", false, "opencode");
-	const sessionLabel = document.createElement("label");
+	const ocScreen = makeScreen("screen-opencode", false, "opencode", doc);
+	const sessionLabel = doc.createElement("label");
 	sessionLabel.textContent = "session";
-	const session = document.createElement("select");
+	const session = doc.createElement("select");
 	session.id = "session";
 	sessionLabel.append(session);
-	const promptLabel = document.createElement("label");
+	const promptLabel = doc.createElement("label");
 	promptLabel.textContent = "prompt";
-	const prompt = document.createElement("textarea");
+	const prompt = doc.createElement("textarea");
 	prompt.id = "prompt";
 	prompt.spellcheck = false;
 	prompt.autocomplete = "off";
 	promptLabel.append(prompt);
-	const sendPrompt = document.createElement("button");
+	const sendPrompt = doc.createElement("button");
 	sendPrompt.id = "send-prompt";
 	sendPrompt.type = "button";
 	sendPrompt.textContent = "Send";
-	const ocRefresh = document.createElement("button");
+	const ocRefresh = doc.createElement("button");
 	ocRefresh.id = "oc-refresh";
 	ocRefresh.type = "button";
 	ocRefresh.textContent = "Refresh";
-	const ocStatus = document.createElement("pre");
+	const ocStatus = doc.createElement("pre");
 	ocStatus.id = "oc-status";
 	ocStatus.dataset.state = "idle";
 	ocStatus.textContent = "no sessions yet";
 	markLive(ocStatus);
-	const ocTable = document.createElement("table");
+	const ocTable = doc.createElement("table");
 	ocTable.id = "oc-table";
-	const ocTbody = document.createElement("tbody");
+	const ocTbody = doc.createElement("tbody");
 	ocTable.append(ocTbody);
-	const ocEvents = Object.assign(document.createElement("pre"), { id: "oc-events" });
+	const ocEvents = Object.assign(doc.createElement("pre"), { id: "oc-events" });
 	ocEvents.dataset.state = "idle";
 	ocScreen.append(sessionLabel, promptLabel, sendPrompt, ocRefresh, ocStatus, ocTable, ocEvents);
 	main.append(ocScreen);
 	// Settings screen
-	const settingsScreen = makeScreen("screen-settings", false, "Settings");
-	const settingsVersion = document.createElement("div");
+	const settingsScreen = makeScreen("screen-settings", false, "Settings", doc);
+	const settingsVersion = doc.createElement("div");
 	settingsVersion.id = "settings-version";
 	settingsVersion.textContent = "checking…";
-	const settingsCheck = document.createElement("button");
+	const settingsCheck = doc.createElement("button");
 	settingsCheck.id = "settings-check";
 	settingsCheck.type = "button";
 	settingsCheck.textContent = "Check for updates";
-	const settingsStatus = document.createElement("div");
+	const settingsStatus = doc.createElement("div");
 	settingsStatus.id = "settings-status";
 	settingsStatus.dataset.state = "idle";
 	settingsStatus.textContent = "idle";
 	markLive(settingsStatus);
-	const settingsOffer = document.createElement("div");
+	const settingsOffer = doc.createElement("div");
 	settingsOffer.id = "settings-offer";
 	settingsOffer.hidden = true;
 	settingsScreen.append(settingsVersion, settingsCheck, settingsStatus, settingsOffer);
 	main.append(settingsScreen);
-	const footer = makeFooter();
+	const footer = makeFooter(doc);
 	app.append(footer);
 	return {
 		app,

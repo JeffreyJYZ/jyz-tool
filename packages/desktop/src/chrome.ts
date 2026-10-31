@@ -6,8 +6,8 @@
  * neither holds state.
  */
 
-export function makeBanner(): HTMLDivElement {
-	const banner = document.createElement("div");
+export function makeBanner(doc: Document = document): HTMLDivElement {
+	const banner = doc.createElement("div");
 	banner.id = "update-banner";
 	banner.hidden = true;
 	banner.setAttribute("role", "status");
@@ -15,9 +15,30 @@ export function makeBanner(): HTMLDivElement {
 	return banner;
 }
 
-export function makeFooter(): HTMLElement {
-	const footer = document.createElement("footer");
+export function makeFooter(doc: Document = document): HTMLElement {
+	const footer = doc.createElement("footer");
 	footer.id = "version";
 	footer.textContent = "jyz · checking";
 	return footer;
+}
+
+/** The screen switcher. The first tab is current from the first paint, before main.ts runs. */
+export function makeTabs(doc: Document = document): HTMLElement {
+	const nav = doc.createElement("nav");
+	nav.className = "tabs";
+	nav.id = "tabs";
+	nav.setAttribute("aria-label", "Screens");
+	for (const name of ["call", "config", "opencode", "settings"]) {
+		const btn = doc.createElement("button");
+		btn.type = "button";
+		btn.dataset.screen = name;
+		btn.textContent =
+			name === "opencode" ? "opencode" : name.charAt(0).toUpperCase() + name.slice(1);
+		if (name === "call") {
+			btn.classList.add("active");
+			btn.setAttribute("aria-current", "page");
+		}
+		nav.append(btn);
+	}
+	return nav;
 }

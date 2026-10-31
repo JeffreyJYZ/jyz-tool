@@ -1,12 +1,17 @@
 // Accessibility helpers for the desktop shell, kept tiny so shell.ts stays under 200 lines.
 
 /** Build a screen section with a real heading and an accessible name. */
-export function makeScreen(id: string, active: boolean, headingText: string): HTMLElement {
-	const sec = document.createElement("section");
+export function makeScreen(
+	id: string,
+	active: boolean,
+	headingText: string,
+	doc: Document = document,
+): HTMLElement {
+	const sec = doc.createElement("section");
 	sec.className = `screen${active ? " active" : ""}`;
 	sec.id = id;
 	sec.setAttribute("role", "region");
-	const heading = document.createElement("h2");
+	const heading = doc.createElement("h2");
 	heading.id = `${id}-heading`;
 	heading.textContent = headingText;
 	sec.setAttribute("aria-labelledby", heading.id);
