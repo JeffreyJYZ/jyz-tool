@@ -1,23 +1,39 @@
+import { dirname, join } from "node:path";
 import type { CommandSpec } from "../types/command.ts";
 import type { PackageManager } from "../types/config.ts";
+
+/**
+ * The names a `.bin` entry can carry on this platform. On Windows an extensionless file is not
+ * executable, so a shim is `foo.cmd`, `foo.exe` or `foo.ps1`; elsewhere the name is the file.
+ */
+function candidates(bin: string): string[] {
+	if (process.platform !== "win32") return [bin];
+	const extensions = (process.env.PATHEXT ?? ".COM;.EXE;.BAT;.CMD")
+		.split(";")
+		.filter(Boolean)
+		.map((extension) => extension.toLowerCase());
+	return [bin, ...extensions.map((extension) => `${bin}${extension}`)];
+}
 
 export function resolveExecutable(pm: PackageManager, dir: string, bin: string): string {
 	let current = dir;
 	while (true) {
-		const candidate = `${current}/node_modules/.bin/${bin}`;
-		try {
-			const file = Bun.file(candidate);
-			if (file.size > 0) return candidate;
-		} catch {
-			// ignore
+		const binDir = join(current, "node_modules", ".bin");
+		for (const name of candidates(bin)) {
+			const candidate = join(binDir, name);
+			try {
+				if (Bun.file(candidate).size > 0) return candidate;
+			} catch {
+				// ignore
+			}
 		}
-		const parent = current.replace(/\/[^/]+$/, "");
+		const parent = dirname(current);
+		// A Windows drive root is its own parent, so compare and stop rather than loop.
 		if (parent === current || parent === "") break;
 		current = parent;
 	}
 	return pm === "bun" ? "bunx" : "pnpm";
 }
-
 export async function runCommand(
 	spec: CommandSpec,
 	opts?: { stdio?: "inherit" | "pipe"; signal?: AbortSignal },

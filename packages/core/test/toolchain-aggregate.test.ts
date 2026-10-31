@@ -1,11 +1,12 @@
 import { expect, test } from "bun:test";
-import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { buildCheckSteps, runCheckPlan } from "../../cli/src/commands/toolchain.ts";
 import { formatSpec } from "../../cli/src/lib/dispatch.ts";
 import { buildCheckCommand, ToolchainError } from "../src/funcs/toolchain.ts";
 import type { ProjectContext } from "../src/types/project.ts";
+import { writeStub } from "./helpers/stub.ts";
 
 function ctx(overrides: Partial<ProjectContext> = {}): ProjectContext {
 	return {
@@ -38,9 +39,7 @@ function makeFixture(linterExit: number, typecheckExit: number) {
 	const binDir = join(dir, "node_modules", ".bin");
 	mkdirSync(binDir, { recursive: true });
 	const makeStub = (bin: string, code: number) => {
-		writeFileSync(join(binDir, bin), `#!/bin/sh\necho ${bin} >> "${marker}"\nexit ${code}\n`, {
-			mode: 0o755,
-		});
+		writeStub(binDir, bin, { marker, exitCode: code });
 	};
 	makeStub("bun", typecheckExit);
 	makeStub("biome", linterExit);

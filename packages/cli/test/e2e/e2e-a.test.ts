@@ -1,7 +1,8 @@
 import { expect, test } from "bun:test";
-import { chmodSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { writeStub } from "../../../core/test/helpers/stub.ts";
 
 const BIN = join(import.meta.dir, "..", "..", "src", "bin.ts");
 
@@ -15,14 +16,7 @@ function cleanup(dir: string): void {
 
 function stubPm(dir: string, name: "bun" | "pnpm", record: string, exitCode = 0): string {
 	const binDir = join(dir, "bin");
-	mkdirSync(binDir, { recursive: true });
-	const path = join(binDir, name);
-	writeFileSync(
-		path,
-		`#!/bin/sh\nprintf '%s\\n' "$*" >> "${record}"\nexit ${exitCode}\n`,
-		"utf8",
-	);
-	chmodSync(path, 0o755);
+	writeStub(binDir, name, { record, exitCode, format: "simple" });
 	return binDir;
 }
 

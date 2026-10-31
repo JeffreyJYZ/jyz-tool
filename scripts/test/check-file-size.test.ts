@@ -38,7 +38,7 @@ test("findViolations: new 201-line file", () => {
 	try {
 		const v = findViolations(root, []);
 		expect(v.length).toBe(1);
-		expect(v[0]?.file).toBe("scripts/big.ts");
+		expect(v[0]?.file).toBe(join("scripts", "big.ts"));
 	} finally {
 		rmSync(root, { recursive: true, force: true });
 	}

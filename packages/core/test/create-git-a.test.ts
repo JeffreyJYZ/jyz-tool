@@ -1,9 +1,10 @@
 import { afterEach, expect, spyOn, test } from "bun:test";
 import { existsSync, realpathSync } from "node:fs";
-import { chmod, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { delimiter, dirname, join } from "node:path";
 import { createProject } from "../src/create/index.ts";
+import { writeStub } from "./helpers/stub.ts";
 
 const roots: string[] = [];
 const realPath = process.env.PATH;
@@ -21,59 +22,26 @@ async function tempRoot(): Promise<string> {
 	return dir;
 }
 
-/**
- * A shell stub that appends one record block per call: the command name, its working directory and
- * every argument. It uses no external binary, so the tests can run with a PATH holding nothing but
- * these scripts and still prove no other tool was reached.
- */
-function recorder(name: string, tail: string): string {
-	return `#!/bin/sh
-{
-printf 'cmd=%s\\n' "${name}"
-printf 'cwd=%s\\n' "$PWD"
-for arg in "$@"; do printf 'arg=%s\\n' "$arg"; done
-printf '%s\\n' '--'
-} >> "$JYZ_RECORD"
-${tail}
-`;
-}
+const GIT_STUB: string | undefined = undefined;
+const _BUN_STUB: string | undefined = undefined;
+const _PNPM_STUB: string | undefined = undefined;
 
-const GIT_STUB = recorder("git", "exit 0");
-const _BUN_STUB = recorder("bun", "exit 0");
-const _PNPM_STUB = recorder("pnpm", "exit 0");
+const GH_OK =
+	'(argv) => { if (argv[0] === "auth") return { exitCode: 0 }; if (argv[0] === "repo") return { stdout: "https://github.com/tester/" + argv[2] + "\\n", exitCode: 0 }; return { exitCode: 1 }; }';
 
-const GH_OK = recorder(
-	"gh",
-	`if [ "$1" = "auth" ]; then exit 0; fi
-if [ "$1" = "repo" ]; then printf 'https://github.com/tester/%s\\n' "$3"; exit 0; fi
-exit 1`,
-);
+const GH_UNAUTHENTICATED =
+	'(argv) => { if (argv[0] === "auth") return { stderr: "You are not logged into any GitHub hosts. Run gh auth login to authenticate.\\n", exitCode: 1 }; return { exitCode: 0 }; }';
 
-const GH_UNAUTHENTICATED = recorder(
-	"gh",
-	`if [ "$1" = "auth" ]; then
-	printf 'You are not logged into any GitHub hosts. Run gh auth login to authenticate.\\n' >&2
-	exit 1
-fi
-exit 0`,
-);
-
-const _GH_REJECTS = recorder(
-	"gh",
-	`if [ "$1" = "auth" ]; then exit 0; fi
-printf 'HTTP 422: repository already exists.\\n' >&2
-exit 1`,
-);
+const _GH_REJECTS =
+	'(argv) => { if (argv[0] === "auth") return { exitCode: 0 }; return { stderr: "HTTP 422: repository already exists.\\n", exitCode: 1 }; }';
 
 /** Installs the stubs into a fresh directory and prepends it to PATH, replacing the original. */
-async function stubPath(scripts: Record<string, string>): Promise<string> {
+async function stubPath(scripts: Record<string, string | undefined>): Promise<string> {
 	const dir = await tempRoot();
-	for (const [name, body] of Object.entries(scripts)) {
-		const path = join(dir, name);
-		await writeFile(path, body, "utf8");
-		await chmod(path, 0o755);
+	for (const [name, behaviour] of Object.entries(scripts)) {
+		writeStub(dir, name, { record: process.env.JYZ_RECORD, format: "block", behaviour });
 	}
-	process.env.PATH = dir;
+	process.env.PATH = `${dir}${delimiter}${dirname(process.execPath)}`;
 	return dir;
 }
 
@@ -90,7 +58,9 @@ async function invocations(record: string): Promise<Invocation[]> {
 		}));
 }
 
-async function fixture(scripts: Record<string, string>): Promise<{ cwd: string; record: string }> {
+async function fixture(
+	scripts: Record<string, string | undefined>,
+): Promise<{ cwd: string; record: string }> {
 	const cwd = await tempRoot();
 	const record = join(cwd, "calls.log");
 	process.env.JYZ_RECORD = record;
