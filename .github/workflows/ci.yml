@@ -29,6 +29,12 @@ jobs:
             - name: Scaffold and build the C template
               if: runner.os != 'Windows'
               run: bun scripts/scaffold-smoke.ts --scenario=c
+            # The npm shape: both packages must install alone, fetching nothing from the registry.
+            - name: Pack and install the published packages
+              if: runner.os == 'ubuntu-latest'
+              run: |
+                  bun scripts/cli-pack.ts
+                  bun scripts/mcp-pack.ts
             # The desktop contract needs a real browser: drive the page, then read it the way a
             # screen reader would. agent-browser is in homebrew-core, so only macOS runs this.
             - name: Browser gates for the desktop UI
