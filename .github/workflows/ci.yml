@@ -29,6 +29,15 @@ jobs:
             - name: Scaffold and build the C template
               if: runner.os != 'Windows'
               run: bun scripts/scaffold-smoke.ts --scenario=c
+            # The desktop contract needs a real browser: drive the page, then read it the way a
+            # screen reader would. agent-browser is in homebrew-core, so only macOS runs this.
+            - name: Browser gates for the desktop UI
+              if: runner.os == 'macOS'
+              run: |
+                  brew install agent-browser
+                  bun run --cwd packages/desktop build:web
+                  bun scripts/ui-walkthrough.ts
+                  bun run a11y
 
     rust:
         runs-on: ubuntu-latest
