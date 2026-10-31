@@ -104,7 +104,7 @@ The `docs/` tree exists already and is planned, not incidental:
 
 Each milestone ends at a gate. A gate is a command that fails loudly; prose acceptance does not count.
 
-Status 2026-10-31: M0–M4 and v2 shipped, release line `0.1.0-alpha.21`. Gate results live in [../progress/reports/v1-milestone.md](../../progress/reports/v1-milestone.md); what landed after v1 is in [../progress/notes/2026-10-30-post-v1.md](../../progress/notes/2026-10-30-post-v1.md) and [../progress/notes/2026-10-31-scaffold-and-window.md](../../progress/notes/2026-10-31-scaffold-and-window.md).
+Status 2026-10-31: M0–M4 and v2 shipped, release line `0.1.0-alpha.27`; all four CI jobs including `windows-latest` are green, the C template is built and run by a smoke scenario, and the desktop window persists its size and position. Gate results live in [../progress/reports/v1-milestone.md](../../progress/reports/v1-milestone.md); what landed after v1 is in [../progress/notes/2026-10-30-post-v1.md](../../progress/notes/2026-10-30-post-v1.md) and [../progress/notes/2026-10-31-scaffold-and-window.md](../../progress/notes/2026-10-31-scaffold-and-window.md).
 
 ### M0 — Bootstrap
 
