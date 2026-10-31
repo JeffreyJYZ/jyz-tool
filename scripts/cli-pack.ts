@@ -38,6 +38,8 @@ function step(name: string, ok: boolean, detail = ""): void {
 	}
 }
 
+// A stale tarball from an earlier run would be packed and inspected instead of the fresh one.
+rmSync(DIST, { recursive: true, force: true });
 mkdirSync(DIST, { recursive: true });
 mkdirSync(join(ROOT, "dist", "core"), { recursive: true });
 

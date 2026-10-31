@@ -28,10 +28,9 @@
 	"scripts": {
 		"build": "bun build src/bin.ts --target=bun --outfile dist/bin.js"
 	},
-	"dependencies": {
-		"cac": "^7.1.0"
-	},
+	"dependencies": {},
 	"devDependencies": {
-		"@jyz/core": "workspace:*"
+		"@jyz/core": "workspace:*",
+		"cac": "^7.1.0"
 	}
 }
