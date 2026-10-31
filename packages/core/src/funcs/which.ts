@@ -45,3 +45,15 @@ export function which(
 export function resolveCommand(name: string): string {
 	return which(name) ?? name;
 }
+
+/** A `.cmd`/`.bat` shim is a batch script, not an executable: Windows runs it through cmd.exe. */
+export function spawnArgv(
+	file: string,
+	argv: string[],
+	platform: string = process.platform,
+): string[] {
+	if (platform === "win32" && /\.(cmd|bat)$/i.test(file)) {
+		return [process.env.COMSPEC ?? "cmd.exe", "/c", file, ...argv];
+	}
+	return [file, ...argv];
+}

@@ -1,7 +1,7 @@
 import { dirname, join } from "node:path";
 import type { CommandSpec } from "../types/command.ts";
 import type { PackageManager } from "../types/config.ts";
-import { resolveCommand } from "./which.ts";
+import { resolveCommand, spawnArgv } from "./which.ts";
 
 /**
  * The names a `.bin` entry can carry on this platform. On Windows an extensionless file is not
@@ -43,7 +43,7 @@ export async function runCommand(
 	const pipe = stdio === "pipe";
 
 	const proc = Bun.spawn({
-		cmd: [resolveCommand(spec.file), ...spec.argv],
+		cmd: spawnArgv(resolveCommand(spec.file), spec.argv),
 		cwd: spec.cwd,
 		env: process.env,
 		stdin: "inherit",

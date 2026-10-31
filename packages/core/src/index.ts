@@ -42,7 +42,7 @@ export {
 	buildTypecheckCommand,
 	ToolchainError,
 } from "./funcs/toolchain.ts";
-export { resolveCommand, which } from "./funcs/which.ts";
+export { resolveCommand, spawnArgv, which } from "./funcs/which.ts";
 export type { ArgvRequest, CommandSpec, Verb } from "./types/command.ts";
 export type {
 	ConfigFile,

@@ -6,6 +6,7 @@ import {
 	buildTypecheckCommand,
 	resolveCommand,
 	resolveProject,
+	spawnArgv,
 } from "@jyz/core";
 import type { Capability } from "../../../core/src/funcs/capabilities.ts";
 import { findCapability, listCapabilities } from "../../../core/src/funcs/capabilities.ts";
@@ -106,7 +107,7 @@ function messageOf(error: unknown): string {
 async function runArgv(argv: string[], timeoutMs: number): Promise<RpcResult> {
 	const [file, ...args] = argv;
 	try {
-		const proc = Bun.spawn([resolveCommand(file ?? ""), ...args], {
+		const proc = Bun.spawn(spawnArgv(resolveCommand(file ?? ""), args), {
 			stdout: "pipe",
 			stderr: "pipe",
 			stdin: "ignore",

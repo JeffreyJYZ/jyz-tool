@@ -1,4 +1,4 @@
-import { resolveCommand } from "../which.ts";
+import { resolveCommand, spawnArgv } from "../which.ts";
 import type { SpawnedServer, SpawnServerOptions } from "./shared.ts";
 import { OpencodeSpawnError, resolveServer } from "./shared.ts";
 
@@ -54,7 +54,7 @@ export async function spawnServer(opts: SpawnServerOptions): Promise<SpawnedServ
 		throw new OpencodeSpawnError("empty opencode command", baseUrl);
 	}
 	const proc = Bun.spawn({
-		cmd: parts,
+		cmd: spawnArgv(parts[0] ?? "", parts.slice(1)),
 		cwd: opts.cwd,
 		env: process.env,
 		stdin: "ignore",
