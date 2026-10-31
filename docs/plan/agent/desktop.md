@@ -40,7 +40,7 @@ Core emits a capability manifest: every registered operation with its parameters
 - capability manifest test green: every core operation reachable from the UI
 - the window runs a real verb end to end in CI on macOS, and a packaged installer is smoke-tested on all three platforms where a GUI runner exists
 - bundle size recorded per release so "lightweight" stays measurable rather than felt
-- an install from the desktop artifact leaves a working `jyz` on `PATH`, and a CLI-only install leaves no desktop artifacts
+- installing the desktop app yields a working `jyz` **inside the bundle** (`Contents/MacOS/jyz`, `jyz.exe` beside the app on Windows); nothing is added to `PATH`, so a CLI on PATH still comes from the CLI package, and a CLI-only install leaves no desktop artefacts. Proven by `bun scripts/install-smoke.ts`, which copies the bundle to a temp dir and runs the bundled CLI there.
 
 ## Resolved
 
@@ -48,6 +48,6 @@ Core emits a capability manifest: every registered operation with its parameters
 - Runtime: the installer carries the CLI, so the desktop never requires a separate Bun install.
 - Packaging: desktop and CLI install together; CLI alone stays CLI alone.
 
-## Open questions
+## Resolved after shipping
 
-- Where the installer puts the CLI on Windows so it lands on `PATH` under both PowerShell and `cmd`.
+- The CLI does **not** go on `PATH` on any platform. It ships beside the app binary inside the bundle, the app resolves it as a sibling, and `install-smoke` runs it from a temp copy. Adding it to `PATH` would collide with a separately installed CLI, so the plan no longer asks for it.

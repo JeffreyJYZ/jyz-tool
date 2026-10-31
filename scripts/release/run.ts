@@ -142,6 +142,12 @@ export async function main(): Promise<void> {
 		await publishPhase(tag, arg("--notes"), dmgName);
 	}
 
+	// Prove the built bundle carries a working CLI before it is published.
+	const { installSmoke } = await import("../install-smoke");
+	const installed = installSmoke(join(BUNDLE, "macos", "jyz.app"));
+	log(`install  ${installed.ok ? "ok" : "FAIL"} ${installed.detail}`);
+	if (!installed.ok) fail("the bundled CLI does not run");
+
 	// The desktop plan asks for a size per release; record it where the artefacts already are.
 	const { recordSizes } = await import("../bundle-size");
 	log(`sizes    ${recordSizes(version.replace(/^v/, ""))}`);
