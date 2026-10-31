@@ -1,6 +1,6 @@
 {
 	"name": "@jyz/mcp",
-	"version": "0.1.0-alpha.14",
+	"version": "0.1.0-alpha.15",
 	"description": "stdio MCP server exposing jyz project tools to AI hosts",
 	"license": "MIT",
 	"private": true,
