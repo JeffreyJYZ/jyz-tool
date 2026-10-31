@@ -13,11 +13,13 @@
       "name": "jyz",
       "version": "0.1.0-alpha.32",
       "bin": {
-        "jyz": "./src/bin.ts",
+        "jyz": "./bin/jyz.mjs",
       },
       "dependencies": {
-        "@jyz/core": "workspace:*",
         "cac": "^7.1.0",
+      },
+      "devDependencies": {
+        "@jyz/core": "workspace:*",
       },
     },
     "packages/core": {

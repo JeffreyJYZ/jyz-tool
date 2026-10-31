@@ -1,13 +1,37 @@
 {
 	"name": "jyz",
 	"version": "0.1.0-alpha.32",
-	"private": true,
+	"description": "Personal project hub: one config file, and a CLI that behaves as whatever package manager a project already uses.",
+	"license": "MIT",
 	"type": "module",
 	"bin": {
-		"jyz": "./src/bin.ts"
+		"jyz": "./bin/jyz.mjs"
+	},
+	"engines": {
+		"bun": ">=1.0.0",
+		"node": ">=18"
+	},
+	"files": [
+		"bin",
+		"dist",
+		"README.md"
+	],
+	"publishConfig": {
+		"access": "public"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/JeffreyJYZ/jyz-tool.git",
+		"directory": "packages/cli"
+	},
+	"homepage": "https://github.com/JeffreyJYZ/jyz-tool",
+	"scripts": {
+		"build": "bun build src/bin.ts --target=bun --outfile dist/bin.js"
 	},
 	"dependencies": {
-		"@jyz/core": "workspace:*",
 		"cac": "^7.1.0"
+	},
+	"devDependencies": {
+		"@jyz/core": "workspace:*"
 	}
 }
