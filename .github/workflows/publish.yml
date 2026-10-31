@@ -1,0 +1,127 @@
+name: publish
+
+# Publishes the two npm packages through npm's OIDC trusted publishing: the job proves its identity
+# to the registry with a GitHub token, so there is no 2FA prompt, no staged-approval round-trip and
+# no long-lived token on any machine. Provenance is attached because trusted publishing requires it.
+#
+#   git tag cli-v0.1.0-alpha.40 && git push origin cli-v0.1.0-alpha.40
+#   git tag mcp-v0.1.0-alpha.40 && git push origin mcp-v0.1.0-alpha.40
+#
+# One tag names one package:
+#
+#   cli-v*   packages/cli   jyz
+#   mcp-v*   packages/mcp   @jyz/mcp
+#
+# One-time setup on npmjs.com, PER PACKAGE (Settings → Trusted publishing): owner JeffreyJYZ, repo
+# jyz-tool, workflow publish.yml. The workflow file name must be this bare name for both packages,
+# which is why one workflow publishes both. Until a package is registered, its OIDC exchange fails
+# and nothing is published.
+#
+# An alpha version carries a pre-release suffix, which npm refuses to put on `latest`: those go to
+# the `alpha` dist-tag so `latest` keeps meaning "a release".
+
+on:
+    push:
+        tags:
+            - "cli-v*"
+            - "mcp-v*"
+    workflow_dispatch:
+        inputs:
+            package:
+                description: Package directory to publish
+                type: choice
+                default: packages/cli
+                options:
+                    - packages/cli
+                    - packages/mcp
+            dry_run:
+                description: Build and pack without publishing
+                type: boolean
+                default: true
+
+concurrency:
+    group: npm-publish-${{ github.ref }}
+    cancel-in-progress: false
+
+permissions:
+    contents: read
+    # The OIDC token the registry exchanges for a short-lived publish credential.
+    id-token: write
+
+jobs:
+    publish:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v7
+            - uses: oven-sh/setup-bun@v2
+            - uses: actions/setup-node@v7
+              with:
+                  node-version: "24"
+                  registry-url: https://registry.npmjs.org
+
+            - run: bun install --frozen-lockfile
+
+            # A tag names one package, and the tag version must equal the manifest version: a tag
+            # can never publish a neighbour, and a stale tag cannot ship the wrong code.
+            - name: Resolve the package this run is about
+              id: pkg
+              run: |
+                  set -euo pipefail
+                  if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+                    dir="${{ inputs.package }}"
+                    tag=""
+                  else
+                    ref="$GITHUB_REF_NAME"
+                    case "$ref" in
+                      cli-v*) dir=packages/cli; tag="${ref#cli-v}" ;;
+                      mcp-v*) dir=packages/mcp; tag="${ref#mcp-v}" ;;
+                      *) echo "unexpected tag $ref" >&2; exit 1 ;;
+                    esac
+                  fi
+                  version="$(bun -e "console.log((await Bun.file('$${dir}/package.json').json()).version)")"
+                  if [ -n "$tag" ] && [ "$tag" != "$version" ]; then
+                    echo "tag $tag does not match $dir version $version" >&2
+                    exit 1
+                  fi
+                  dist_tag=latest
+                  case "$version" in *-*) dist_tag=alpha ;; esac
+                  echo "dir=$dir" >> "$GITHUB_OUTPUT"
+                  echo "version=$version" >> "$GITHUB_OUTPUT"
+                  echo "dist_tag=$dist_tag" >> "$GITHUB_OUTPUT"
+                  echo "publishing $dir@$version as $dist_tag"
+
+            - name: Build the bundle
+              working-directory: ${{ steps.pkg.outputs.dir }}
+              run: bun run build
+
+            - name: Publish
+              working-directory: ${{ steps.pkg.outputs.dir }}
+              env:
+                  NPM_CONFIG_PROVENANCE: "true"
+              run: |
+                  if [ "${{ inputs.dry_run }}" = "true" ]; then
+                    npm publish --provenance --access public --tag "${{ steps.pkg.outputs.dist_tag }}" --dry-run
+                  else
+                    npm publish --provenance --access public --tag "${{ steps.pkg.outputs.dist_tag }}"
+                  fi
+
+            # The registry serves the packument before the tarball, so a published version can 404
+            # for a few minutes; poll rather than trust the 202.
+            - name: Verify the version is served
+              if: ${{ inputs.dry_run != 'true' }}
+              run: |
+                  set -euo pipefail
+                  dir="${{ steps.pkg.outputs.dir }}"
+                  version="${{ steps.pkg.outputs.version }}"
+                  name="$(bun -e "console.log((await Bun.file('$${dir}/package.json').json()).name)")"
+                  url="https://registry.npmjs.org/${name//\//%2f}/$version"
+                  for i in $(seq 1 20); do
+                    code="$(curl -s -o /dev/null -w '%{http_code}' "$url")"
+                    case "$code" in
+                      200) echo "served $name@$version"; exit 0 ;;
+                      404) sleep 15 ;;
+                      *) echo "unexpected $code for $url" >&2; exit 1 ;;
+                    esac
+                  done
+                  echo "tarball for $name@$version never appeared" >&2
+                  exit 1
