@@ -1,2 +1,6 @@
 # bun fmt reads this file. local/ is scratch, never formatted.
 local/
+
+# Generated at publish time by scripts/bundle-size.ts: the formatter re-aligns the table, which
+# leaves the tree dirty and aborts the next release.
+docs/progress/releases/
