@@ -3,6 +3,7 @@
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { runCScenario } from "./smoke/c-scenario";
 import { runCacCliScenario } from "./smoke/cac-cli-scenario";
 import type { CheckResult } from "./smoke/scaffold-checks";
 import { checkConfig, checkUpdaterRs } from "./smoke/scaffold-checks";
@@ -119,6 +120,18 @@ async function main(): Promise<void> {
 	try {
 		if (scenario === "updater" || scenario === "all") {
 			await runUpdater(dir, skipCargo);
+		}
+		if (scenario === "c" || scenario === "all") {
+			const dir3 = mkdtempSync(path.join(tmpdir(), "jyz-scaffold-"));
+			try {
+				await runCScenario(dir3, record);
+			} finally {
+				try {
+					rmSync(dir3, { recursive: true, force: true });
+				} catch {
+					// ignore
+				}
+			}
 		}
 		if (scenario === "cac-cli" || scenario === "all") {
 			// separate temp dir for cac-cli to avoid collisions

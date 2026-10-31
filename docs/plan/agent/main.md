@@ -161,8 +161,8 @@ All three seams closed at `0.1.0-alpha.6`; task plan [../progress/subagent/tasks
 
 ## Risks and open questions
 
-- C/C++ layout is settled as standard extensions with both build files, but still untested against a real C project; revisit at M3 before snapshotting.
+- C/C++ layout is settled as standard extensions with both build files; the scaffold is proven by `bun scripts/scaffold-smoke.ts --scenario=c` (make check, make build, run prints the project name). A C++ template does not exist yet.
 - `bun lint` and the tsgo/tsrs ports are canary, so the typechecker and linter lists will churn. An unavailable checker must be a clear error, never a silent fallback.
-- Windows needs `.cmd` shim handling for pnpm and careful quoting; that is why Windows CI starts in M0 rather than at the end.
+- Windows `.cmd` shim handling is solved and gated: `which()` walks PATH with PATHEXT, `spawnArgv()` runs a batch file through `cmd.exe /c`, and the Windows CI leg is green as of `0.1.0-alpha.26`.
 - The desktop installer carries the CLI, so app weight follows the CLI's runtime choice. Measure before bundling anything further.
 - `--git github` adds a network step and an external dependency (`gh`) to `create`; it must fail loudly when unauthenticated rather than leaves a half-created project.
