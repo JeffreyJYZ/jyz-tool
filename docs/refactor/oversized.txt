@@ -1,7 +1,6 @@
 packages/cli/src/rpc.ts
 packages/cli/test/e2e/e2e.test.ts
 packages/core/src/create/index.ts
-packages/core/src/funcs/config.ts
 packages/core/src/funcs/opencode.ts
 packages/core/src/funcs/toolchain.ts
 packages/core/test/config.test.ts
@@ -10,7 +9,6 @@ packages/core/test/create.test.ts
 packages/core/test/opencode.test.ts
 packages/desktop/src-tauri/src/lib.rs
 packages/desktop/src/main.ts
-packages/mcp/src/handler.ts
 packages/mcp/src/stdio.ts
 packages/mcp/src/tools.ts
 scripts/mcp-smoke.ts
