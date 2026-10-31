@@ -1,0 +1,9 @@
+[package]
+name = "__NAME__"
+version = "__VERSION__"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]

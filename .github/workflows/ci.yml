@@ -56,3 +56,5 @@ jobs:
             - name: Check
               working-directory: packages/desktop/src-tauri
               run: cargo check --locked
+            - name: Scaffold the rust-lib template
+              run: bun scripts/scaffold-smoke.ts --scenario=rust-lib

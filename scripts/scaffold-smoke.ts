@@ -5,6 +5,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { runCScenario } from "./smoke/c-scenario";
 import { runCacCliScenario } from "./smoke/cac-cli-scenario";
+import { runRustLibScenario } from "./smoke/rust-lib-scenario";
 import type { CheckResult } from "./smoke/scaffold-checks";
 import { checkConfig, checkUpdaterRs } from "./smoke/scaffold-checks";
 
@@ -128,6 +129,18 @@ async function main(): Promise<void> {
 			} finally {
 				try {
 					rmSync(dir3, { recursive: true, force: true });
+				} catch {
+					// ignore
+				}
+			}
+		}
+		if (scenario === "rust-lib" || scenario === "all") {
+			const dir4 = mkdtempSync(path.join(tmpdir(), "jyz-scaffold-"));
+			try {
+				await runRustLibScenario(dir4, record);
+			} finally {
+				try {
+					rmSync(dir4, { recursive: true, force: true });
 				} catch {
 					// ignore
 				}

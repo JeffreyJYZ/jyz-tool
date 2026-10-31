@@ -29,11 +29,11 @@ test("an unknown template throws and lists what is available", async () => {
 	await expect(call).rejects.toThrow("cli");
 });
 
-test("a template this build does not ship throws before writing", async () => {
+test("an unknown template throws before writing anything", async () => {
 	const cwd = await tempRoot();
 	await expect(
-		createProject({ name: "demo", template: "rust-lib" as Template }, cwd),
-	).rejects.toThrow(/not available/);
+		createProject({ name: "demo", template: "dots" as Template }, cwd),
+	).rejects.toThrow(/Unknown template/);
 	expect(existsSync(join(cwd, "demo"))).toBe(false);
 });
 

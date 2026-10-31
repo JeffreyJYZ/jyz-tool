@@ -1,0 +1,14 @@
+# __NAME__
+
+Rust library on the stable toolchain. `[lib]` in `Cargo.toml` points at `src/lib.rs`, which re-exports `funcs` and `types` so consumers name one path.
+
+## Commands
+
+- Build: `cargo build --release`
+- Test: `cargo test`
+- Test: `cargo test`
+- Typecheck: `cargo check` (typechecker `__TYPECHECKER__`)
+- Lint: `cargo clippy -- -D warnings` (linter `__LINTER__`)
+- Format: `cargo fmt` (formatter `__FORMATTER__`)
+
+`rustfmt.toml` pins hard tabs, tab width 4 and max width 100.
