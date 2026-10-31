@@ -33,7 +33,7 @@ jyz serve --execute              # also run a resolved command
 jyz oc sessions|prompt|watch [--json]
 ```
 
-`jyz create` takes `--template`, `--feature` (repeatable), `--features a,b` and `--list-features`; with no feature flag on a TTY it asks interactively. Templates: `next`, `cli`, `cargo-bin`, `c`, `monorepo`, `vite-tauri`. Every one is built by a scenario in `bun scripts/scaffold-smoke.ts`, the C template included (`make check`, `make build`, run). Features: `updater` (vite-tauri), `cac-cli` (cli, monorepo).
+`jyz create` takes `--template`, `--feature` (repeatable), `--features a,b` and `--list-features`; with no feature flag on a TTY it asks interactively. Templates: `next`, `vite-tauri`, `cli`, `rust-bin`, `rust-lib`, `c`, `monorepo`. `bun scripts/scaffold-smoke.ts` proves three of them end to end: `--scenario=c` (make check, make build, run), `--scenario=rust-lib` (cargo check, cargo test) and `--scenario=cac-cli` (install, build, `--version`). Features: `updater` (vite-tauri), `cac-cli` (cli, monorepo).
 
 Every dispatch verb takes `-F/--filter <name>` in a monorepo and `--verbose` to print the exact argv.
 
