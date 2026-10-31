@@ -27,3 +27,9 @@ What landed since the v1 milestone report and the 2026-10-30 notes. Release line
 - Desktop parity is a manifest test, not a UI walkthrough.
 - `--git github` remains stub-tested only.
 - opencode integration talks to a server it never starts; spawn mode is unimplemented.
+
+## The update loop, measured
+
+first real self-update: the installed `0.1.0-alpha.11` showed `update available: 0.1.0-alpha.21`, the person pressed **Install**, and ten seconds later `/Applications/jyz.app` was `0.1.0-alpha.21` with a new pid. So download → signature check against the pubkey → install → restart all work on a real machine, not just in the harness.
+
+What that cost to get right, in order: Tauri never writes `latest.json`; the repo must be public for release assets; `/releases/latest` skips prereleases so alphas publish with `--latest`; and the manifest needs its version restamped because bundles build as `0.1.0`.
