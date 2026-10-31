@@ -1,6 +1,0 @@
-packages/cli/test/e2e/e2e.test.ts
-packages/core/test/config.test.ts
-packages/core/test/create-git.test.ts
-packages/core/test/create.test.ts
-packages/core/test/opencode.test.ts
-scripts/mcp-smoke.ts
