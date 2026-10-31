@@ -1,4 +1,3 @@
-import { writeFileSync } from "node:fs";
 import type { ArgvRequest, CommandSpec, ProjectContext } from "@jyz/core";
 import {
 	buildArgv,

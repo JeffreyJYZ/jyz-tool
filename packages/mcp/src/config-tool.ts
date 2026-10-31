@@ -1,6 +1,6 @@
 import { writeFileSync } from "node:fs";
 import { findConfigPath, readConfigFile, writeConfigValue } from "@jyz/core";
-import { asRecord, resolveCtx } from "./spec.ts";
+import { resolveCtx } from "./spec.ts";
 import type { ToolResponse } from "./types.ts";
 
 export function handleConfig(i: Record<string, unknown>, cwd: string): ToolResponse {
