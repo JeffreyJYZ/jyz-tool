@@ -11,7 +11,7 @@
     },
     "packages/cli": {
       "name": "jyz",
-      "version": "0.1.0-alpha.31",
+      "version": "0.1.0-alpha.32",
       "bin": {
         "jyz": "./src/bin.ts",
       },
@@ -22,7 +22,7 @@
     },
     "packages/core": {
       "name": "@jyz/core",
-      "version": "0.1.0-alpha.31",
+      "version": "0.1.0-alpha.32",
       "dependencies": {
         "@opencode/client": "2.2.3",
         "smol-toml": "^1.9.1",
@@ -30,7 +30,7 @@
     },
     "packages/desktop": {
       "name": "@jyz/desktop",
-      "version": "0.1.0-alpha.31",
+      "version": "0.1.0-alpha.32",
       "devDependencies": {
         "@tauri-apps/cli": "^2.12.4",
         "happy-dom": "^21.0.4",
@@ -40,12 +40,12 @@
     },
     "packages/mcp": {
       "name": "@jyz/mcp",
-      "version": "0.1.0-alpha.31",
+      "version": "0.1.0-alpha.32",
       "bin": {
         "jyz-mcp": "./src/bin.ts",
       },
       "dependencies": {
-        "@jyz/core": "^0.1.0-alpha.31",
+        "@jyz/core": "^0.1.0-alpha.32",
       },
     },
   },
