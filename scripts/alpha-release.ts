@@ -36,6 +36,27 @@ function currentVersion(): string {
 	return pkg.version;
 }
 
+/**
+ * Land the release commit on `main` as `jyzbot` and tag it there.
+ *
+ * `main` is protected, so the bump cannot be pushed directly: it goes up as a
+ * branch on the `bot` remote, opens a pull request, merges as a rebase (the
+ * review count is 0, so the bot may merge its own), then the tag is cut on the
+ * merged commit — tagging before the merge would point at a commit GitHub never
+ * keeps.
+ */
+async function land(version: string): Promise<void> {
+	const branch = `release/${version}`;
+	const tag = `v${version}`;
+	await $`git push bot HEAD:refs/heads/${branch}`;
+	await $`gh pr create --base main --head ${branch} --title ${`chore(release): ${version}`} --body ${`Alpha ${version}. Bumped by scripts/alpha-release.ts.`}`;
+	await $`gh pr merge ${branch} --rebase --delete-branch`;
+	await $`git checkout main`;
+	await $`git pull --ff-only bot main`;
+	await $`git tag ${tag}`;
+	await $`git push bot refs/tags/${tag}`;
+}
+
 async function main() {
 	const flags = new Set(Bun.argv.slice(2));
 	const dryRun = flags.has("--dry-run");
@@ -86,17 +107,18 @@ async function main() {
 	}
 	const newVersion = bump.stdout.toString().trim() || next;
 
-	// commit
+	// commit on a release branch: `main` is protected, so the bump lands through
+	// a pull request like every other change (see `land`).
+	const branch = `release/${newVersion}`;
+	await $`git checkout -b ${branch}`;
 	await $`git add ${manifestFiles()}`;
 	await $`git commit -m ${`chore(release): ${newVersion}`}`;
-	await $`git tag ${`v${newVersion}`}`;
 
 	const notesPath = join(tmpdir(), `alpha-${newVersion}-notes.md`);
 	writeFileSync(notesPath, `Alpha release ${newVersion}\n`);
 
 	if (push || local) {
-		await $`git push`;
-		await $`git push --tags`;
+		await land(newVersion);
 	}
 
 	if (local) {
@@ -119,8 +141,12 @@ async function main() {
 		console.log(pub.stdout.toString().trim());
 	} else {
 		console.log("next commands:");
-		console.log("  git push");
-		console.log("  git push --tags");
+		console.log(`  git push bot HEAD:refs/heads/${branch}`);
+		console.log(`  gh pr create --base main --head ${branch} --fill`);
+		console.log(
+			`  gh pr merge ${branch} --rebase --delete-branch && git pull --ff-only bot main`,
+		);
+		console.log(`  git tag v${newVersion} && git push bot refs/tags/v${newVersion}`);
 		console.log(
 			`  bun scripts/release-local.ts --tag v${newVersion} --notes ${notesPath} --skip-gate`,
 		);
