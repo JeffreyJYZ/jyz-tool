@@ -1,5 +1,5 @@
 #!/usr/bin/env bun
-import { readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { $ } from "bun";
@@ -36,21 +36,62 @@ function currentVersion(): string {
 	return pkg.version;
 }
 
+/** Build and publish the tagged release with the local toolchain. */
+function publish(version: string): void {
+	const notesPath = join(tmpdir(), `alpha-${version}-notes.md`);
+	if (!existsSync(notesPath)) writeFileSync(notesPath, `Alpha release ${version}\n`);
+	const pub = Bun.spawnSync(
+		[
+			"bun",
+			"scripts/release-local.ts",
+			"--tag",
+			`v${version}`,
+			"--notes",
+			notesPath,
+			"--skip-gate",
+		],
+		{ stdout: "pipe", stderr: "pipe" },
+	);
+	if (pub.exitCode !== 0) {
+		console.error(pub.stderr.toString());
+		process.exit(pub.exitCode ?? 1);
+	}
+	console.log(pub.stdout.toString().trim());
+}
+
 /**
- * Land the release commit on `main` as `jyzbot` and tag it there.
+ * Open the release pull request as `jyzbot`.
  *
- * `main` is protected, so the bump cannot be pushed directly: it goes up as a
- * branch on the `bot` remote, opens a pull request, merges as a rebase (the
- * review count is 0, so the bot may merge its own), then the tag is cut on the
- * merged commit — tagging before the merge would point at a commit GitHub never
- * keeps.
+ * `main` is protected and requires a human approval, so this stops at the PR:
+ * the bot cannot approve its own work, and the point is that the owner reviews
+ * the bump before it lands. `finalize()` does the rest once it is merged.
  */
-async function land(version: string): Promise<void> {
+async function openRelease(version: string): Promise<void> {
+	const branch = `release/${version}`;
+	await $`git push bot HEAD:refs/heads/${branch}`;
+	await $`gh pr create --base main --head ${branch} --title ${`chore(release): ${version}`} --body ${`Alpha ${version}. Bumped by scripts/alpha-release.ts.\n\nApprove and merge, then run \`bun scripts/alpha-release.ts --finish\` to tag and publish.`}`;
+}
+
+/**
+ * Tag the merged release commit and publish it.
+ *
+ * Tags are cut only after the merge: the rebase rewrites the commit, so a tag
+ * taken before approval would point at something `main` never keeps.
+ */
+async function finalize(version: string): Promise<void> {
 	const branch = `release/${version}`;
 	const tag = `v${version}`;
-	await $`git push bot HEAD:refs/heads/${branch}`;
-	await $`gh pr create --base main --head ${branch} --title ${`chore(release): ${version}`} --body ${`Alpha ${version}. Bumped by scripts/alpha-release.ts.`}`;
-	await $`gh pr merge ${branch} --rebase --delete-branch`;
+	const state = await $`gh pr view ${branch} --json state,mergedAt`.quiet().nothrow();
+	if (state.exitCode !== 0) throw new Error(`no pull request for ${branch}`);
+	const parsed = JSON.parse(state.stdout.toString()) as {
+		state?: string;
+		mergedAt?: string | null;
+	};
+	if (parsed.state !== "MERGED" || !parsed.mergedAt) {
+		throw new Error(
+			`${branch} is ${parsed.state ?? "unknown"}, not merged — approve and merge it first`,
+		);
+	}
 	await $`git checkout main`;
 	await $`git pull --ff-only bot main`;
 	await $`git tag ${tag}`;
@@ -61,10 +102,18 @@ async function main() {
 	const flags = new Set(Bun.argv.slice(2));
 	const dryRun = flags.has("--dry-run");
 	const push = flags.has("--push");
-	const local = flags.has("--local");
 
 	const version = currentVersion();
 	const next = nextAlpha(version);
+
+	// `--finish` runs after the release pull request is approved and merged:
+	// tag the merged commit, then publish it.
+	if (flags.has("--finish")) {
+		await finalize(version);
+		publish(version);
+		console.log(`released ${version}`);
+		return;
+	}
 
 	if (dryRun) {
 		console.log(`would release ${next}`);
@@ -117,41 +166,19 @@ async function main() {
 	const notesPath = join(tmpdir(), `alpha-${newVersion}-notes.md`);
 	writeFileSync(notesPath, `Alpha release ${newVersion}\n`);
 
-	if (push || local) {
-		await land(newVersion);
+	if (push) {
+		await openRelease(newVersion);
+		console.log(`pull request open for ${newVersion}`);
+		console.log("review and merge it, then:");
+		console.log("  bun scripts/alpha-release.ts --finish");
+		return;
 	}
 
-	if (local) {
-		const pub = Bun.spawnSync(
-			[
-				"bun",
-				"scripts/release-local.ts",
-				"--tag",
-				`v${newVersion}`,
-				"--notes",
-				notesPath,
-				"--skip-gate",
-			],
-			{ stdout: "pipe", stderr: "pipe" },
-		);
-		if (pub.exitCode !== 0) {
-			console.error(pub.stderr.toString());
-			process.exit(pub.exitCode ?? 1);
-		}
-		console.log(pub.stdout.toString().trim());
-	} else {
-		console.log("next commands:");
-		console.log(`  git push bot HEAD:refs/heads/${branch}`);
-		console.log(`  gh pr create --base main --head ${branch} --fill`);
-		console.log(
-			`  gh pr merge ${branch} --rebase --delete-branch && git pull --ff-only bot main`,
-		);
-		console.log(`  git tag v${newVersion} && git push bot refs/tags/v${newVersion}`);
-		console.log(
-			`  bun scripts/release-local.ts --tag v${newVersion} --notes ${notesPath} --skip-gate`,
-		);
-	}
-	console.log(`released ${newVersion}`);
+	console.log("next commands:");
+	console.log(`  git push bot HEAD:refs/heads/${branch}`);
+	console.log(`  gh pr create --base main --head ${branch} --fill`);
+	console.log("  # after the pull request is approved and merged:");
+	console.log("  bun scripts/alpha-release.ts --finish");
 }
 
 if (import.meta.main) {
