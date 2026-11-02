@@ -14,3 +14,4 @@ Measured from the artefacts in `dist/release` at publish time, in megabytes (MB 
 | 0.1.0-alpha.36 | 50.2 | 46.8 | 89.4 | 89.4 |
 | 0.1.0-alpha.37 | 50.2 | 46.8 | 89.4 | 89.4 |
 | 0.1.0-alpha.38 | 50.2 | 46.8 | 89.4 | 89.4 |
+| 0.1.0-alpha.39 | 50.2 | 46.8 | 89.4 | 89.4 |
