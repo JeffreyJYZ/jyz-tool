@@ -121,7 +121,10 @@ async function main() {
 		return;
 	}
 
-	// dirty tree check
+	// dirty tree check — the size table is generated at publish time, so its row
+	// for the *previous* release is still uncommitted when the next one starts;
+	// it rides along in this release commit instead of blocking the run.
+	const GENERATED = new Set(["docs/progress/releases/sizes.md"]);
 	const status = await $`git status --porcelain`.quiet();
 	const dirty = status.stdout.toString().trim();
 	if (dirty) {
@@ -131,9 +134,11 @@ async function main() {
 				const parts = line.trim().split(/\s+/);
 				return parts[parts.length - 1] ?? "";
 			})
-			.filter(Boolean);
-		console.error(`dirty tree, aborting: ${paths.join(", ")}`);
-		process.exit(1);
+			.filter((path) => path !== "" && !GENERATED.has(path));
+		if (paths.length > 0) {
+			console.error(`dirty tree, aborting: ${paths.join(", ")}`);
+			process.exit(1);
+		}
 	}
 
 	const gates = ["typecheck", "lint", "format:check", "test"] as const;
@@ -157,10 +162,12 @@ async function main() {
 	const newVersion = bump.stdout.toString().trim() || next;
 
 	// commit on a release branch: `main` is protected, so the bump lands through
-	// a pull request like every other change (see `land`).
+	// a pull request like every other change (see `openRelease`).
 	const branch = `release/${newVersion}`;
 	await $`git checkout -b ${branch}`;
 	await $`git add ${manifestFiles()}`;
+	// The previous release's size row, if publishing it left one behind.
+	await $`git add docs/progress/releases/sizes.md`.quiet().nothrow();
 	await $`git commit -m ${`chore(release): ${newVersion}`}`;
 
 	const notesPath = join(tmpdir(), `alpha-${newVersion}-notes.md`);
