@@ -1,9 +1,11 @@
-.DS_Store
-local/
-node_modules/
-dist/
 !packages/core/templates/*/dist/
 !packages/core/templates/*/dist/**
-target/
-packages/desktop/src-tauri/gen/
+.DS_Store
+.env*
+.vercel
+dist/
+local/
+node_modules/
 packages/desktop/src-tauri/binaries/
+packages/desktop/src-tauri/gen/
+target/
