@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { HeroWindow } from "@/ui/hero-window";
 
 // The jyz product page: what the tool is, how to install it, and what it looks
@@ -34,30 +35,30 @@ export default function Home() {
 						<p className="command-code">{INSTALL}</p>
 					</div>
 					<div className="hero-links">
-						<a
+						<Link
 							className="hero-link"
 							href="https://github.com/JeffreyJYZ/jyz-tool"
 							target="_blank"
 							rel="noreferrer noopener"
 						>
 							GitHub
-						</a>
-						<a
+						</Link>
+						<Link
 							className="hero-link"
 							href="https://github.com/JeffreyJYZ/jyz-tool/releases"
 							target="_blank"
 							rel="noreferrer noopener"
 						>
 							Releases
-						</a>
-						<a
+						</Link>
+						<Link
 							className="hero-link"
 							href="https://github.com/JeffreyJYZ/jyz-tool#readme"
 							target="_blank"
 							rel="noreferrer noopener"
 						>
 							Docs
-						</a>
+						</Link>
 					</div>
 				</div>
 				<div className="hero-shot">
