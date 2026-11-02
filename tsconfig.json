@@ -16,5 +16,5 @@
 		"noUncheckedIndexedAccess": true,
 		"noImplicitOverride": true
 	},
-	"exclude": ["node_modules", "dist", "target"]
+	"exclude": ["node_modules", "dist", "target", "website"]
 }

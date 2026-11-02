@@ -15,7 +15,8 @@
 		"format:check": "bun fmt --check",
 		"test": "bun test",
 		"size": "bun scripts/check-file-size.ts",
-		"a11y": "bun scripts/a11y-check.ts"
+		"a11y": "bun scripts/a11y-check.ts",
+		"gate": "bun scripts/gate.ts"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^2.5.15",

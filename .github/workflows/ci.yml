@@ -45,6 +45,22 @@ jobs:
                   bun scripts/ui-walkthrough.ts
                   bun run a11y
 
+    # The site is its own Next app with its own lockfile and formatter, so it gets
+    # its own job: the root gates deliberately ignore `website/`.
+    website:
+        runs-on: ubuntu-latest
+        defaults:
+            run:
+                working-directory: website
+        steps:
+            - uses: actions/checkout@v7
+            - uses: oven-sh/setup-bun@v2
+              with:
+                  bun-version: latest
+            - run: bun install --frozen-lockfile
+            - run: bun run check
+            - run: bun run build
+
     rust:
         runs-on: ubuntu-latest
         steps:

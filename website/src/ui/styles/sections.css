@@ -1,0 +1,39 @@
+.section {
+	@apply px-6 py-20;
+}
+
+.section-heading {
+	@apply text-center text-2xl font-medium tracking-tight;
+}
+
+.section-sub {
+	@apply mx-auto mt-6 max-w-xl text-balance text-center text-muted;
+}
+
+.stats {
+	@apply grid grid-cols-1 divide-y divide-border sm:grid-cols-3 sm:divide-x sm:divide-y-0;
+}
+
+.stat {
+	@apply px-6 py-12 text-center;
+}
+
+.stat-num {
+	@apply font-mono text-3xl font-semibold;
+}
+
+.stat-label {
+	@apply mt-2 text-xs uppercase tracking-wider text-muted;
+}
+
+.section-cta {
+	@apply mt-6 font-mono text-sm;
+}
+
+.section.block {
+	color: inherit;
+}
+
+.section.block:hover .section-cta {
+	text-decoration: underline;
+}
