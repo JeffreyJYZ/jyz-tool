@@ -17,7 +17,7 @@ const ROOT = resolve(import.meta.dir, "..");
 const LIST = join(ROOT, "docs/refactor/oversized.txt");
 const ROOTS = ["packages", "scripts"];
 const EXTENSIONS = [".ts", ".tsx", ".css", ".rs"];
-const SKIP = new Set(["node_modules", "target", "dist", "gen", ".git"]);
+const SKIP = new Set(["node_modules", "target", "dist", "gen", ".git", "website"]);
 
 function walk(dir: string, out: string[] = []): string[] {
 	for (const entry of readdirSync(dir)) {

@@ -9,7 +9,8 @@
 			"!**/.delta",
 			"!packages/desktop/src-tauri/gen",
 			"!docs",
-			"!local"
+			"!local",
+			"!website"
 		]
 	},
 	"formatter": {
