@@ -1,0 +1,37 @@
+/* jyz theme for the stageshow kit.
+ *
+ * The kit paints from `--ss-*` custom properties on `.ss-stage`. Everything here
+ * retargets those to the site's own tokens, so the faux window is the same
+ * monochrome as the real app instead of the kit's default blue accent. Import
+ * after the kit: later declarations on the same element win. */
+
+.ss-stage[data-theme="dark"] {
+	--ss-canvas: var(--background);
+	--ss-surface: var(--card);
+	--ss-chrome: var(--card);
+	--ss-raised: #161616;
+	--ss-well: var(--background);
+
+	--ss-line: var(--border-color);
+	--ss-line-faint: #1a1a1a;
+
+	--ss-text: var(--muted);
+	--ss-text-strong: var(--foreground);
+	--ss-text-faint: #6b6b6b;
+	--ss-icon: var(--muted);
+	--ss-icon-faint: #4a4a4a;
+
+	/* No accent colour: jyz's only colour is the foreground, so a "selected"
+	   state reads through ink weight and a hairline, never through hue. */
+	--ss-accent: var(--foreground);
+	--ss-accent-soft: rgba(255, 255, 255, 0.08);
+	--ss-accent-text: var(--foreground);
+
+	--ss-shadow-window:
+		0 0 0 1px var(--border-color), 0 4px 16px rgba(0, 0, 0, 0.4);
+	--ss-shadow-hero:
+		0 0 0 1px var(--border-color-strong),
+		0 30px 60px -12px rgba(0, 0, 0, 0.6);
+	--ss-shadow-float:
+		0 0 0 1px var(--border-color-strong), 0 8px 24px rgba(0, 0, 0, 0.45);
+}

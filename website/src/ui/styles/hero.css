@@ -1,0 +1,63 @@
+.hero {
+	@apply grid grid-cols-1 items-center gap-14 px-6 pt-24 pb-20 sm:gap-20 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:pt-28;
+}
+
+.hero-heading {
+	@apply text-balance text-5xl font-semibold tracking-tight sm:text-6xl;
+}
+
+.hero-sub {
+	@apply mt-6 max-w-xl text-balance text-base text-muted sm:text-lg;
+}
+
+.command-box {
+	@apply mt-10 w-full max-w-md overflow-hidden rounded-md border border-border bg-card;
+}
+
+.command-tabs {
+	@apply flex border-b border-border text-xs;
+}
+
+.command-tab {
+	@apply px-3 py-2 text-muted;
+}
+
+.command-tab.is-active {
+	@apply border-b border-foreground text-foreground;
+}
+
+.command-code {
+	@apply font-mono block px-4 py-3 text-left text-sm text-foreground;
+}
+
+.hero-links {
+	@apply mt-8 flex items-center gap-6 font-mono text-sm;
+}
+
+.hero-link {
+	@apply text-muted transition-colors hover:text-foreground;
+}
+
+.hero-copy {
+	@apply flex flex-col items-center text-center lg:items-start lg:text-left;
+}
+
+.hero-shot {
+	@apply w-full;
+}
+
+.facts {
+	@apply mt-10 divide-y divide-border border-y border-border text-left;
+}
+
+.fact {
+	@apply flex flex-col gap-1 py-4 sm:flex-row sm:items-baseline sm:gap-6;
+}
+
+.fact-label {
+	@apply w-24 shrink-0 font-mono text-xs uppercase tracking-widest text-muted;
+}
+
+.fact-value {
+	@apply font-mono text-sm text-foreground;
+}

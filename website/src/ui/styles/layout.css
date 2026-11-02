@@ -1,0 +1,31 @@
+.site-shell {
+	@apply min-h-dvh bg-background text-foreground;
+}
+
+.site-container {
+	@apply mx-auto w-full max-w-3xl;
+}
+
+.site-nav {
+	@apply flex items-center justify-between px-6 py-5;
+}
+
+.site-nav-brand {
+	@apply font-mono text-sm tracking-tight text-foreground;
+}
+
+.site-nav-links {
+	@apply flex items-center gap-6 text-sm text-muted;
+}
+
+.site-nav-link {
+	@apply transition-colors hover:text-foreground;
+}
+
+.site-footer {
+	@apply flex flex-col items-center gap-4 px-6 py-12 text-center text-sm text-muted;
+}
+
+.site-footer-links {
+	@apply flex items-center gap-5;
+}
