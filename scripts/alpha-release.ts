@@ -94,8 +94,16 @@ async function finalize(version: string): Promise<void> {
 	}
 	await $`git checkout main`;
 	await $`git pull --ff-only bot main`;
-	await $`git tag ${tag}`;
+	await $`git tag -f ${tag}`;
 	await $`git push bot refs/tags/${tag}`;
+	// npm publishing is driven by its own tags in `.github/workflows/publish.yml`,
+	// one per package: `v*` alone releases the desktop app and never reaches npm,
+	// which is how alpha.39 shipped to GitHub but not to the registry.
+	for (const pkg of ["cli", "mcp"] as const) {
+		const npmTag = `${pkg}-${tag}`;
+		await $`git tag -f ${npmTag}`;
+		await $`git push bot refs/tags/${npmTag}`;
+	}
 }
 
 async function main() {
