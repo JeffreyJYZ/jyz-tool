@@ -1,0 +1,12 @@
+# Only the website is deployed from this repo; everything else is build noise.
+website/node_modules
+website/.next
+website/out
+node_modules
+packages/*/node_modules
+target
+dist
+local
+docs
+.git
+*.log
