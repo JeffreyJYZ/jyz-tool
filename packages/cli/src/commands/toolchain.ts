@@ -26,7 +26,7 @@ export interface ToolchainRunOptions {
 	run?: (spec: CommandSpec) => Promise<number>;
 }
 
-function forwarded(args: string[]): string[] {
+function forwarded(args: string[] = []): string[] {
 	return args.filter((arg) => arg !== "--verbose" && arg !== "--json");
 }
 
