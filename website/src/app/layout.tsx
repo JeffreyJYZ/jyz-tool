@@ -30,6 +30,12 @@ export default function RootLayout({
 							<div className="site-nav-links">
 								<a
 									className="site-nav-link"
+									href="https://jyz.land"
+								>
+									jyz.land
+								</a>
+								<a
+									className="site-nav-link"
 									href="https://github.com/JeffreyJYZ/jyz-tool"
 									target="_blank"
 									rel="noreferrer noopener"
