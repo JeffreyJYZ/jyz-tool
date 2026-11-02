@@ -10,7 +10,8 @@
 			"!packages/desktop/src-tauri/gen",
 			"!docs",
 			"!local",
-			"!website"
+			"!website",
+			"!**/.vercel"
 		]
 	},
 	"formatter": {
