@@ -1,7 +1,18 @@
 import type { Formatter, Linter, PackageManager, Typechecker } from "./config.ts";
 
-/** Templates `jyz create --template` accepts. */
-export type Template = "next" | "vite-tauri" | "cli" | "rust-bin" | "rust-lib" | "c" | "monorepo";
+/** Templates `jyz create --template` accepts, in the order the help lists them. */
+export const TEMPLATES = [
+	"next",
+	"vite-tauri",
+	"cli",
+	"rust-bin",
+	"rust-lib",
+	"c",
+	"monorepo",
+	"rune-native",
+] as const;
+
+export type Template = (typeof TEMPLATES)[number];
 
 /** Git modes `jyz create --git` accepts. */
 export type GitMode = "skip" | "init" | "commit" | "github";

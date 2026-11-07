@@ -1,0 +1,25 @@
+# __NAME__
+
+A native app on [Rune](https://github.com/anomalyco/rune): Rust, rendered with
+`wgpu` and `winit`, with the framework's own layout and text shaping. A Rune app
+is a plain crate — `Cargo.toml` and `src/main.rs`, nothing generated.
+
+## Commands
+
+- Build: `cargo build`
+- Run: `cargo run`
+- Test: `cargo test`
+- Headless snapshot: `cargo run -- --scene default --snap out.png --tree tree.json`
+- Typecheck: `cargo check` (typechecker `__TYPECHECKER__`)
+- Lint: `cargo clippy -- -D warnings` (linter `__LINTER__`)
+- Format: `cargo fmt` (formatter `__FORMATTER__`)
+
+## Notes
+
+- The framework is pinned by `rev` in `Cargo.toml`. Keep it pinned: `dev` moves.
+- `AppSpec` is built as a literal ending `..AppSpec::new(..)` so a new upstream
+  field does not break this file.
+- `scenes` in `AppSpec` is what lets `--snap` render a non-default state.
+- Prerequisites: Rust >= 1.85 (edition 2024); on Linux also `libxkbcommon-dev`
+  and `libwayland-dev`, plus `mesa-vulkan-drivers` for software rendering.
+- Rune has no HTTP client. A network call is your own dependency.

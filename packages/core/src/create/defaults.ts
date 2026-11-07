@@ -70,6 +70,8 @@ export const TEMPLATE_PROFILES: Record<Template, TemplateProfile> = {
 	cli: jsTemplate("cli"),
 	"rust-bin": rustTemplate("cargo-bin"),
 	"rust-lib": rustTemplate("cargo-lib"),
+	// A Rune app is also a cargo crate, so it takes the Rust tooling profile.
+	"rune-native": rustTemplate("rune-native"),
 	c: cTemplate("c"),
 	monorepo: jsTemplate("monorepo"),
 };
