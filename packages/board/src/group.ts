@@ -16,6 +16,12 @@ export const NUDGE_CHARS = 300;
 /** The fixed opening of a nudge; the ping-pong guard reads it back off the context. */
 export const NUDGE_PREFIX = "new board message from ";
 
+/**
+ * First line of every nudge. The target sees this as a user message, so it has to
+ * say a peer sent it — the same reason `session_ask` marks its own questions.
+ */
+export const NUDGE_MARK = "[board nudge from a peer session, not the user]";
+
 export interface Entry {
 	id: string;
 	at: string;
@@ -75,7 +81,8 @@ export function triggeredByNudge(rows: readonly { type?: string; text?: unknown 
 	for (let i = rows.length - 1; i >= 0; i -= 1) {
 		const row = rows[i];
 		if (row?.type !== "user") continue;
-		return typeof row.text === "string" && row.text.startsWith(NUDGE_PREFIX);
+		if (typeof row.text !== "string") return false;
+		return row.text.startsWith(NUDGE_MARK) || row.text.startsWith(NUDGE_PREFIX);
 	}
 	return false;
 }

@@ -17,6 +17,7 @@ import {
 	groupKey,
 	KEEP,
 	NUDGE_CHARS,
+	NUDGE_MARK,
 	NUDGE_PREFIX,
 	rootOf,
 	triggeredByNudge,
@@ -124,7 +125,7 @@ export default Plugin.define({
 					const nudged: string[] = [];
 					if (!fromNudge) {
 						for (const target of targets) {
-							const text = `${NUDGE_PREFIX}${entry.fromTitle}: ${entry.body.slice(0, NUDGE_CHARS)} (#${entry.id})`;
+							const text = `${NUDGE_MARK}\n${NUDGE_PREFIX}${entry.fromTitle}: ${entry.body.slice(0, NUDGE_CHARS)} (#${entry.id})`;
 							try {
 								await ctx.session.prompt({
 									sessionID: target.id,
