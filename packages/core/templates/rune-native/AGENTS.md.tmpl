@@ -17,6 +17,13 @@ is a plain crate — `Cargo.toml` and `src/main.rs`, nothing generated.
 ## Notes
 
 - The framework is pinned by `rev` in `Cargo.toml`. Keep it pinned: `dev` moves.
+- To move the pin, read the current revision rather than guessing:
+
+  ```sh
+  git -C ~/dev/experiments/rune rev-parse --short HEAD
+  ```
+
+  then replace the `rev` in `Cargo.toml` and run `cargo update -p rune`.
 - `AppSpec` is built as a literal ending `..AppSpec::new(..)` so a new upstream
   field does not break this file.
 - `scenes` in `AppSpec` is what lets `--snap` render a non-default state.
