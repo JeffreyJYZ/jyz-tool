@@ -20,7 +20,7 @@ export const NUDGE_PREFIX = "new board message from ";
  * First line of every nudge. The target sees this as a user message, so it has to
  * say a peer sent it — the same reason `session_ask` marks its own questions.
  */
-export const NUDGE_MARK = "[board nudge from a peer session, not the user]";
+export const NUDGE_MARK = "[autonomous system nudge from the board plugin]";
 
 export interface Entry {
 	id: string;
