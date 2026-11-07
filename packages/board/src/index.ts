@@ -9,80 +9,20 @@
 
 import { Plugin } from "@opencode/plugin";
 import { Schema } from "effect";
+import type { Cursor, Entry, SessionList, SessionRow } from "./shared.ts";
+import {
+	CURSOR_KEY,
+	directoryOf,
+	ENTRY_KEY,
+	groupKey,
+	KEEP,
+	NUDGE_CHARS,
+	NUDGE_PREFIX,
+	rootOf,
+	triggeredByNudge,
+} from "./shared.ts";
 
-/** Everything a session has to remember lives in two storage namespaces. */
-const ENTRY_KEY = "board.entries";
-const CURSOR_KEY = "board.cursor";
-
-/** The last 50 entries are kept; older ones are dropped on write, never on read. */
-const KEEP = 50;
-
-/** A nudge carries at most this much of the body, so a long post cannot flood a prompt. */
-const NUDGE_CHARS = 300;
-
-/** The fixed opening of a nudge; the ping-pong guard reads it back off the context. */
-const NUDGE_PREFIX = "new board message from ";
-
-interface Entry {
-	id: string;
-	at: string;
-	from: string;
-	fromTitle: string;
-	body: string;
-	causedBy: string | null;
-	to: string;
-}
-
-interface Cursor {
-	/** Session id -> the id of the last entry it has acknowledged. */
-	read: Record<string, string>;
-}
-
-/** A session as `session.list()` reports it, narrowed to what grouping needs. */
-/** `session.list()` answers either a bare array or `{ sessions }` depending on the build. */
-type SessionList = SessionRow[] | { sessions?: SessionRow[] };
-
-interface SessionRow {
-	id: string;
-	title?: string | null;
-	directory?: string | null;
-	parentID?: string | null;
-}
-
-/** Hash a directory into a key component: paths carry slashes, storage keys do not. */
-function groupKey(directory: string): string {
-	let hash = 0x811c9dc5;
-	for (let i = 0; i < directory.length; i += 1) {
-		hash ^= directory.charCodeAt(i);
-		hash = Math.imul(hash, 0x01000193) >>> 0;
-	}
-	return `board.group.${hash.toString(16).padStart(8, "0")}`;
-}
-
-/** Walk parent links to the root session, so a nested subagent lands on the root's board. */
-function rootOf(rows: readonly SessionRow[], sessionID: string): SessionRow | undefined {
-	const byId = new Map(rows.map((row) => [row.id, row]));
-	let current = byId.get(sessionID);
-	const seen = new Set<string>();
-	while (current?.parentID && !seen.has(current.parentID)) {
-		seen.add(current.id);
-		const parent = byId.get(current.parentID);
-		if (!parent) return current;
-		current = parent;
-	}
-	return current;
-}
-
-/** True when the caller's latest user row is one of our nudges. */
-function triggeredByNudge(rows: readonly { type?: string; text?: unknown }[]): boolean {
-	for (let i = rows.length - 1; i >= 0; i -= 1) {
-		const row = rows[i];
-		if (row?.type !== "user") continue;
-		return typeof row.text === "string" && row.text.startsWith(NUDGE_PREFIX);
-	}
-	return false;
-}
-
+/** Read the group record, tolerating a shape this plugin did not write. */
 async function readEntries(
 	ctx: Parameters<Parameters<typeof Plugin.define>[0]["setup"]>[0],
 	key: string,
@@ -106,10 +46,13 @@ export default Plugin.define({
 				}),
 				execute: async (input, context) => {
 					const listed = (await ctx.session.list()) as unknown as SessionList;
-					const rows = Array.isArray(listed) ? listed : (listed.sessions ?? []);
+					const rows = Array.isArray(listed)
+						? listed
+						: (listed.data ?? listed.sessions ?? []);
 					const caller = rows.find((row) => row.id === context.sessionID);
 					const root = rootOf(rows, context.sessionID) ?? caller;
-					const group = input.group ?? root?.directory ?? "";
+					const group =
+						input.group ?? (directoryOf(root ?? caller) || ctx.location.directory);
 					const key = groupKey(group);
 
 					const entries = await readEntries(ctx, key);
@@ -166,7 +109,7 @@ export default Plugin.define({
 					const targets = rows.filter((row) => {
 						if (row.id === context.sessionID) return false;
 						const rowRoot = rootOf(rows, row.id) ?? row;
-						return (rowRoot.directory ?? "") === group;
+						return directoryOf(rowRoot) === group;
 					});
 
 					const nudged: string[] = [];
