@@ -64,6 +64,7 @@ packages/core     every capability: config, detection, dispatch, toolchain, crea
 packages/cli      cac-based adapter over core, plus the JSON-RPC serve mode
 packages/mcp      MCP tools, resources and a stdio server over core; ships a `jyz-mcp` bin
 packages/desktop  Tauri 2 shell over `jyz serve`, Vite + TypeScript, no framework; CLI bundled as a sidecar
+packages/board    opencode plugin: a shared board so sessions in one directory can post and nudge each other
 ```
 
 ## Desktop and MCP

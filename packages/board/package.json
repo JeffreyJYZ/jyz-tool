@@ -1,0 +1,20 @@
+{
+	"name": "@jyz/board",
+	"version": "0.0.0",
+	"private": true,
+	"description": "A shared board for opencode sessions: one tool, peer nudges, no orchestrator",
+	"type": "module",
+	"main": "src/index.ts",
+	"exports": {
+		".": "./src/index.ts"
+	},
+	"files": [
+		"src"
+	],
+	"license": "MIT",
+	"dependencies": {},
+	"devDependencies": {
+		"@opencode/plugin": "2.2.6",
+		"effect": "4.1.0"
+	}
+}
