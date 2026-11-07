@@ -9,7 +9,7 @@
 
 import { Plugin } from "@opencode/plugin";
 import { Schema } from "effect";
-import type { Cursor, Entry, SessionList, SessionRow } from "./shared.ts";
+import type { Cursor, Entry, SessionList, SessionRow } from "./group.ts";
 import {
 	CURSOR_KEY,
 	directoryOf,
@@ -20,7 +20,7 @@ import {
 	NUDGE_PREFIX,
 	rootOf,
 	triggeredByNudge,
-} from "./shared.ts";
+} from "./group.ts";
 
 /** Read the group record, tolerating a shape this plugin did not write. */
 async function readEntries(
