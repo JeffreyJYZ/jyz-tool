@@ -1,0 +1,4 @@
+# /target and the OS junk macOS leaves behind. Rune generates nothing into the
+# app directory, so there is no build artefact to keep beyond cargo's own.
+/target
+.DS_Store

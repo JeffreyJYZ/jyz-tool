@@ -15,19 +15,19 @@ Hard rule: no external scaffolding tool. No `create-next-app`, no `cargo init`, 
 
 `jyz create <name>` starts a project. Every prompt has an identical flag, so CI and agents never need a TTY.
 
-| Flag                   | Meaning                                                              |
-| ---------------------- | -------------------------------------------------------------------- |
-| `--template <t>`       | `next`, `vite-tauri`, `cli`, `rust-bin`, `rust-lib`, `c`, `monorepo` |
-| `--pm <pm>`            | `bun`, `pnpm`                                                        |
-| `--typechecker <c>`    | `bun-check`, `tsc`, `tsgo`, `tsrs`                                   |
-| `--linter <l>`         | `biome`, `eslint`, `bun-lint`, `clang-tidy`, `cargo-clippy`, `none`  |
-| `--formatter <f>`      | `biome`, `bun-fmt`, `prettier`, `clang-format`, `rustfmt`, `none`    |
-| `--docs[=bool]`        | include the `docs/` scaffold                                         |
-| `--git <mode>`         | `skip`, `init`, `commit`, `github`                                   |
-| `--install[=bool]`     | run the package manager after writing                                |
-| `--publishable[=bool]` | JS templates get the manifest fields a release needs                 |
-| `--dir <path>`         | target directory, defaults to `./<name>`                             |
-| `--yes`                | accept defaults for anything unflagged                               |
+| Flag | Meaning |
+| --- | --- |
+| `--template <t>` | `next`, `vite-tauri`, `cli`, `rust-bin`, `rust-lib`, `c`, `monorepo`, `rune-native` |
+| `--pm <pm>` | `bun`, `pnpm` |
+| `--typechecker <c>` | `bun-check`, `tsc`, `tsgo`, `tsrs` |
+| `--linter <l>` | `biome`, `eslint`, `bun-lint`, `clang-tidy`, `cargo-clippy`, `none` |
+| `--formatter <f>` | `biome`, `bun-fmt`, `prettier`, `clang-format`, `rustfmt`, `none` |
+| `--docs[=bool]` | include the `docs/` scaffold |
+| `--git <mode>` | `skip`, `init`, `commit`, `github` |
+| `--install[=bool]` | run the package manager after writing |
+| `--publishable[=bool]` | JS templates get the manifest fields a release needs |
+| `--dir <path>` | target directory, defaults to `./<name>` |
+| `--yes` | accept defaults for anything unflagged |
 
 Non-TTY without `--yes` or the required flags: exit non-zero with the missing flag named. Never hang on a prompt.
 
@@ -40,6 +40,7 @@ Non-TTY without `--yes` or the required flags: exit non-zero with the missing fl
 | JS/TS | `cli` | bun, pnpm | one bin entry, `src/` with `types/`, `const/`, `funcs/`, minimal argv parsing |
 | Rust | `rust-bin` | cargo only | `cargo new` layout plus a customisable `[[bin]]` block |
 | Rust | `rust-lib` | cargo only | `cargo new --lib` layout, `src/lib.rs` |
+| Rust | `rune-native` | cargo only | Rune app: `Cargo.toml` pinned to a framework rev, `src/main.rs` with `AppSpec`, `scenes` and a test |
 | C/C++ | `c` | none | `.c` and `.h` for C, `.cpp` and `.hpp` for C++, sources and headers together in `src/`, output in `dist/`, both a `Makefile` and a `justfile` |
 | Meta | `monorepo` | per member | assembles `website/`, `cli/`, `desktop/` and so on from the templates above |
 

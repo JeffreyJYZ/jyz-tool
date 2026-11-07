@@ -1,0 +1,11 @@
+[package]
+name = "__NAME__"
+version = "__VERSION__"
+edition = "2024"
+rust-version = "1.85"
+publish = false
+
+[dependencies]
+# Rune is not on crates.io: pin the revision, never a branch. `dev` moves, so a
+# branch would make two clones of this app build different frameworks.
+rune = { git = "https://github.com/anomalyco/rune", rev = "781e2b6" }

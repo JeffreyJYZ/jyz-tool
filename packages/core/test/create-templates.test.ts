@@ -16,6 +16,7 @@ test("every declared template is available", () => {
 		"rust-lib",
 		"c",
 		"monorepo",
+		"rune-native",
 	];
 	const available = availableTemplates();
 	for (const template of declared) expect(available).toContain(template);
