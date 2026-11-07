@@ -30,6 +30,8 @@ export interface Entry {
 	body: string;
 	causedBy: string | null;
 	to: string;
+	/** Files this post claims; the newest claim on a path owns it. */
+	files?: readonly string[];
 }
 
 export interface Cursor {
@@ -85,4 +87,110 @@ export function triggeredByNudge(rows: readonly { type?: string; text?: unknown 
 		return row.text.startsWith(NUDGE_MARK) || row.text.startsWith(NUDGE_PREFIX);
 	}
 	return false;
+}
+
+/** How often a wait re-reads the group record. */
+export const WAIT_POLL_MS = 500;
+
+/** A wait gives up after this long unless the caller asks for longer. */
+export const WAIT_DEFAULT_MS = 120_000;
+
+/** True when at least one entry matches, or when no pattern was given. */
+export function matches(entries: readonly Entry[], pattern: string | undefined): boolean {
+	if (entries.length === 0) return false;
+	if (pattern === undefined || pattern === "") return true;
+	return entries.some(
+		(entry) => entry.body.includes(pattern) || entry.fromTitle.includes(pattern),
+	);
+}
+
+/**
+ * Poll `read` until it returns entries that match, or the deadline passes.
+ * Returns the entries, or null on timeout — the caller decides what a timeout
+ * means, because a silent wait is worse than a reported one.
+ */
+export async function waitForEntries(
+	read: () => Promise<Entry[]>,
+	pattern: string | undefined,
+	timeoutMs: number,
+): Promise<Entry[] | null> {
+	const deadline = Date.now() + timeoutMs;
+	for (;;) {
+		const entries = await read();
+		if (matches(entries, pattern)) return entries;
+		if (Date.now() >= deadline) return null;
+		await new Promise((resolve) => setTimeout(resolve, WAIT_POLL_MS));
+	}
+}
+
+/** A file another session has already claimed on this board. */
+export interface ClaimConflict {
+	readonly file: string;
+	readonly by: string;
+	readonly title: string;
+}
+
+/**
+ * Files already claimed by somebody else, newest claim winning.
+ *
+ * Claims are derived from the entries themselves — a post that names files owns
+ * them until another post does. No separate index means nothing to keep in sync,
+ * and the 50-entry window bounds how far back a claim is remembered.
+ */
+export function claimConflicts(
+	entries: readonly Entry[],
+	files: readonly string[],
+	self: string,
+): ClaimConflict[] {
+	const owner = new Map<string, { by: string; title: string }>();
+	for (const entry of entries) {
+		if (entry.files === undefined) continue;
+		for (const file of entry.files) owner.set(file, { by: entry.from, title: entry.fromTitle });
+	}
+	const out: ClaimConflict[] = [];
+	for (const file of files) {
+		const held = owner.get(file);
+		if (held !== undefined && held.by !== self) out.push({ file, ...held });
+	}
+	return out;
+}
+
+/** The slice of the plugin context grouping needs, so it can live outside the plugin. */
+export interface BoardCtx {
+	readonly location: { readonly directory: string };
+	readonly session: { list: () => Promise<unknown> };
+	readonly storage: { get: (key: string) => Promise<unknown> };
+}
+
+/** Resolve the caller's group key and the live rows, in one place for both tools. */
+export async function resolveGroup(
+	ctx: BoardCtx,
+	sessionID: string,
+	override?: string,
+): Promise<{ group: string; key: string; rows: SessionRow[]; caller: SessionRow | undefined }> {
+	const listed = (await ctx.session.list()) as unknown as SessionList;
+	const rows = Array.isArray(listed) ? listed : (listed.data ?? listed.sessions ?? []);
+	const caller = rows.find((row) => row.id === sessionID);
+	const root = rootOf(rows, sessionID) ?? caller;
+	const group = override ?? (directoryOf(root ?? caller) || ctx.location.directory);
+	return { group, key: groupKey(group), rows, caller };
+}
+
+/** Read the group record, tolerating a shape this plugin did not write. */
+export async function readEntries(ctx: BoardCtx, key: string): Promise<Entry[]> {
+	const stored = await ctx.storage.get(key);
+	return Array.isArray(stored) ? (stored as Entry[]) : [];
+}
+
+/** Entries this session has not acknowledged yet, newest first. */
+export async function unreadEntries(
+	ctx: BoardCtx,
+	key: string,
+	cursor: Cursor,
+	sessionID: string,
+): Promise<Entry[]> {
+	const entries = await readEntries(ctx, key);
+	const seen = cursor.read?.[sessionID];
+	const index = seen === undefined ? -1 : entries.findIndex((entry) => entry.id === seen);
+	return entries.slice(index + 1).reverse();
 }

@@ -12,6 +12,7 @@ import { Schema } from "effect";
 import type { Cursor, Entry, SessionList, SessionRow } from "./group.ts";
 import {
 	CURSOR_KEY,
+	claimConflicts,
 	directoryOf,
 	ENTRY_KEY,
 	groupKey,
@@ -19,23 +20,57 @@ import {
 	NUDGE_CHARS,
 	NUDGE_MARK,
 	NUDGE_PREFIX,
+	readEntries,
+	resolveGroup,
 	rootOf,
 	triggeredByNudge,
+	unreadEntries,
+	WAIT_DEFAULT_MS,
+	waitForEntries,
 } from "./group.ts";
-
-/** Read the group record, tolerating a shape this plugin did not write. */
-async function readEntries(
-	ctx: Parameters<Parameters<typeof Plugin.define>[0]["setup"]>[0],
-	key: string,
-): Promise<Entry[]> {
-	const stored = await ctx.storage.get(key);
-	return Array.isArray(stored) ? (stored as Entry[]) : [];
-}
 
 export default Plugin.define({
 	id: "board",
 	async setup(ctx) {
 		ctx.tool.transform((tools) => {
+			tools.add({
+				name: "board_wait",
+				description:
+					"Block until a matching board entry arrives for this session, then return it like a read. `match` is a case-sensitive substring of the body or the sender title; omit it to wake on any new entry. Answers a timeout notice rather than staying silent.",
+				input: Schema.Struct({
+					match: Schema.optional(Schema.String),
+					timeout_ms: Schema.optional(Schema.Number),
+				}),
+				execute: async (input, context) => {
+					const { group, key } = await resolveGroup(ctx, context.sessionID);
+					const cursor = ((await ctx.storage.get(CURSOR_KEY)) ?? { read: {} }) as Cursor;
+
+					const found = await waitForEntries(
+						() => unreadEntries(ctx, key, cursor, context.sessionID),
+						input.match,
+						input.timeout_ms ?? WAIT_DEFAULT_MS,
+					);
+					// Even a timeout acknowledges what already exists, so a caller that
+					// waits does not replay the same backlog on its next read.
+					const all = await readEntries(ctx, key);
+					const newest = all.at(-1);
+					if (newest !== undefined) {
+						cursor.read = { ...(cursor.read ?? {}), [context.sessionID]: newest.id };
+						await ctx.storage.set(CURSOR_KEY, cursor as unknown as never);
+					}
+					if (found === null)
+						return { content: "board: nothing matching before the timeout" };
+					return {
+						content: found
+							.map(
+								(entry) =>
+									`#${entry.id} ${entry.at} ${entry.fromTitle}: ${entry.body}`,
+							)
+							.join("\n"),
+					};
+				},
+			});
+
 			tools.add({
 				name: "board",
 				description:
@@ -44,28 +79,20 @@ export default Plugin.define({
 					post: Schema.optional(Schema.String),
 					to: Schema.optional(Schema.String),
 					group: Schema.optional(Schema.String),
+					files: Schema.optional(Schema.Array(Schema.String)),
 				}),
 				execute: async (input, context) => {
-					const listed = (await ctx.session.list()) as unknown as SessionList;
-					const rows = Array.isArray(listed)
-						? listed
-						: (listed.data ?? listed.sessions ?? []);
-					const caller = rows.find((row) => row.id === context.sessionID);
-					const root = rootOf(rows, context.sessionID) ?? caller;
-					const group =
-						input.group ?? (directoryOf(root ?? caller) || ctx.location.directory);
-					const key = groupKey(group);
+					const { group, key, rows, caller } = await resolveGroup(
+						ctx,
+						context.sessionID,
+						input.group,
+					);
 
 					const entries = await readEntries(ctx, key);
 					const cursor = ((await ctx.storage.get(CURSOR_KEY)) ?? { read: {} }) as Cursor;
 
 					if (input.post === undefined) {
-						const seen = cursor.read?.[context.sessionID];
-						const index =
-							seen === undefined
-								? -1
-								: entries.findIndex((entry) => entry.id === seen);
-						const unread = entries.slice(index + 1).reverse();
+						const unread = await unreadEntries(ctx, key, cursor, context.sessionID);
 						// Reading acknowledges: the next call answers only what arrived after this one.
 						const newest = entries.at(-1);
 						if (newest !== undefined) {
@@ -111,6 +138,7 @@ export default Plugin.define({
 						body: input.post,
 						causedBy: fromNudge ? "nudge" : null,
 						to: input.to ?? "all",
+						...(input.files === undefined ? {} : { files: [...input.files] }),
 					};
 
 					const next = [...entries, entry].slice(-KEEP);
@@ -142,7 +170,22 @@ export default Plugin.define({
 					cursor.read = { ...(cursor.read ?? {}), [context.sessionID]: id };
 					await ctx.storage.set(CURSOR_KEY, cursor as unknown as never);
 
-					return { content: `posted #${id} to ${group}; nudged ${nudged.length}` };
+					// Against the entries that existed BEFORE this post: the new entry claims
+					// the same paths and would otherwise own them already.
+					const conflicts = claimConflicts(entries, input.files ?? [], context.sessionID);
+					const warning =
+						conflicts.length === 0
+							? ""
+							: `\nCLAIM CONFLICT: ${conflicts
+									.map(
+										(conflict) =>
+											`${conflict.file} already claimed by ${conflict.title}`,
+									)
+									.join("; ")}`;
+
+					return {
+						content: `posted #${id} to ${group}; nudged ${nudged.length}${warning}`,
+					};
 				},
 			});
 		});
