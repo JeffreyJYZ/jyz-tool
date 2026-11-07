@@ -65,6 +65,15 @@ export default Plugin.define({
 								? -1
 								: entries.findIndex((entry) => entry.id === seen);
 						const unread = entries.slice(index + 1).reverse();
+						// Reading acknowledges: the next call answers only what arrived after this one.
+						const newest = entries.at(-1);
+						if (newest !== undefined) {
+							cursor.read = {
+								...(cursor.read ?? {}),
+								[context.sessionID]: newest.id,
+							};
+							await ctx.storage.set(CURSOR_KEY, cursor as unknown as never);
+						}
 						const body =
 							unread.length === 0
 								? "board: nothing unread"
